@@ -350,6 +350,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </select>
       <div class="select-hint">Hold Ctrl (PC) or &#8984; Command (Mac) to select multiple.</div>
     </div>
+    <div class="field-group" id="group-mode-section" style="display:none">
+      <div class="field-label">Group Preview &amp; Print By</div>
+      <select class="multi-select" id="group-mode-filter" size="2">
+        <option value="school" selected>School &amp; Grade</option>
+        <option value="level">Benchmark Level</option>
+      </select>
+      <div class="select-hint">Level grouping clusters students for small-group / intervention planning.</div>
+    </div>
     <div class="sidebar-divider"></div>
     <div class="field-group">
       <div class="field-label">Reflection Page Type</div>
@@ -457,6 +465,8 @@ const LEVEL_SHORT = {
   'Above Benchmark': 'Above BM',
   '': 'No Score'
 };
+// Display order for grouping students by benchmark level (most support needed first)
+const LEVEL_ORDER = ['Well Below Benchmark', 'Below Benchmark', 'At Benchmark', 'Above Benchmark', ''];
 
 const GROWTH_CLASS = {
   'Well Above Average': 'growth-well-above',
@@ -759,6 +769,7 @@ function populateFilters() {
   document.getElementById('teacher-filter-section').style.display = 'block';
   document.getElementById('period-filter-section').style.display = 'block';
   document.getElementById('level-filter-section').style.display = 'block';
+  document.getElementById('group-mode-section').style.display = 'block';
   document.getElementById('stats-section').style.display = 'block';
   [...document.getElementById('level-filter').options].forEach(o => o.selected = true);
 }
@@ -767,6 +778,42 @@ function getSelectedPeriod() {
   const pf = document.getElementById('period-filter');
   const sel = [...pf.selectedOptions];
   return sel.length > 0 ? sel[0].value : 'MOY';
+}
+
+function getGroupMode() {
+  const gf = document.getElementById('group-mode-filter');
+  const sel = [...gf.selectedOptions];
+  return sel.length > 0 ? sel[0].value : 'school';
+}
+
+// Groups students either by School & Grade (default) or by Benchmark Level
+// (for pulling small groups / planning intervention groups). Returns an
+// ordered array of { label, students }.
+function buildGroups(students, groupMode, selPeriod) {
+  if (groupMode === 'level') {
+    const byLevel = {};
+    for (const s of students) {
+      const ph = s.history.find(h => h.period === selPeriod) || s.latestHistory;
+      const level = ph ? ph.compositeLevel : '';
+      if (!byLevel[level]) byLevel[level] = [];
+      byLevel[level].push(s);
+    }
+    return LEVEL_ORDER
+      .filter(lvl => byLevel[lvl] && byLevel[lvl].length > 0)
+      .map(lvl => ({ label: lvl || 'No Score', students: byLevel[lvl] }));
+  }
+
+  const byGroup = {};
+  for (const s of students) {
+    const key = `${s.school}||${s.grade}`;
+    if (!byGroup[key]) byGroup[key] = { school: s.school, grade: s.grade, students: [] };
+    byGroup[key].students.push(s);
+  }
+  const groups = Object.values(byGroup).sort((a, b) => {
+    if (a.school < b.school) return -1; if (a.school > b.school) return 1;
+    return gradeToNum(a.grade) - gradeToNum(b.grade);
+  });
+  return groups.map(g => ({ label: `${g.school} — Grade ${g.grade}`, students: g.students }));
 }
 
 function getFilteredStudents() {
@@ -831,6 +878,10 @@ document.querySelectorAll('#school-filter, #grade-filter, #teacher-filter, #leve
   .forEach(el => el.addEventListener('change', renderStats));
 document.querySelectorAll('#school-filter, #grade-filter')
   .forEach(el => el.addEventListener('change', updateTeacherFilter));
+// If the preview list is already open, re-render it live when the grouping changes
+document.getElementById('group-mode-filter').addEventListener('change', () => {
+  if (document.getElementById('preview-container').style.display !== 'none') renderPreviewList();
+});
 
 function renderPreviewList() {
   filteredStudents = getFilteredStudents();
@@ -842,25 +893,17 @@ function renderPreviewList() {
   document.getElementById('preview-title').textContent = 'Student Report Preview';
   document.getElementById('preview-meta').textContent = `${filteredStudents.length} students · click a name to preview their report`;
 
-  const byGroup = {};
-  for (const s of filteredStudents) {
-    const key = `${s.school}||${s.grade}`;
-    if (!byGroup[key]) byGroup[key] = { school: s.school, grade: s.grade, students: [] };
-    byGroup[key].students.push(s);
-  }
+  const groupMode = getGroupMode();
+  const selPeriod = getSelectedPeriod();
+  const groups = buildGroups(filteredStudents, groupMode, selPeriod);
+
   const container = document.getElementById('preview-container');
   container.innerHTML = '';
-  const groups = Object.values(byGroup).sort((a, b) => {
-    if (a.school < b.school) return -1; if (a.school > b.school) return 1;
-    return gradeToNum(a.grade) - gradeToNum(b.grade);
-  });
-
-  const selPeriod = getSelectedPeriod();
 
   for (const group of groups) {
     const gh = document.createElement('div');
     gh.className = 'school-group-header';
-    gh.innerHTML = `<div class="school-group-dot"></div><div class="school-group-name">${esc(group.school)} — Grade ${group.grade}</div><div class="school-group-count">${group.students.length} student${group.students.length !== 1 ? 's' : ''}</div>`;
+    gh.innerHTML = `<div class="school-group-dot"></div><div class="school-group-name">${esc(group.label)}</div><div class="school-group-count">${group.students.length} student${group.students.length !== 1 ? 's' : ''}</div>`;
     container.appendChild(gh);
     for (const student of group.students) {
       const ph = student.history.find(h => h.period === selPeriod) || student.latestHistory;
@@ -868,7 +911,13 @@ function renderPreviewList() {
       const color = LEVEL_COLORS[level] || '#b0b7c9';
       const card = document.createElement('div');
       card.className = 'student-card-preview';
-      card.innerHTML = `<div class="level-dot" style="background:${color}" title="${esc(level || 'No score')}"></div><div class="student-name-preview">${esc(student.displayName)}</div><div class="student-grade-pill">Gr ${student.grade}</div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b82a0" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+      const nameCol = groupMode === 'level'
+        ? `<div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+             <div class="student-name-preview" style="flex:none">${esc(student.displayName)}</div>
+             <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(student.school)}</div>
+           </div>`
+        : `<div class="student-name-preview">${esc(student.displayName)}</div>`;
+      card.innerHTML = `<div class="level-dot" style="background:${color}" title="${esc(level || 'No score')}"></div>${nameCol}<div class="student-grade-pill">Gr ${student.grade}</div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b82a0" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
       card.addEventListener('click', () => openModal(student));
       container.appendChild(card);
     }
@@ -915,8 +964,10 @@ function printAll() {
   setTimeout(() => {
     const selPeriod = getSelectedPeriod();
     const reflType = document.querySelector('input[name="refl-type"]:checked').value;
+    // Print in the same order as the on-screen grouping (School & Grade, or Benchmark Level)
+    const orderedStudents = buildGroups(filteredStudents, getGroupMode(), selPeriod).flatMap(g => g.students);
     const pa = document.getElementById('print-area');
-    pa.innerHTML = filteredStudents.map(s =>
+    pa.innerHTML = orderedStudents.map(s =>
       buildDataPageHTML(s, selPeriod) + buildReflectionPageHTML(s, selPeriod, reflType)
     ).join('');
     hideLoading();
@@ -1426,7 +1477,7 @@ function clearAllData() {
 
   // Hide and clear all filter/stats sections
   ['filter-section','grade-filter-section','teacher-filter-section',
-   'period-filter-section','level-filter-section','stats-section']
+   'period-filter-section','level-filter-section','group-mode-section','stats-section']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
