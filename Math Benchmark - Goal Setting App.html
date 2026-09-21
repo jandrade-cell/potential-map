@@ -336,8 +336,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </select>
       <div class="select-hint">Select the period to feature on the data page.</div>
     </div>
+    <div class="field-group" id="area-filter-section" style="display:none">
+      <div class="field-label">Featured Instructional Area</div>
+      <select class="multi-select" id="area-filter" size="5">
+        <option value="Composite" selected>Overall (Composite)</option>
+        <option value="Geometry">Geometry</option>
+        <option value="Operations and Algebraic Thinking">Operations and Algebraic Thinking</option>
+        <option value="Statistics and Probability">Statistics and Probability</option>
+        <option value="The Real Number System">The Real Number System</option>
+      </select>
+      <div class="select-hint">Controls which score drives the level filter, grouping, and dot color below. The report always shows all five scores.</div>
+    </div>
     <div class="field-group" id="level-filter-section" style="display:none">
-      <div class="field-label">Filter by Achievement Level</div>
+      <div class="field-label" id="level-filter-label">Filter by Achievement Level</div>
       <select class="multi-select" id="level-filter" size="4" multiple>
         <option value="Low">Low</option>
         <option value="Low Average">Low Average</option>
@@ -544,54 +555,16 @@ function getNextPeriod(period) {
   return idx >= 0 && idx < PERIODS_ORDER.length - 1 ? PERIODS_ORDER[idx + 1] : null;
 }
 
-// Grade-appropriate MAP Growth Math instructional (goal performance) areas
+// MAP Growth Math instructional (goal performance) areas — same four areas
+// reported for every grade in this district.
 // Each entry: { col: CSV column prefix, label: display name }
-// Verify these exact labels against your school's MAP Growth report export —
-// goal-area names can vary slightly by test version/grade band.
-const SUBTESTS_BY_GRADE = {
-  'K': [
-    { col: 'Counting and Cardinality', label: 'Counting and Cardinality' },
-    { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-    { col: 'Number and Operations in Base Ten', label: 'Number and Operations in Base Ten' },
-    { col: 'Measurement and Data', label: 'Measurement and Data' },
-  ],
-  '1': [
-    { col: 'Counting and Cardinality', label: 'Counting and Cardinality' },
-    { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-    { col: 'Number and Operations in Base Ten', label: 'Number and Operations in Base Ten' },
-    { col: 'Measurement and Data', label: 'Measurement and Data' },
-  ],
-  '2': [
-    { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-    { col: 'Number and Operations', label: 'Number and Operations' },
-    { col: 'Measurement and Data', label: 'Measurement and Data' },
-    { col: 'Geometry', label: 'Geometry' },
-  ],
-  '3': [
-    { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-    { col: 'Number and Operations', label: 'Number and Operations' },
-    { col: 'Measurement and Data', label: 'Measurement and Data' },
-    { col: 'Geometry', label: 'Geometry' },
-  ],
-  '4': [
-    { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-    { col: 'Number and Operations', label: 'Number and Operations' },
-    { col: 'Measurement and Data', label: 'Measurement and Data' },
-    { col: 'Geometry', label: 'Geometry' },
-  ],
-  '5': [
-    { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-    { col: 'Number and Operations', label: 'Number and Operations' },
-    { col: 'Measurement and Data', label: 'Measurement and Data' },
-    { col: 'Geometry', label: 'Geometry' },
-  ],
-  '6': [
-    { col: 'Number Sense and Operations', label: 'Number Sense and Operations' },
-    { col: 'Algebraic Thinking', label: 'Algebraic Thinking' },
-    { col: 'Geometry and Measurement', label: 'Geometry and Measurement' },
-    { col: 'Data Analysis and Statistics', label: 'Data Analysis and Statistics' },
-  ],
-};
+// Verify these exact labels against your school's MAP Growth report export.
+const INSTRUCTIONAL_AREAS = [
+  { col: 'Geometry', label: 'Geometry' },
+  { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
+  { col: 'Statistics and Probability', label: 'Statistics and Probability' },
+  { col: 'The Real Number System', label: 'The Real Number System' },
+];
 
 const PERIODS_ORDER = ['BOY', 'MOY', 'EOY'];
 const PERIOD_LABELS = { BOY: 'Fall', MOY: 'Winter', EOY: 'Spring' };
@@ -778,10 +751,12 @@ function populateFilters() {
   document.getElementById('grade-filter-section').style.display = 'block';
   document.getElementById('teacher-filter-section').style.display = 'block';
   document.getElementById('period-filter-section').style.display = 'block';
+  document.getElementById('area-filter-section').style.display = 'block';
   document.getElementById('level-filter-section').style.display = 'block';
   document.getElementById('group-mode-section').style.display = 'block';
   document.getElementById('stats-section').style.display = 'block';
   [...document.getElementById('level-filter').options].forEach(o => o.selected = true);
+  updateAreaFilterLabel();
 }
 
 function getSelectedPeriod() {
@@ -796,15 +771,32 @@ function getGroupMode() {
   return sel.length > 0 ? sel[0].value : 'school';
 }
 
+// Which score (overall Composite, or one of the four instructional areas)
+// currently drives the level filter, grouping, and list dot color.
+function getSelectedArea() {
+  const af = document.getElementById('area-filter');
+  const sel = [...af.selectedOptions];
+  return sel.length > 0 ? sel[0].value : 'Composite';
+}
+
+// Looks up a student's achievement level for the selected area/period —
+// the Composite level (already pivoted onto history), or a raw
+// "{area} - Level" column from that period's CSV row.
+function getAreaLevel(student, period, area) {
+  const ph = student.history.find(h => h.period === period) || student.latestHistory;
+  if (!ph) return '';
+  if (area === 'Composite') return ph.compositeLevel || '';
+  return (ph.row && ph.row[`${area} - Level`]) || '';
+}
+
 // Groups students either by School & Grade (default) or by Achievement Level
-// (for pulling small groups / planning intervention groups). Returns an
-// ordered array of { label, students }.
-function buildGroups(students, groupMode, selPeriod) {
+// for the selected area (for pulling small groups / planning intervention
+// groups). Returns an ordered array of { label, students }.
+function buildGroups(students, groupMode, selPeriod, area) {
   if (groupMode === 'level') {
     const byLevel = {};
     for (const s of students) {
-      const ph = s.history.find(h => h.period === selPeriod) || s.latestHistory;
-      const level = ph ? ph.compositeLevel : '';
+      const level = getAreaLevel(s, selPeriod, area);
       if (!byLevel[level]) byLevel[level] = [];
       byLevel[level].push(s);
     }
@@ -832,14 +824,13 @@ function getFilteredStudents() {
   const selTeachers = [...document.getElementById('teacher-filter').selectedOptions].map(o => o.value);
   const selLevels = [...document.getElementById('level-filter').selectedOptions].map(o => o.value);
   const selPeriod = getSelectedPeriod();
+  const selArea = getSelectedArea();
 
   return allStudents.filter(s => {
     if (!selSchools.includes(s.school)) return false;
     if (!selGrades.includes(s.grade)) return false;
     if (selTeachers.length > 0 && s.teacher && !selTeachers.includes(s.teacher)) return false;
-    // Get the level for the selected period
-    const ph = s.history.find(h => h.period === selPeriod);
-    const level = ph ? ph.compositeLevel : (s.latestLevel || '');
+    const level = getAreaLevel(s, selPeriod, selArea);
     if (selLevels.length > 0 && !selLevels.includes(level) && level !== '') return false;
     return true;
   });
@@ -884,14 +875,21 @@ function updateTeacherFilter() {
 document.getElementById('btn-preview').addEventListener('click', renderPreviewList);
 
 // Update stats when filters change; update teacher list when school/grade changes
-document.querySelectorAll('#school-filter, #grade-filter, #teacher-filter, #level-filter, #period-filter')
+document.querySelectorAll('#school-filter, #grade-filter, #teacher-filter, #level-filter, #period-filter, #area-filter')
   .forEach(el => el.addEventListener('change', renderStats));
 document.querySelectorAll('#school-filter, #grade-filter')
   .forEach(el => el.addEventListener('change', updateTeacherFilter));
-// If the preview list is already open, re-render it live when the grouping changes
-document.getElementById('group-mode-filter').addEventListener('change', () => {
+// If the preview list is already open, re-render it live when the grouping or featured area changes
+document.querySelectorAll('#group-mode-filter, #area-filter').forEach(el => el.addEventListener('change', () => {
+  updateAreaFilterLabel();
   if (document.getElementById('preview-container').style.display !== 'none') renderPreviewList();
-});
+}));
+
+function updateAreaFilterLabel() {
+  const area = getSelectedArea();
+  const label = area === 'Composite' ? 'Overall' : area;
+  document.getElementById('level-filter-label').textContent = `Filter by Achievement Level (${label})`;
+}
 
 function renderPreviewList() {
   filteredStudents = getFilteredStudents();
@@ -905,7 +903,8 @@ function renderPreviewList() {
 
   const groupMode = getGroupMode();
   const selPeriod = getSelectedPeriod();
-  const groups = buildGroups(filteredStudents, groupMode, selPeriod);
+  const selArea = getSelectedArea();
+  const groups = buildGroups(filteredStudents, groupMode, selPeriod, selArea);
 
   const container = document.getElementById('preview-container');
   container.innerHTML = '';
@@ -916,8 +915,7 @@ function renderPreviewList() {
     gh.innerHTML = `<div class="school-group-dot"></div><div class="school-group-name">${esc(group.label)}</div><div class="school-group-count">${group.students.length} student${group.students.length !== 1 ? 's' : ''}</div>`;
     container.appendChild(gh);
     for (const student of group.students) {
-      const ph = student.history.find(h => h.period === selPeriod) || student.latestHistory;
-      const level = ph ? ph.compositeLevel : '';
+      const level = getAreaLevel(student, selPeriod, selArea);
       const color = LEVEL_COLORS[level] || '#b0b7c9';
       const card = document.createElement('div');
       card.className = 'student-card-preview';
@@ -927,7 +925,8 @@ function renderPreviewList() {
              <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(student.school)}</div>
            </div>`
         : `<div class="student-name-preview">${esc(student.displayName)}</div>`;
-      card.innerHTML = `<div class="level-dot" style="background:${color}" title="${esc(level || 'No score')}"></div>${nameCol}<div class="student-grade-pill">Gr ${student.grade}</div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b82a0" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+      const dotTitle = `${selArea === 'Composite' ? 'Overall' : selArea}: ${level || 'No score'}`;
+      card.innerHTML = `<div class="level-dot" style="background:${color}" title="${esc(dotTitle)}"></div>${nameCol}<div class="student-grade-pill">Gr ${student.grade}</div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b82a0" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
       card.addEventListener('click', () => openModal(student));
       container.appendChild(card);
     }
@@ -975,7 +974,7 @@ function printAll() {
     const selPeriod = getSelectedPeriod();
     const reflType = document.querySelector('input[name="refl-type"]:checked').value;
     // Print in the same order as the on-screen grouping (School & Grade, or Achievement Level)
-    const orderedStudents = buildGroups(filteredStudents, getGroupMode(), selPeriod).flatMap(g => g.students);
+    const orderedStudents = buildGroups(filteredStudents, getGroupMode(), selPeriod, getSelectedArea()).flatMap(g => g.students);
     const pa = document.getElementById('print-area');
     pa.innerHTML = orderedStudents.map(s =>
       buildDataPageHTML(s, selPeriod) + buildReflectionPageHTML(s, selPeriod, reflType)
@@ -1017,9 +1016,9 @@ function buildDataPageHTML(student, selPeriod) {
     </div>`;
   }).join('');
 
-  // Subtest table
+  // Instructional area table
   const grade = student.grade;
-  const subtests = SUBTESTS_BY_GRADE[grade] || SUBTESTS_BY_GRADE['5'];
+  const subtests = INSTRUCTIONAL_AREAS;
   const subtestRows = subtests.map(st => {
     const r = ph ? ph.row : null;
     const stLevel = r ? (r[`${st.col} - Level`] || '') : '';
@@ -1480,7 +1479,7 @@ function clearAllData() {
 
   // Hide and clear all filter/stats sections
   ['filter-section','grade-filter-section','teacher-filter-section',
-   'period-filter-section','level-filter-section','group-mode-section','stats-section']
+   'period-filter-section','area-filter-section','level-filter-section','group-mode-section','stats-section']
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
