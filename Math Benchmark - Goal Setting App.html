@@ -628,7 +628,9 @@ function formatTeacherName(raw) {
 // Which GrowthQuintile column prefix represents "growth so far this school
 // year" (semester) and "growth vs. the same point last year" (annual) for
 // a row reporting on a given period. Fall has no within-year progress yet,
-// so its own "semester" comparison is left null.
+// so its own "semester" comparison is left null. Only the Comprehensive
+// Data File export carries these columns at all — the simpler single-term
+// Growth Report export has no growth columns, so this just yields '' there.
 const GROWTH_PERIOD_PREFIX = {
   BOY: { semester: null, year: 'FallToFall' },
   MOY: { semester: 'FallToWinter', year: 'WinterToWinter' },
@@ -650,23 +652,70 @@ function growthObservedFor(period, row, which) {
   return (n > 0 ? '+' : '') + n + ' pts';
 }
 
-// Synthesizes "{Goal Area Name} - Score/Level/Semester Growth" keys from
-// the export's Goal1Name/RitScore/Adjective..Goal8Name/RitScore/Adjective
-// columns (goal areas differ by grade band: K-2, 2-5, or 6+ each report a
-// different set of four), so the rest of the app can look up an area's
-// data by name. Also records which goal names actually applied to this
-// row/period, in order, for the report table.
+// Fallback used only when a row has no AchievementQuintile/GoalNAdjective
+// column at all (the simpler single-term Growth Report export lacks
+// these) — derives a level from the overall percentile using NWEA's
+// standard achievement-quintile percentile bands.
+function levelFromPercentile(pct) {
+  const n = parseFloat(pct);
+  if (isNaN(n)) return '';
+  if (n <= 20) return 'Low';
+  if (n <= 40) return 'LoAvg';
+  if (n <= 60) return 'Avg';
+  if (n <= 80) return 'HiAvg';
+  return 'High';
+}
+
+// Same fallback situation for an individual goal area: when the export
+// gives an area's RIT but no pre-labeled adjective, approximate a level by
+// comparing that area's RIT to the student's own overall RIT for the same
+// test event (a simple RIT-point threshold, since per-area standard
+// errors aren't in that export either).
+function relativeAreaLevel(areaRIT, overallRIT) {
+  if (isNaN(areaRIT) || isNaN(overallRIT)) return '';
+  const diff = areaRIT - overallRIT;
+  if (diff <= -8) return 'Low';
+  if (diff <= -3) return 'LoAvg';
+  if (diff < 3) return 'Avg';
+  if (diff < 8) return 'HiAvg';
+  return 'High';
+}
+
+// Synthesizes "{Goal Area Name} - Score/Level/Semester Growth" keys so the
+// rest of the app can look up an area's data by name, regardless of which
+// of the two NWEA export shapes produced this row:
+//  - Comprehensive Data File: Goal1Name/RitScore/Adjective..Goal8...
+//  - Simpler Growth Report:   InstructionalArea1Name/RIT..InstructionalArea4...
+//    (no per-area adjective, so relativeAreaLevel() approximates one)
+// Also records which goal/area names actually applied to this row/period,
+// in order, for the report table — these differ by grade band (K-2, 2-5,
+// or 6+ each report a different set of four).
 function normalizeGoalAreas(r) {
   const norm = Object.assign({}, r);
-  norm['School Year'] = extractSchoolYear(r['TermName']);
+  norm['School Year'] = extractSchoolYear(r['TermName'] || r['TermTested']);
+  const overallRIT = parseFloat(r['TestRITScore'] || r['RitScore']);
   const names = [];
-  for (let i = 1; i <= 8; i++) {
-    const name = r[`Goal${i}Name`];
-    if (!name) continue;
-    names.push(name);
-    norm[`${name} - Score`] = r[`Goal${i}RitScore`] || '';
-    norm[`${name} - Level`] = r[`Goal${i}Adjective`] || '';
-    norm[`${name} - Semester Growth`] = '';
+  const usesGoalFormat = [1, 2, 3, 4, 5, 6, 7, 8].some(i => r[`Goal${i}Name`]);
+
+  if (usesGoalFormat) {
+    for (let i = 1; i <= 8; i++) {
+      const name = r[`Goal${i}Name`];
+      if (!name) continue;
+      names.push(name);
+      norm[`${name} - Score`] = r[`Goal${i}RitScore`] || '';
+      norm[`${name} - Level`] = r[`Goal${i}Adjective`] || '';
+      norm[`${name} - Semester Growth`] = '';
+    }
+  } else {
+    for (let i = 1; i <= 4; i++) {
+      const name = r[`InstructionalArea${i}Name`];
+      if (!name) continue;
+      names.push(name);
+      const areaRIT = parseFloat(r[`InstructionalArea${i}RIT`]);
+      norm[`${name} - Score`] = r[`InstructionalArea${i}RIT`] || '';
+      norm[`${name} - Level`] = relativeAreaLevel(areaRIT, overallRIT);
+      norm[`${name} - Semester Growth`] = '';
+    }
   }
   norm.__goalAreaNames = names;
   return norm;
@@ -699,10 +748,12 @@ function processCSV(csvText) {
     const teacher = formatTeacherName(ref['InstructorName'] || '');
     const edition = 'NWEA MAP Growth';
 
-    // Pivot by testing term (Fall/Winter/Spring -> BOY/MOY/EOY)
+    // Pivot by testing term (Fall/Winter/Spring -> BOY/MOY/EOY). TermName is
+    // the Comprehensive Data File's column; TermTested is the simpler
+    // single-term Growth Report's equivalent.
     const periodMap = {};
     for (const row of studentRows) {
-      const period = termToPeriod(row['TermName']);
+      const period = termToPeriod(row['TermName'] || row['TermTested']);
       if (period) periodMap[period] = row;
     }
 
@@ -711,11 +762,13 @@ function processCSV(csvText) {
       .filter(p => periodMap[p])
       .map(p => {
         const r = normalizeGoalAreas(periodMap[p]);
+        const score = r['TestRITScore'] || r['RitScore'] || '';
+        const pct = r['TestPercentile'] || r['AchievementPercentile'] || '';
         return {
           period: p,
-          compositeLevel: r['AchievementQuintile'] || '',
-          compositeScore: r['TestRITScore'] || '',
-          compositePercentile: r['TestPercentile'] || '',
+          compositeLevel: r['AchievementQuintile'] || levelFromPercentile(pct),
+          compositeScore: score,
+          compositePercentile: pct,
           semesterGrowth: growthQuintileFor(p, r, 'semester'),
           yearGrowth: growthQuintileFor(p, r, 'year'),
           goalAreaNames: r.__goalAreaNames || [],
