@@ -350,8 +350,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="field-group" id="group-mode-section" style="display:none">
       <div class="field-label">Group Preview &amp; Print By</div>
       <select class="multi-select" id="group-mode-filter" size="2">
-        <option value="school" selected>School &amp; Grade</option>
-        <option value="level">Achievement Level</option>
+        <option value="school">School &amp; Grade</option>
+        <option value="level" selected>Achievement Level</option>
       </select>
       <div class="select-hint">Level grouping clusters students by every included area at once — e.g. Overall: Low &middot; Geometry: LoAvg — for small-group / intervention planning.</div>
     </div>
@@ -928,7 +928,7 @@ function getSelectedPeriod() {
 function getGroupMode() {
   const gf = document.getElementById('group-mode-filter');
   const sel = [...gf.selectedOptions];
-  return sel.length > 0 ? sel[0].value : 'school';
+  return sel.length > 0 ? sel[0].value : 'level';
 }
 
 // Which scores (Overall Composite and/or any of the instructional areas
