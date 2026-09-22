@@ -157,7 +157,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .rpt-subject-badge{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;border:1.5px solid #3ec9a7;color:#3ec9a7}
 .rpt-period-badge{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;background:#f0f2f8;color:#7b82a0}
 .rpt-level-badge{font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;color:#fff;white-space:nowrap}
-.lv-wbb{background:#e8453c}.lv-bb{background:#f5a623;color:#1a1d27!important}.lv-ab{background:#27ae60}.lv-aab{background:#2980b9}.lv-none{background:#b0b7c9;color:#fff!important}.lv-neutral{background:#7b82a0}
+.lv-wbb{background:#e8453c}.lv-bb{background:#f5a623;color:#1a1d27!important}.lv-ab{background:#27ae60}.lv-aab{background:#2980b9}.lv-hi{background:#8e44ad}.lv-none{background:#b0b7c9;color:#fff!important}
 
 /* composite summary strip */
 .rpt-composite-strip{display:flex;border:1.5px solid #e0e3ef;border-radius:10px;overflow:hidden;margin-bottom:14px}
@@ -188,8 +188,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .chip-bb{background:rgba(245,166,35,.1);color:#d68910}
 .chip-ab{background:rgba(39,174,96,.1);color:#1e8449}
 .chip-aab{background:rgba(41,128,185,.1);color:#1a6fa0}
+.chip-hi{background:rgba(142,68,173,.1);color:#6c3483}
 .chip-none{background:rgba(123,130,160,.1);color:#7b82a0}
-.chip-neutral{background:rgba(123,130,160,.1);color:#5b6178}
 .rpt-period-growth{font-size:10px;color:#7b82a0;margin-top:1px}
 .rpt-period-pct{font-size:10px;color:#9ba3c0;margin-top:1px}
 
@@ -341,12 +341,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="field-label">Instructional Areas to Include</div>
       <select class="multi-select" id="area-filter" size="5" multiple>
         <option value="Composite" selected>Overall (Composite)</option>
-        <option value="Geometry">Geometry</option>
-        <option value="Operations and Algebraic Thinking">Operations and Algebraic Thinking</option>
-        <option value="Statistics and Probability">Statistics and Probability</option>
-        <option value="The Real and Complex Number Systems">The Real and Complex Number Systems</option>
       </select>
-      <div class="select-hint">Hold Ctrl (PC) or &#8984; Command (Mac) to select several. Each one gets its own level filter below and its own axis for grouping — pick Overall plus any areas you want to build combined groups from.</div>
+      <div class="select-hint">Hold Ctrl (PC) or &#8984; Command (Mac) to select several. Each one gets its own level filter below and its own axis for grouping — pick Overall plus any areas you want to build combined groups from. The list fills in from your file, since goal areas vary by grade band (K-2, 2-5, 6+).</div>
     </div>
     <div class="field-group" id="level-filter-section" style="display:none">
       <div id="level-filters-container"></div>
@@ -357,7 +353,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="school" selected>School &amp; Grade</option>
         <option value="level">Achievement Level</option>
       </select>
-      <div class="select-hint">Level grouping clusters students by every included area at once — e.g. Overall: Low &middot; Geometry: Below Overall — for small-group / intervention planning.</div>
+      <div class="select-hint">Level grouping clusters students by every included area at once — e.g. Overall: Low &middot; Geometry: LoAvg — for small-group / intervention planning.</div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="field-group">
@@ -438,60 +434,54 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 // ============================================================
 // CONSTANTS
 // ============================================================
-// Composite ("Overall") uses absolute, percentile-based achievement levels.
-// The four instructional areas use a relative-to-self comparison instead —
-// see relativeAreaLevel() — since MAP Growth doesn't publish grade-norm cut
-// scores per instructional area the way it does for the overall RIT.
+// NWEA's real 5-tier achievement/growth quintile vocabulary (Low, LoAvg,
+// Avg, HiAvg, High). Both the overall Composite (AchievementQuintile) and
+// every instructional area (GoalNAdjective) report levels in this same
+// vocabulary directly from the export, so one set of maps covers both.
 const LEVEL_COLORS = {
   'Low': '#e8453c',
-  'Low Average': '#f5a623',
-  'Average': '#27ae60',
-  'High': '#2980b9',
-  'Below Overall': '#e8453c',
-  'Near Overall': '#7b82a0',
-  'Above Overall': '#2980b9',
+  'LoAvg': '#f5a623',
+  'Avg': '#27ae60',
+  'HiAvg': '#2980b9',
+  'High': '#8e44ad',
   '': '#b0b7c9'
 };
 const LEVEL_CHIP_CLASS = {
   'Low': 'chip-wbb',
-  'Low Average': 'chip-bb',
-  'Average': 'chip-ab',
-  'High': 'chip-aab',
-  'Below Overall': 'chip-wbb',
-  'Near Overall': 'chip-neutral',
-  'Above Overall': 'chip-aab',
+  'LoAvg': 'chip-bb',
+  'Avg': 'chip-ab',
+  'HiAvg': 'chip-aab',
+  'High': 'chip-hi',
   '': 'chip-none'
 };
 const LEVEL_BADGE_CLASS = {
   'Low': 'lv-wbb',
-  'Low Average': 'lv-bb',
-  'Average': 'lv-ab',
-  'High': 'lv-aab',
-  'Below Overall': 'lv-wbb',
-  'Near Overall': 'lv-neutral',
-  'Above Overall': 'lv-aab',
+  'LoAvg': 'lv-bb',
+  'Avg': 'lv-ab',
+  'HiAvg': 'lv-aab',
+  'High': 'lv-hi',
   '': 'lv-none'
 };
 const LEVEL_SHORT = {
   'Low': 'Low',
-  'Low Average': 'Low Avg',
-  'Average': 'Average',
+  'LoAvg': 'LoAvg',
+  'Avg': 'Avg',
+  'HiAvg': 'HiAvg',
   'High': 'High',
-  'Below Overall': 'Below',
-  'Near Overall': 'Near Avg',
-  'Above Overall': 'Above',
   '': 'No Score'
 };
 // Display order for grouping students by level (most support needed first)
-const LEVEL_ORDER = ['Low', 'Low Average', 'Average', 'High', ''];
-const RELATIVE_LEVEL_ORDER = ['Below Overall', 'Near Overall', 'Above Overall', ''];
+const LEVEL_ORDER = ['Low', 'LoAvg', 'Avg', 'HiAvg', 'High', ''];
 
+// Growth quintiles (FallToFall/FallToWinter/etc GrowthQuintile) use the
+// same Low/LoAvg/Avg/HiAvg/High vocabulary, mapped here to the growth
+// strip's plain colored-text style rather than the chip/badge style.
 const GROWTH_CLASS = {
-  'Well Above Average': 'growth-well-above',
-  'Above Average': 'growth-above',
-  'Average': 'growth-average',
-  'Below Average': 'growth-below',
-  'Well Below Average': 'growth-well-below',
+  'High': 'growth-well-above',
+  'HiAvg': 'growth-above',
+  'Avg': 'growth-average',
+  'LoAvg': 'growth-below',
+  'Low': 'growth-well-below',
   '': ''
 };
 
@@ -549,6 +539,26 @@ const BENCHMARK_GOALS = {
     MOY: { Composite: 227 },
     EOY: { Composite: 229 },
   },
+  9: {
+    BOY: { Composite: 228 },
+    MOY: { Composite: 229 },
+    EOY: { Composite: 230 },
+  },
+  10: {
+    BOY: { Composite: 230 },
+    MOY: { Composite: 231 },
+    EOY: { Composite: 232 },
+  },
+  11: {
+    BOY: { Composite: 231 },
+    MOY: { Composite: 232 },
+    EOY: { Composite: 233 },
+  },
+  12: {
+    BOY: { Composite: 232 },
+    MOY: { Composite: 233 },
+    EOY: { Composite: 233 },
+  },
 };
 
 function getGoal(grade, period, subtestKey) {
@@ -566,16 +576,13 @@ function getNextPeriod(period) {
   return idx >= 0 && idx < PERIODS_ORDER.length - 1 ? PERIODS_ORDER[idx + 1] : null;
 }
 
-// MAP Growth Math instructional (goal performance) areas — same four areas
-// reported for every grade in this district.
-// Each entry: { col: CSV column prefix, label: display name }
-// Verify these exact labels against your school's MAP Growth report export.
-const INSTRUCTIONAL_AREAS = [
-  { col: 'Geometry', label: 'Geometry' },
-  { col: 'Operations and Algebraic Thinking', label: 'Operations and Algebraic Thinking' },
-  { col: 'Statistics and Probability', label: 'Statistics and Probability' },
-  { col: 'The Real and Complex Number Systems', label: 'The Real and Complex Number Systems' },
-];
+// MAP Growth Math instructional (goal performance) areas differ by grade
+// band — K-2, 2-5, and 6+ tests each report a different set of four goal
+// areas (Goal1Name..Goal8Name in the export). Rather than a fixed list,
+// each student's report uses whichever goal areas are actually on their
+// own row (see processCSV/normalizeGoalAreas), and the sidebar's
+// "Instructional Areas to Include" filter is populated from the union of
+// goal area names found across the currently loaded roster.
 
 const PERIODS_ORDER = ['BOY', 'MOY', 'EOY'];
 const PERIOD_LABELS = { BOY: 'Fall', MOY: 'Winter', EOY: 'Spring' };
@@ -592,76 +599,85 @@ let currentModalStudent = null;
 // ============================================================
 // Maps a NWEA "TermTested" value (e.g. "Fall 2026-2027 (Most Recent)") onto
 // this app's internal BOY/MOY/EOY period keys.
-function termToPeriod(termTested) {
-  if (!termTested) return null;
-  if (/fall/i.test(termTested)) return 'BOY';
-  if (/winter/i.test(termTested)) return 'MOY';
-  if (/spring/i.test(termTested)) return 'EOY';
+// Maps a NWEA "TermName" value (e.g. "Fall 2026-2027") onto this app's
+// internal BOY/MOY/EOY period keys.
+function termToPeriod(termName) {
+  if (!termName) return null;
+  if (/fall/i.test(termName)) return 'BOY';
+  if (/winter/i.test(termName)) return 'MOY';
+  if (/spring/i.test(termName)) return 'EOY';
   return null;
 }
 
-// Pulls a "2026-2027"-style school year out of a TermTested value, since the
-// raw export has no separate School Year column.
-function extractSchoolYear(termTested) {
-  const m = /(\d{4}-\d{4})/.exec(termTested || '');
+// Pulls a "2026-2027"-style school year out of a TermName value, since the
+// export has no separate School Year column.
+function extractSchoolYear(termName) {
+  const m = /(\d{4}-\d{4})/.exec(termName || '');
   return m ? m[1] : '';
 }
 
-// NWEA MAP Growth reports the overall RIT's national percentile but not a
-// pre-labeled achievement tier, so we derive one using the standard
-// achievement-quintile percentile bands (collapsed to this app's 4 tiers).
-function levelFromPercentile(pct) {
-  const n = parseFloat(pct);
-  if (isNaN(n)) return '';
-  if (n <= 20) return 'Low';
-  if (n <= 40) return 'Low Average';
-  if (n <= 60) return 'Average';
-  return 'High';
-}
-
-// The raw export gives each instructional area's RIT but no grade-norm cut
-// scores to classify it against — MAP Growth doesn't publish those per area.
-// Instead we compare the area RIT to the student's own overall RIT for that
-// same test event, which is what NWEA's own goal-performance reporting does
-// in spirit (a simple RIT-point threshold here rather than a conditional-SEM
-// calculation, since per-area standard errors aren't in this export).
-function relativeAreaLevel(areaRIT, overallRIT) {
-  if (isNaN(areaRIT) || isNaN(overallRIT)) return '';
-  const diff = areaRIT - overallRIT;
-  if (diff <= -5) return 'Below Overall';
-  if (diff >= 5) return 'Above Overall';
-  return 'Near Overall';
-}
-
-// "Smith, Rhysa" -> "Rhysa Smith"
+// "Smith, Rhysa" -> "Rhysa Smith" (some export variants give teacher name
+// this way; the Comprehensive Data File format has no teacher column at
+// all, so this is a no-op there and the app just shows no teacher).
 function formatTeacherName(raw) {
   if (!raw) return '';
   const parts = raw.split(',').map(s => s.trim()).filter(Boolean);
   return parts.length === 2 ? `${parts[1]} ${parts[0]}` : raw.trim();
 }
 
-// Synthesizes "{Instructional Area Name} - Score/Level/Semester Growth"
-// keys from the export's InstructionalArea1Name/RIT..4Name/RIT columns, so
-// the rest of the app can look up an area's data by name regardless of
-// which column position NWEA put it in for a given row.
-function normalizeInstructionalAreas(r) {
+// Which GrowthQuintile column prefix represents "growth so far this school
+// year" (semester) and "growth vs. the same point last year" (annual) for
+// a row reporting on a given period. Fall has no within-year progress yet,
+// so its own "semester" comparison is left null.
+const GROWTH_PERIOD_PREFIX = {
+  BOY: { semester: null, year: 'FallToFall' },
+  MOY: { semester: 'FallToWinter', year: 'WinterToWinter' },
+  EOY: { semester: 'FallToSpring', year: 'SpringToSpring' },
+};
+
+function growthQuintileFor(period, row, which) {
+  const prefix = GROWTH_PERIOD_PREFIX[period] && GROWTH_PERIOD_PREFIX[period][which];
+  return prefix ? (row[`${prefix}GrowthQuintile`] || '') : '';
+}
+
+// The actual RIT points gained/lost for that same comparison, e.g. "+8 pts".
+function growthObservedFor(period, row, which) {
+  const prefix = GROWTH_PERIOD_PREFIX[period] && GROWTH_PERIOD_PREFIX[period][which];
+  if (!prefix) return '';
+  const v = row[`${prefix}ObservedGrowth`];
+  const n = parseFloat(v);
+  if (v === undefined || v === '' || isNaN(n)) return '';
+  return (n > 0 ? '+' : '') + n + ' pts';
+}
+
+// Synthesizes "{Goal Area Name} - Score/Level/Semester Growth" keys from
+// the export's Goal1Name/RitScore/Adjective..Goal8Name/RitScore/Adjective
+// columns (goal areas differ by grade band: K-2, 2-5, or 6+ each report a
+// different set of four), so the rest of the app can look up an area's
+// data by name. Also records which goal names actually applied to this
+// row/period, in order, for the report table.
+function normalizeGoalAreas(r) {
   const norm = Object.assign({}, r);
-  norm['School Year'] = extractSchoolYear(r['TermTested']);
-  const overallRIT = parseFloat(r['RitScore']);
-  for (let i = 1; i <= 4; i++) {
-    const areaName = r[`InstructionalArea${i}Name`];
-    if (!areaName) continue;
-    const areaRIT = parseFloat(r[`InstructionalArea${i}RIT`]);
-    norm[`${areaName} - Score`] = r[`InstructionalArea${i}RIT`] || '';
-    norm[`${areaName} - Level`] = relativeAreaLevel(areaRIT, overallRIT);
-    norm[`${areaName} - Semester Growth`] = '';
+  norm['School Year'] = extractSchoolYear(r['TermName']);
+  const names = [];
+  for (let i = 1; i <= 8; i++) {
+    const name = r[`Goal${i}Name`];
+    if (!name) continue;
+    names.push(name);
+    norm[`${name} - Score`] = r[`Goal${i}RitScore`] || '';
+    norm[`${name} - Level`] = r[`Goal${i}Adjective`] || '';
+    norm[`${name} - Semester Growth`] = '';
   }
+  norm.__goalAreaNames = names;
   return norm;
 }
 
 function processCSV(csvText) {
   const result = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-  const rows = result.data;
+  // NWEA's Comprehensive Data File reports every subject the student took
+  // (Language Arts, Mathematics, etc.) as separate rows — this app only
+  // ever shows Math, so anything else is dropped before grouping.
+  const rows = result.data.filter(row => row['Subject'] === 'Mathematics');
 
   // Group by student
   const byStudent = {};
@@ -686,7 +702,7 @@ function processCSV(csvText) {
     // Pivot by testing term (Fall/Winter/Spring -> BOY/MOY/EOY)
     const periodMap = {};
     for (const row of studentRows) {
-      const period = termToPeriod(row['TermTested']);
+      const period = termToPeriod(row['TermName']);
       if (period) periodMap[period] = row;
     }
 
@@ -694,15 +710,15 @@ function processCSV(csvText) {
     const history = PERIODS_ORDER
       .filter(p => periodMap[p])
       .map(p => {
-        const r = normalizeInstructionalAreas(periodMap[p]);
+        const r = normalizeGoalAreas(periodMap[p]);
         return {
           period: p,
-          compositeLevel: levelFromPercentile(r['AchievementPercentile']),
-          compositeScore: r['RitScore'] || '',
-          compositePercentile: r['AchievementPercentile'] || '',
-          semesterGrowth: '',
-          yearGrowth: '',
-          completionStatus: r['Status'] || '',
+          compositeLevel: r['AchievementQuintile'] || '',
+          compositeScore: r['TestRITScore'] || '',
+          compositePercentile: r['TestPercentile'] || '',
+          semesterGrowth: growthQuintileFor(p, r, 'semester'),
+          yearGrowth: growthQuintileFor(p, r, 'year'),
+          goalAreaNames: r.__goalAreaNames || [],
           row: r
         };
       });
@@ -825,6 +841,20 @@ function populateFilters() {
   tf.size = Math.min(teachers.length, 6);
   tf.innerHTML = teachers.map(t => `<option value="${esc(t)}" selected>${esc(t)}</option>`).join('');
 
+  // Instructional area names vary by grade band (K-2, 2-5, 6+ each report a
+  // different set of four), so build the list from whatever's actually in
+  // this file rather than a fixed set. Composite always comes first and
+  // stays selected by default; a previously-selected area is kept selected
+  // if this file also has it.
+  const goalAreaNames = [...new Set(allStudents.flatMap(s => s.history.flatMap(h => h.goalAreaNames || [])))].sort();
+  const af = document.getElementById('area-filter');
+  const prevAreaSelected = new Set([...af.selectedOptions].map(o => o.value));
+  af.size = Math.min(goalAreaNames.length + 1, 5);
+  af.innerHTML = ['Composite', ...goalAreaNames].map(a => {
+    const label = a === 'Composite' ? 'Overall (Composite)' : a;
+    return `<option value="${esc(a)}"${prevAreaSelected.has(a) ? ' selected' : ''}>${esc(label)}</option>`;
+  }).join('');
+
   document.getElementById('filter-section').style.display = 'block';
   document.getElementById('grade-filter-section').style.display = 'block';
   document.getElementById('teacher-filter-section').style.display = 'block';
@@ -848,11 +878,9 @@ function getGroupMode() {
   return sel.length > 0 ? sel[0].value : 'school';
 }
 
-// Which score (overall Composite, or one of the four instructional areas)
-// currently drives the level filter, grouping, and list dot color.
-// Which scores (Overall Composite and/or any of the four instructional
-// areas) are currently included for level filtering, grouping, and the
-// dot row in the student list. Always at least one.
+// Which scores (Overall Composite and/or any of the instructional areas
+// present in the loaded data) are currently included for level filtering,
+// grouping, and the dot row in the student list. Always at least one.
 function getSelectedAreas() {
   const af = document.getElementById('area-filter');
   const sel = [...af.selectedOptions].map(o => o.value);
@@ -897,8 +925,7 @@ function buildGroups(students, groupMode, selPeriod, areas) {
     // order the areas were selected, so groups nest predictably.
     groups.sort((a, b) => {
       for (let i = 0; i < areas.length; i++) {
-        const order = areas[i] === 'Composite' ? LEVEL_ORDER : RELATIVE_LEVEL_ORDER;
-        const diff = order.indexOf(a.parts[i].level) - order.indexOf(b.parts[i].level);
+        const diff = LEVEL_ORDER.indexOf(a.parts[i].level) - LEVEL_ORDER.indexOf(b.parts[i].level);
         if (diff !== 0) return diff;
       }
       return 0;
@@ -1001,10 +1028,9 @@ document.querySelectorAll('#group-mode-filter, #area-filter').forEach(el => el.a
 
 // Rebuilds the per-area achievement-level filters to match whatever's
 // currently selected in "Instructional Areas to Include". Each included
-// area gets its own multi-select — Overall uses absolute achievement
-// levels, an instructional area uses the relative-to-self comparison (see
-// relativeAreaLevel()) — and a previous selection is kept when that area
-// stays included across the rebuild.
+// area (Overall or a goal area) gets its own multi-select using the same
+// Low/LoAvg/Avg/HiAvg/High vocabulary, and a previous selection is kept
+// when that area stays included across the rebuild.
 function refreshLevelFilters() {
   const areas = getSelectedAreas();
   const container = document.getElementById('level-filters-container');
@@ -1015,14 +1041,14 @@ function refreshLevelFilters() {
   });
 
   container.innerHTML = areas.map(area => {
-    // Includes the trailing '' entry from LEVEL_ORDER/RELATIVE_LEVEL_ORDER as
-    // an explicit, selectable "No Score" option — so an unassessed student
-    // is only included when that's actually wanted, not as an unconditional
+    // Includes the trailing '' entry from LEVEL_ORDER as an explicit,
+    // selectable "No Score" option — so an unassessed student is only
+    // included when that's actually wanted, not as an unconditional
     // exception a level filter can't turn off.
-    const levels = area === 'Composite' ? LEVEL_ORDER : RELATIVE_LEVEL_ORDER;
+    const levels = LEVEL_ORDER;
     const prev = prevByArea[area];
     const keepPrev = prev && prev.size > 0 && levels.some(l => prev.has(l));
-    const label = area === 'Composite' ? 'Filter: Overall Achievement Level' : `Filter: ${area} (vs. Overall)`;
+    const label = area === 'Composite' ? 'Filter: Overall Achievement Level' : `Filter: ${area}`;
     const options = levels.map(l => `<option value="${esc(l)}"${!keepPrev || prev.has(l) ? ' selected' : ''}>${esc(l || 'No Score')}</option>`).join('');
     return `<div class="field-group" style="margin-bottom:10px">
       <div class="field-label">${esc(label)}</div>
@@ -1153,6 +1179,8 @@ function buildDataPageHTML(student, selPeriod) {
   const pct = ph ? ph.compositePercentile : '';
   const semGrowth = ph ? ph.semesterGrowth : '';
   const yearGrowth = ph ? ph.yearGrowth : '';
+  const semGrowthPts = ph && ph.row ? growthObservedFor(displayPeriod, ph.row, 'semester') : '';
+  const yearGrowthPts = ph && ph.row ? growthObservedFor(displayPeriod, ph.row, 'year') : '';
 
   const levelBadge = LEVEL_BADGE_CLASS[level] || 'lv-none';
   const levelLabel = LEVEL_SHORT[level] || 'No Score';
@@ -1169,14 +1197,15 @@ function buildDataPageHTML(student, selPeriod) {
         <div class="rpt-period-score">${h.compositeScore || '—'}</div>
         <div class="td-level-chip ${chipCls} rpt-period-level">${LEVEL_SHORT[pLevel] || '—'}</div>
         ${h.semesterGrowth ? `<div class="rpt-period-growth">${h.semesterGrowth}</div>` : ''}
-        ${h.compositePercentile ? `<div class="rpt-period-pct">${h.compositePercentile}th pct</div>` : ''}
+        ${h.compositePercentile ? `<div class="rpt-period-pct">${ordinal(h.compositePercentile)} pct</div>` : ''}
       ` : `<div class="rpt-period-score no-data">Not assessed</div>`}
     </div>`;
   }).join('');
 
-  // Instructional area table
+  // Instructional area table — whichever goal areas are on this student's
+  // own row for this period (varies by grade band: K-2, 2-5, or 6+).
   const grade = student.grade;
-  const subtests = INSTRUCTIONAL_AREAS;
+  const subtests = (ph && ph.goalAreaNames ? ph.goalAreaNames : []).map(name => ({ col: name, label: name }));
   const subtestRows = subtests.map(st => {
     const r = ph ? ph.row : null;
     const stLevel = r ? (r[`${st.col} - Level`] || '') : '';
@@ -1219,18 +1248,18 @@ function buildDataPageHTML(student, selPeriod) {
       </div>
       <div class="rpt-strip-cell">
         <div class="rpt-strip-label">National Percentile</div>
-        <div class="rpt-strip-val">${pct ? pct + 'th' : '—'}</div>
+        <div class="rpt-strip-val">${pct ? ordinal(pct) : '—'}</div>
         <div class="rpt-strip-sub">Norm-referenced rank</div>
       </div>
       <div class="rpt-strip-cell">
         <div class="rpt-strip-label">Semester Growth</div>
         <div class="rpt-strip-val ${GROWTH_CLASS[semGrowth] || ''}" style="font-size:13px;padding-top:4px">${semGrowth || '—'}</div>
-        <div class="rpt-strip-sub">vs. expected growth</div>
+        <div class="rpt-strip-sub">${esc(semGrowthPts) || 'This year, so far'}</div>
       </div>
       ${yearGrowth ? `<div class="rpt-strip-cell">
         <div class="rpt-strip-label">Year Growth</div>
         <div class="rpt-strip-val ${GROWTH_CLASS[yearGrowth] || ''}" style="font-size:13px;padding-top:4px">${yearGrowth}</div>
-        <div class="rpt-strip-sub">Year-to-date trend</div>
+        <div class="rpt-strip-sub">${esc(yearGrowthPts) || 'vs. same term last year'}</div>
       </div>` : ''}
       ${(() => {
         const currentScore = parseFloat(score);
@@ -1272,7 +1301,7 @@ function buildDataPageHTML(student, selPeriod) {
           <tr>
             <th class="col-measure">Goal Performance Area</th>
             <th class="col-score" style="text-align:right">RIT Score</th>
-            <th class="col-level">vs. Overall RIT</th>
+            <th class="col-level">Achievement Level</th>
             <th class="col-growth" style="text-align:center">Semester Growth</th>
           </tr>
         </thead>
@@ -1351,7 +1380,7 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
     </div>
     ${pct ? `<div class="refl-data-cell">
       <div class="refl-data-label">Nat'l %ile</div>
-      <div class="refl-data-val">${pct}th</div>
+      <div class="refl-data-val">${ordinal(pct)}</div>
     </div>` : ''}
     ${isMaintenance
       ? `<div class="refl-data-cell" style="border-left:2px solid #3ec9a7;padding-left:10px">
@@ -1564,6 +1593,20 @@ function lines(n) {
 function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 21 -> "21st", 2 -> "2nd", 13 -> "13th"
+function ordinal(n) {
+  const v = parseInt(n);
+  if (isNaN(v)) return n;
+  const rem100 = v % 100;
+  if (rem100 >= 11 && rem100 <= 13) return v + 'th';
+  switch (v % 10) {
+    case 1: return v + 'st';
+    case 2: return v + 'nd';
+    case 3: return v + 'rd';
+    default: return v + 'th';
+  }
 }
 
 function showLoading(msg) {
