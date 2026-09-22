@@ -338,20 +338,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="select-hint">Select the period to feature on the data page.</div>
     </div>
     <div class="field-group" id="area-filter-section" style="display:none">
-      <div class="field-label">Featured Instructional Area</div>
-      <select class="multi-select" id="area-filter" size="5">
+      <div class="field-label">Instructional Areas to Include</div>
+      <select class="multi-select" id="area-filter" size="5" multiple>
         <option value="Composite" selected>Overall (Composite)</option>
         <option value="Geometry">Geometry</option>
         <option value="Operations and Algebraic Thinking">Operations and Algebraic Thinking</option>
         <option value="Statistics and Probability">Statistics and Probability</option>
         <option value="The Real and Complex Number Systems">The Real and Complex Number Systems</option>
       </select>
-      <div class="select-hint">Controls which score drives the level filter, grouping, and dot color below. The report always shows all five scores.</div>
+      <div class="select-hint">Hold Ctrl (PC) or &#8984; Command (Mac) to select several. Each one gets its own level filter below and its own axis for grouping — pick Overall plus any areas you want to build combined groups from.</div>
     </div>
     <div class="field-group" id="level-filter-section" style="display:none">
-      <div class="field-label" id="level-filter-label">Filter by Achievement Level</div>
-      <select class="multi-select" id="level-filter" size="4" multiple></select>
-      <div class="select-hint">Hold Ctrl (PC) or &#8984; Command (Mac) to select multiple.</div>
+      <div id="level-filters-container"></div>
     </div>
     <div class="field-group" id="group-mode-section" style="display:none">
       <div class="field-label">Group Preview &amp; Print By</div>
@@ -359,7 +357,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="school" selected>School &amp; Grade</option>
         <option value="level">Achievement Level</option>
       </select>
-      <div class="select-hint">Level grouping clusters students for small-group / intervention planning.</div>
+      <div class="select-hint">Level grouping clusters students by every included area at once — e.g. Overall: Low &middot; Geometry: Below Overall — for small-group / intervention planning.</div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="field-group">
@@ -444,9 +442,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 // The four instructional areas use a relative-to-self comparison instead —
 // see relativeAreaLevel() — since MAP Growth doesn't publish grade-norm cut
 // scores per instructional area the way it does for the overall RIT.
-const ABSOLUTE_LEVELS = ['Low', 'Low Average', 'Average', 'High'];
-const RELATIVE_LEVELS = ['Below Overall', 'Near Overall', 'Above Overall'];
-
 const LEVEL_COLORS = {
   'Low': '#e8453c',
   'Low Average': '#f5a623',
@@ -838,7 +833,7 @@ function populateFilters() {
   document.getElementById('level-filter-section').style.display = 'block';
   document.getElementById('group-mode-section').style.display = 'block';
   document.getElementById('stats-section').style.display = 'block';
-  updateAreaFilterLabel();
+  refreshLevelFilters();
 }
 
 function getSelectedPeriod() {
@@ -855,13 +850,25 @@ function getGroupMode() {
 
 // Which score (overall Composite, or one of the four instructional areas)
 // currently drives the level filter, grouping, and list dot color.
-function getSelectedArea() {
+// Which scores (Overall Composite and/or any of the four instructional
+// areas) are currently included for level filtering, grouping, and the
+// dot row in the student list. Always at least one.
+function getSelectedAreas() {
   const af = document.getElementById('area-filter');
-  const sel = [...af.selectedOptions];
-  return sel.length > 0 ? sel[0].value : 'Composite';
+  const sel = [...af.selectedOptions].map(o => o.value);
+  return sel.length > 0 ? sel : ['Composite'];
 }
 
-// Looks up a student's achievement level for the selected area/period —
+function areaShortLabel(area) {
+  return area === 'Composite' ? 'Overall' : area;
+}
+
+// A DOM-safe id for the per-area level-filter <select> this area gets.
+function levelFilterId(area) {
+  return 'level-filter--' + area.replace(/[^a-zA-Z0-9]+/g, '-');
+}
+
+// Looks up a student's achievement level for a given area/period —
 // the Composite level (already pivoted onto history), or a raw
 // "{area} - Level" column from that period's CSV row.
 function getAreaLevel(student, period, area) {
@@ -871,21 +878,35 @@ function getAreaLevel(student, period, area) {
   return (ph.row && ph.row[`${area} - Level`]) || '';
 }
 
-// Groups students either by School & Grade (default) or by Achievement Level
-// for the selected area (for pulling small groups / planning intervention
-// groups). Returns an ordered array of { label, students }.
-function buildGroups(students, groupMode, selPeriod, area) {
+// Groups students either by School & Grade (default) or by Achievement
+// Level across every included area at once — e.g. a student's Overall
+// level AND their Geometry level together form one compound group — for
+// pulling small groups / planning intervention groups that account for
+// more than one measure. Returns an ordered array of { label, students }.
+function buildGroups(students, groupMode, selPeriod, areas) {
   if (groupMode === 'level') {
-    const byLevel = {};
+    const byKey = {};
     for (const s of students) {
-      const level = getAreaLevel(s, selPeriod, area);
-      if (!byLevel[level]) byLevel[level] = [];
-      byLevel[level].push(s);
+      const parts = areas.map(area => ({ area, level: getAreaLevel(s, selPeriod, area) }));
+      const key = parts.map(p => `${p.area}::${p.level}`).join('|');
+      if (!byKey[key]) byKey[key] = { parts, students: [] };
+      byKey[key].students.push(s);
     }
-    const order = area === 'Composite' ? LEVEL_ORDER : RELATIVE_LEVEL_ORDER;
-    return order
-      .filter(lvl => byLevel[lvl] && byLevel[lvl].length > 0)
-      .map(lvl => ({ label: lvl || 'No Score', students: byLevel[lvl] }));
+    const groups = Object.values(byKey);
+    // Sort lexicographically by each included area's level order, in the
+    // order the areas were selected, so groups nest predictably.
+    groups.sort((a, b) => {
+      for (let i = 0; i < areas.length; i++) {
+        const order = areas[i] === 'Composite' ? LEVEL_ORDER : RELATIVE_LEVEL_ORDER;
+        const diff = order.indexOf(a.parts[i].level) - order.indexOf(b.parts[i].level);
+        if (diff !== 0) return diff;
+      }
+      return 0;
+    });
+    return groups.map(g => ({
+      label: g.parts.map(p => `${areaShortLabel(p.area)}: ${p.level || 'No Score'}`).join(' · '),
+      students: g.students
+    }));
   }
 
   const byGroup = {};
@@ -905,16 +926,26 @@ function getFilteredStudents() {
   const selSchools = [...document.getElementById('school-filter').selectedOptions].map(o => o.value);
   const selGrades = [...document.getElementById('grade-filter').selectedOptions].map(o => o.value);
   const selTeachers = [...document.getElementById('teacher-filter').selectedOptions].map(o => o.value);
-  const selLevels = [...document.getElementById('level-filter').selectedOptions].map(o => o.value);
   const selPeriod = getSelectedPeriod();
-  const selArea = getSelectedArea();
+  const selAreas = getSelectedAreas();
+
+  // One achievement-level filter per included area — levels chosen within
+  // one area's filter are OR'd together, and the areas themselves are AND'd
+  // (a student must clear every included area's filter, if it has one set).
+  const levelFiltersByArea = selAreas.map(area => {
+    const sel = document.getElementById(levelFilterId(area));
+    return { area, levels: sel ? [...sel.selectedOptions].map(o => o.value) : [] };
+  });
 
   return allStudents.filter(s => {
     if (!selSchools.includes(s.school)) return false;
     if (!selGrades.includes(s.grade)) return false;
     if (selTeachers.length > 0 && s.teacher && !selTeachers.includes(s.teacher)) return false;
-    const level = getAreaLevel(s, selPeriod, selArea);
-    if (selLevels.length > 0 && !selLevels.includes(level) && level !== '') return false;
+    for (const { area, levels } of levelFiltersByArea) {
+      if (levels.length === 0) continue;
+      const level = getAreaLevel(s, selPeriod, area);
+      if (!levels.includes(level)) return false;
+    }
     return true;
   });
 }
@@ -958,53 +989,78 @@ function updateTeacherFilter() {
 document.getElementById('btn-preview').addEventListener('click', renderPreviewList);
 
 // Update stats when filters change; update teacher list when school/grade changes
-document.querySelectorAll('#school-filter, #grade-filter, #teacher-filter, #level-filter, #period-filter, #area-filter')
+document.querySelectorAll('#school-filter, #grade-filter, #teacher-filter, #period-filter, #area-filter')
   .forEach(el => el.addEventListener('change', renderStats));
 document.querySelectorAll('#school-filter, #grade-filter')
   .forEach(el => el.addEventListener('change', updateTeacherFilter));
-// If the preview list is already open, re-render it live when the grouping or featured area changes
+// If the preview list is already open, re-render it live when the grouping or included areas change
 document.querySelectorAll('#group-mode-filter, #area-filter').forEach(el => el.addEventListener('change', () => {
-  updateAreaFilterLabel();
+  refreshLevelFilters();
   if (document.getElementById('preview-container').style.display !== 'none') renderPreviewList();
 }));
 
-// The Composite (overall) score uses absolute achievement levels; the four
-// instructional areas use a relative-to-self comparison instead (see
-// relativeAreaLevel()) — so the filter's label and options switch vocabulary
-// with the featured area.
-function updateAreaFilterLabel() {
-  const area = getSelectedArea();
-  const lf = document.getElementById('level-filter');
-  const prevSelected = new Set([...lf.selectedOptions].map(o => o.value));
-  const levels = area === 'Composite' ? ABSOLUTE_LEVELS : RELATIVE_LEVELS;
-  // Vocabulary changes when switching between Overall and an instructional
-  // area, so a previous selection that shares nothing with the new list
-  // (rather than being deliberately narrowed) should reset to "select all".
-  const keepPrev = prevSelected.size > 0 && levels.some(l => prevSelected.has(l));
-  document.getElementById('level-filter-label').textContent = area === 'Composite'
-    ? 'Filter by Achievement Level (Overall)'
-    : `Filter by Performance vs. Overall (${area})`;
-  lf.innerHTML = levels.map(l => `<option value="${esc(l)}"${!keepPrev || prevSelected.has(l) ? ' selected' : ''}>${esc(l)}</option>`).join('');
-  lf.size = levels.length;
+// Rebuilds the per-area achievement-level filters to match whatever's
+// currently selected in "Instructional Areas to Include". Each included
+// area gets its own multi-select — Overall uses absolute achievement
+// levels, an instructional area uses the relative-to-self comparison (see
+// relativeAreaLevel()) — and a previous selection is kept when that area
+// stays included across the rebuild.
+function refreshLevelFilters() {
+  const areas = getSelectedAreas();
+  const container = document.getElementById('level-filters-container');
+
+  const prevByArea = {};
+  container.querySelectorAll('select[data-area]').forEach(sel => {
+    prevByArea[sel.dataset.area] = new Set([...sel.selectedOptions].map(o => o.value));
+  });
+
+  container.innerHTML = areas.map(area => {
+    // Includes the trailing '' entry from LEVEL_ORDER/RELATIVE_LEVEL_ORDER as
+    // an explicit, selectable "No Score" option — so an unassessed student
+    // is only included when that's actually wanted, not as an unconditional
+    // exception a level filter can't turn off.
+    const levels = area === 'Composite' ? LEVEL_ORDER : RELATIVE_LEVEL_ORDER;
+    const prev = prevByArea[area];
+    const keepPrev = prev && prev.size > 0 && levels.some(l => prev.has(l));
+    const label = area === 'Composite' ? 'Filter: Overall Achievement Level' : `Filter: ${area} (vs. Overall)`;
+    const options = levels.map(l => `<option value="${esc(l)}"${!keepPrev || prev.has(l) ? ' selected' : ''}>${esc(l || 'No Score')}</option>`).join('');
+    return `<div class="field-group" style="margin-bottom:10px">
+      <div class="field-label">${esc(label)}</div>
+      <select class="multi-select" id="${levelFilterId(area)}" data-area="${esc(area)}" size="${levels.length}" multiple>${options}</select>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('select[data-area]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      renderStats();
+      if (document.getElementById('preview-container').style.display !== 'none') renderPreviewList();
+    });
+  });
 }
 
 function renderPreviewList() {
   filteredStudents = getFilteredStudents();
-  if (filteredStudents.length === 0) { alert('No students match the current filters.'); return; }
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('preview-header').style.display = 'flex';
   document.getElementById('preview-container').style.display = 'flex';
-  document.getElementById('print-btns').style.display = 'flex';
   document.getElementById('preview-title').textContent = 'Student Report Preview';
+
+  const container = document.getElementById('preview-container');
+  container.innerHTML = '';
+
+  if (filteredStudents.length === 0) {
+    document.getElementById('preview-meta').textContent = 'No students match the current filters';
+    document.getElementById('print-btns').style.display = 'none';
+    container.innerHTML = '<div class="select-hint" style="padding:24px">No students match the current filters — try including fewer levels, or fewer areas, above.</div>';
+    return;
+  }
+  document.getElementById('print-btns').style.display = 'flex';
   document.getElementById('preview-meta').textContent = `${filteredStudents.length} students · click a name to preview their report`;
 
   const groupMode = getGroupMode();
   const selPeriod = getSelectedPeriod();
-  const selArea = getSelectedArea();
-  const groups = buildGroups(filteredStudents, groupMode, selPeriod, selArea);
-
-  const container = document.getElementById('preview-container');
-  container.innerHTML = '';
+  const selAreas = getSelectedAreas();
+  const groups = buildGroups(filteredStudents, groupMode, selPeriod, selAreas);
 
   for (const group of groups) {
     const gh = document.createElement('div');
@@ -1012,8 +1068,6 @@ function renderPreviewList() {
     gh.innerHTML = `<div class="school-group-dot"></div><div class="school-group-name">${esc(group.label)}</div><div class="school-group-count">${group.students.length} student${group.students.length !== 1 ? 's' : ''}</div>`;
     container.appendChild(gh);
     for (const student of group.students) {
-      const level = getAreaLevel(student, selPeriod, selArea);
-      const color = LEVEL_COLORS[level] || '#b0b7c9';
       const card = document.createElement('div');
       card.className = 'student-card-preview';
       const nameCol = groupMode === 'level'
@@ -1022,8 +1076,15 @@ function renderPreviewList() {
              <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(student.school)}</div>
            </div>`
         : `<div class="student-name-preview">${esc(student.displayName)}</div>`;
-      const dotTitle = `${selArea === 'Composite' ? 'Overall' : selArea}: ${level || 'No score'}`;
-      card.innerHTML = `<div class="level-dot" style="background:${color}" title="${esc(dotTitle)}"></div>${nameCol}<div class="student-grade-pill">Gr ${student.grade}</div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b82a0" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+      // One colored dot per included area, so a multi-area view still shows
+      // each student's full profile at a glance (hover for the exact level).
+      const dots = selAreas.map(area => {
+        const level = getAreaLevel(student, selPeriod, area);
+        const color = LEVEL_COLORS[level] || '#b0b7c9';
+        const title = `${areaShortLabel(area)}: ${level || 'No score'}`;
+        return `<div class="level-dot" style="background:${color}" title="${esc(title)}"></div>`;
+      }).join('');
+      card.innerHTML = `<div style="display:flex;gap:4px;flex-shrink:0">${dots}</div>${nameCol}<div class="student-grade-pill">Gr ${student.grade}</div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b82a0" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
       card.addEventListener('click', () => openModal(student));
       container.appendChild(card);
     }
@@ -1071,7 +1132,7 @@ function printAll() {
     const selPeriod = getSelectedPeriod();
     const reflType = document.querySelector('input[name="refl-type"]:checked').value;
     // Print in the same order as the on-screen grouping (School & Grade, or Achievement Level)
-    const orderedStudents = buildGroups(filteredStudents, getGroupMode(), selPeriod, getSelectedArea()).flatMap(g => g.students);
+    const orderedStudents = buildGroups(filteredStudents, getGroupMode(), selPeriod, getSelectedAreas()).flatMap(g => g.students);
     const pa = document.getElementById('print-area');
     pa.innerHTML = orderedStudents.map(s =>
       buildDataPageHTML(s, selPeriod) + buildReflectionPageHTML(s, selPeriod, reflType)
