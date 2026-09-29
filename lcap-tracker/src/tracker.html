@@ -94,7 +94,6 @@ input.search{min-width:200px;flex:1;max-width:320px}
 .prio-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .prio-name{font-size:13px;font-weight:600;flex:1}
 .pill{font-size:10px;font-family:var(--mono);color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:20px;white-space:nowrap}
-.pill.lit{color:var(--accent);border-color:rgba(62,201,167,.4)}
 .pill.new{color:#9fc0ff;border-color:rgba(91,141,238,.5)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin:0 0 10px 18px;cursor:pointer;display:block;width:calc(100% - 18px);text-align:left;color:var(--text)}
 .card:hover{border-color:var(--c)}
@@ -228,7 +227,6 @@ tr.missing td{background:rgba(232,69,60,.06)}
       <button class="btn btn-ghost" id="btn-save" hidden>Save File</button>
       <label class="btn btn-ghost" style="position:relative;overflow:hidden">Open File<input type="file" id="open-file" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
       <button class="btn btn-ghost" id="btn-print" hidden>Print View</button>
-      <a class="btn btn-ghost" href="Lit%20Benchmark%20%20-%20Goal%20Setting%20App%20(2).html">Literacy Goal Setting</a>
     </div>
   </div>
   <nav class="tabs" role="tablist" id="tabs" hidden>
@@ -280,7 +278,6 @@ tr.missing td{background:rgba(232,69,60,.06)}
       <select class="ctl" id="type-filter" aria-label="Indicator type">
         <option value="">State + Local</option><option value="State">State indicators</option><option value="Local">Local indicators</option>
       </select>
-      <button class="chip" id="lit-toggle" aria-pressed="false" title="ELA, English learner progress, EAP ELA, NWEA Reading, mCLASS">&#x1F4D6; Literacy-related</button>
       <input class="ctl search" type="search" id="search" placeholder="Search metrics…" aria-label="Search">
       <span class="count" id="result-count"></span>
     </div>

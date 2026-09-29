@@ -216,7 +216,7 @@ function fromNwea(t, { threshold = 61, map }) {
 }
 
 // ------------------------------------------------------------
-// mCLASS / DIBELS 8 benchmark export (same file the literacy app reads)
+// mCLASS / DIBELS 8 benchmark export
 // ------------------------------------------------------------
 function fromMclass(t, { metricId, schoolYear, bySchool, byGrade }) {
   const H = t.headers;

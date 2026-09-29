@@ -1,6 +1,6 @@
 # LCAP Tracker
 
-`LCAP Tracker.html` (in the repository root) is a single, offline web page that turns a district's adopted LCAP into a living progress monitor. It replaces the one-time "All State and Local Indicators" spreadsheet: new results can be added at any time, and statuses, insights, and the next-cycle summary update immediately.
+`LCAP Tracker.html` (in this folder) is a standalone, single-file, offline web app that turns a district's adopted LCAP into a living progress monitor. It replaces the one-time "All State and Local Indicators" spreadsheet: new results can be added at any time, and statuses, insights, and the next-cycle summary update immediately.
 
 Open the file in Chrome, Edge, Firefox, or Safari. No installation, no server, and no internet connection are needed, except for the optional AI features.
 
@@ -13,7 +13,7 @@ Open the file in Chrome, Edge, Firefox, or Safari. No installation, no server, a
    | CSV template | Download a template listing your metrics, fill in `period` and `value`, upload. |
    | CA School Dashboard download files (`eladownload`, `mathdownload`, `chronicdownload`, `suspdownload`, `graddownload`, `elpidownload`, `ccidownload`) | District rows are recorded for every student group, with Dashboard colors. Groups in Red are flagged. |
    | NWEA MAP export (AssessmentResults / Combined Data File) | Percent of students at/above a percentile (default read from the LCAP metric, e.g. "80th percentile"), per term and subject. |
-   | mCLASS / DIBELS 8 export (same file the Literacy Goal Setting app reads) | Percent At or Above Benchmark per benchmark period, optionally per school and grade. |
+   | mCLASS / DIBELS 8 benchmark export | Percent At or Above Benchmark per benchmark period, optionally per school and grade. |
    | Any other spreadsheet (DataQuest downloads, local reports) | Choose the metric, value column, period column, student-group column, and an optional row filter. DataQuest reporting-category codes (TA, SE, SD, RH…) are recognized. |
    | Manual entry | Open any metric and add a single result. |
    Student-level rows (NWEA, mCLASS) are summarized in the browser. Only percentages are stored.
@@ -57,7 +57,7 @@ lcap-tracker/
   vendor/              pdf.js 3.11 (Apache-2.0), SheetJS 0.18 (Apache-2.0)
   samples/             example district (TBJUSD 2024–27 LCAP metrics)
   tests/engine.test.js
-  build.py             inlines everything into ../LCAP Tracker.html
+  build.py             inlines everything into LCAP Tracker.html
 ```
 
 After editing anything in `src/` or `samples/`, rebuild and test:

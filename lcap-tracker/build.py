@@ -11,7 +11,7 @@ import pathlib
 import re
 
 ROOT = pathlib.Path(__file__).resolve().parent
-OUT = ROOT.parent / "LCAP Tracker.html"
+OUT = ROOT / "LCAP Tracker.html"
 
 
 def read(rel):

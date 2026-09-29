@@ -8,12 +8,11 @@ const L = window.LCAP, P = window.LcapPdf, I = window.LcapImport, AI = window.Lc
 const STORE_KEY = 'lcapTracker.v1';
 const KEY_KEY = 'lcapTracker.apiKey';
 const STATUS_COLOR = { Priority: 'var(--st-priority)', Watch: 'var(--st-watch)', Sustain: 'var(--st-sustain)', Review: 'var(--st-review)' };
-const LIT_RE = /\bELA\b|english language arts|english learner|ELPI|reclass|EAP|NWEA|\bMAP\b|reading|mCLASS|DIBELS|literacy/i;
 
 const S = {
   store: { districts: {}, currentId: null },
   apiKey: '', remember: false,
-  filter: { status: '', prio: '', type: '', lit: false, q: '' },
+  filter: { status: '', prio: '', type: '', q: '' },
   flash: new Set(), view: 'dashboard'
 };
 
@@ -68,7 +67,7 @@ function changed() { const d = D(); if (d) d.updatedAt = new Date().toISOString(
 function addDistrict(d) {
   S.store.districts[d.id] = d;
   S.store.currentId = d.id;
-  S.filter = { status: '', prio: '', type: '', lit: false, q: '' };
+  S.filter = { status: '', prio: '', type: '', q: '' };
   persist();
 }
 
@@ -146,7 +145,6 @@ function matches(m, a) {
   if (f.status && a.status !== f.status) return false;
   if (f.prio && !(m.codes || []).some(c => c[0] === f.prio) && !(f.prio === '0' && !m.codes.length)) return false;
   if (f.type && metricType(m) !== f.type) return false;
-  if (f.lit && !LIT_RE.test(m.name)) return false;
   if (f.q) {
     const hay = (m.metricNo + ' ' + m.name + ' ' + m.codes.join(' ') + ' ' + m.targetText).toLowerCase();
     if (!f.q.toLowerCase().split(/\s+/).every(w => hay.includes(w))) return false;
@@ -178,7 +176,6 @@ function renderDashboard(d, A) {
   $('prio-chips').innerHTML = [['', 'All'], ...prios.map(p => [String(p), p ? 'P' + p : 'Unmapped'])]
     .map(([v, l]) => `<button class="chip" data-prio="${v}" aria-pressed="${S.filter.prio === v}" title="${esc(L.PRIORITY_NAMES[v] || '')}">${l}</button>`).join('');
   $('type-filter').value = S.filter.type;
-  $('lit-toggle').setAttribute('aria-pressed', S.filter.lit);
 
   const list = d.metrics.filter(m => matches(m, A.get(m.id)));
   $('result-count').textContent = `${list.length} of ${d.metrics.length} metrics`;
@@ -202,7 +199,6 @@ function metricCard(m, a) {
   const u = m.unit;
   const ins = currentInsight(m, a);
   const pct = a.met ? 100 : Math.max(0, Math.min(100, Math.round((a.progress ?? 0) * 100)));
-  const lit = LIT_RE.test(m.name);
   const tgt = m.targetValue != null ? L.fmtValue(m.targetValue, u) : '—';
   const step = (label, p, cls = '') => `<div class="step ${cls}"><div class="step-label">${label}</div>
       <div class="step-val">${p ? esc(L.fmtValue(p.value, u)) : '—'}</div><div class="step-per">${p ? esc(p.period) : ''}</div></div>`;
@@ -211,7 +207,6 @@ function metricCard(m, a) {
     <div class="card-head">
       <div class="card-title">${esc(m.name || 'Untitled metric')}<div class="card-sub">${m.metricNo ? 'Metric ' + esc(m.metricNo) : ''}${m.goal ? ' · Goal ' + esc(m.goal) : ''}</div></div>
       ${S.flash.has(m.id) ? '<span class="pill new">Updated</span>' : ''}
-      ${lit ? '<span class="pill lit">Literacy</span>' : ''}
       ${(m.codes || []).map(cd => `<span class="pill" title="${esc(L.REQUIRED_BY_CODE[cd]?.name || '')}">${cd}</span>`).join('')}
       ${badge(a.status)}
     </div>
@@ -785,7 +780,6 @@ function wire() {
   $('tiles').addEventListener('click', e => { const t = e.target.closest('.tile'); if (!t) return; S.filter.status = S.filter.status === t.dataset.status ? '' : t.dataset.status; render(); });
   $('prio-chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; S.filter.prio = c.dataset.prio; render(); });
   $('type-filter').addEventListener('change', e => { S.filter.type = e.target.value; render(); });
-  $('lit-toggle').addEventListener('click', () => { S.filter.lit = !S.filter.lit; render(); });
   $('search').addEventListener('input', e => { S.filter.q = e.target.value.trim(); render(); });
 
   // Notes
