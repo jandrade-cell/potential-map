@@ -91,6 +91,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-generate{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:14px;font-weight:600;padding:12px 20px;cursor:pointer;width:100%;transition:opacity .2s,transform .1s}
 .btn-generate:hover:not(:disabled){opacity:.9;transform:translateY(-1px)}
 .btn-generate:disabled{opacity:.38;cursor:not-allowed}
+.lcap-link{display:block;font-size:12px;color:var(--accent);text-decoration:none;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);text-align:center}
+.lcap-link:hover{border-color:var(--accent)}
 
 .print-btns{display:flex;gap:8px}
 .btn-print-sub{flex:1;border:none;border-radius:var(--radius);color:#fff;font-family:var(--font);font-size:12px;font-weight:600;padding:10px 8px;cursor:pointer;transition:opacity .2s;text-align:center;background:linear-gradient(135deg,var(--accent),var(--accent2))}
@@ -378,6 +380,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <div class="sidebar-divider"></div>
+    <a class="lcap-link" href="LCAP%20Indicators%20-%20Next%20Cycle%20Planning.html">&#x1F4CA; District LCAP Indicators &amp; Next-Cycle Planning &#8594;</a>
     <button class="btn-generate" id="btn-preview" disabled>Preview Reports</button>
     <div class="print-btns" id="print-btns" style="display:none">
       <button class="btn-print-sub" onclick="printAll()">&#8595;&nbsp;Print All Reports</button>
