@@ -625,6 +625,16 @@ function formatTeacherName(raw) {
   return parts.length === 2 ? `${parts[1]} ${parts[0]}` : raw.trim();
 }
 
+// The simpler single-term Growth Report gives one combined "915L-1065L"
+// range in a single Lexile column, with no separate point score — unlike
+// the Comprehensive Data File's distinct LexileScore/LexileMin/LexileMax.
+// Splits that combined string into a { min, max } range.
+function parseLexileRange(raw) {
+  if (!raw) return { min: '', max: '' };
+  const m = /^(.+?)-(.+)$/.exec(raw.trim());
+  return m ? { min: m[1].trim(), max: m[2].trim() } : { min: '', max: '' };
+}
+
 // Which GrowthQuintile column prefix represents "growth so far this school
 // year" (semester) and "growth vs. the same point last year" (annual) for
 // a row reporting on a given period. Fall has no within-year progress yet,
@@ -776,9 +786,14 @@ function processCSV(csvText) {
           semesterGrowth: growthQuintileFor(p, r, 'semester'),
           yearGrowth: growthQuintileFor(p, r, 'year'),
           goalAreaNames: r.__goalAreaNames || [],
+          // The Comprehensive Data File splits this into LexileScore plus a
+          // separate LexileMin/LexileMax range; the simpler single-term
+          // Growth Report instead gives one combined "915L-1065L"-style
+          // range in a single Lexile column, with no separate point score —
+          // parseLexileRange() splits that combined string into min/max.
           lexileScore: r['LexileScore'] || '',
-          lexileMin: r['LexileMin'] || '',
-          lexileMax: r['LexileMax'] || '',
+          lexileMin: r['LexileMin'] || parseLexileRange(r['Lexile']).min,
+          lexileMax: r['LexileMax'] || parseLexileRange(r['Lexile']).max,
           row: r
         };
       });
@@ -1241,8 +1256,12 @@ function buildDataPageHTML(student, selPeriod) {
   const yearGrowth = ph ? ph.yearGrowth : '';
   const semGrowthPts = ph && ph.row ? growthObservedFor(displayPeriod, ph.row, 'semester') : '';
   const yearGrowthPts = ph && ph.row ? growthObservedFor(displayPeriod, ph.row, 'year') : '';
-  const lexile = ph ? ph.lexileScore : '';
+  const lexileScore = ph ? ph.lexileScore : '';
   const lexileRange = ph && ph.lexileMin && ph.lexileMax ? `${ph.lexileMin} – ${ph.lexileMax}` : '';
+  // Some exports give only a min-max range with no separate point score —
+  // show the range itself as the headline value in that case.
+  const lexile = lexileScore || lexileRange;
+  const lexileSub = (lexileScore && lexileRange) ? lexileRange : 'Text complexity band';
 
   const levelBadge = LEVEL_BADGE_CLASS[level] || 'lv-none';
   const levelLabel = LEVEL_SHORT[level] || 'No Score';
@@ -1260,7 +1279,7 @@ function buildDataPageHTML(student, selPeriod) {
         <div class="td-level-chip ${chipCls} rpt-period-level">${LEVEL_SHORT[pLevel] || '—'}</div>
         ${h.semesterGrowth ? `<div class="rpt-period-growth">${h.semesterGrowth}</div>` : ''}
         ${h.compositePercentile ? `<div class="rpt-period-pct">${ordinal(h.compositePercentile)} pct</div>` : ''}
-        ${h.lexileScore ? `<div class="rpt-period-pct">${esc(h.lexileScore)}</div>` : ''}
+        ${(h.lexileScore || (h.lexileMin && h.lexileMax)) ? `<div class="rpt-period-pct">${esc(h.lexileScore || `${h.lexileMin} – ${h.lexileMax}`)}</div>` : ''}
       ` : `<div class="rpt-period-score no-data">Not assessed</div>`}
     </div>`;
   }).join('');
@@ -1317,7 +1336,7 @@ function buildDataPageHTML(student, selPeriod) {
       ${lexile ? `<div class="rpt-strip-cell">
         <div class="rpt-strip-label">Lexile Level</div>
         <div class="rpt-strip-val" style="font-size:18px">${esc(lexile)}</div>
-        <div class="rpt-strip-sub">${esc(lexileRange) || 'Text complexity band'}</div>
+        <div class="rpt-strip-sub">${esc(lexileSub)}</div>
       </div>` : ''}
       <div class="rpt-strip-cell">
         <div class="rpt-strip-label">Semester Growth</div>
@@ -1393,7 +1412,7 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
   const level = ph ? ph.compositeLevel : '';
   const score = ph ? ph.compositeScore : '';
   const pct = ph ? ph.compositePercentile : '';
-  const lexile = ph ? ph.lexileScore : '';
+  const lexile = ph ? (ph.lexileScore || (ph.lexileMin && ph.lexileMax ? `${ph.lexileMin} – ${ph.lexileMax}` : '')) : '';
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const schoolYear = (ph && ph.row['School Year']) ? ph.row['School Year'] : '';
 
