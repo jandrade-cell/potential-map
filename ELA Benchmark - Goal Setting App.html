@@ -486,6 +486,51 @@ const GROWTH_CLASS = {
 };
 
 // ============================================================
+// ZPD / AR LEVEL ESTIMATE (from NWEA's Lexile <-> STAR ZPD chart)
+// Reference-only cross-walk from NWEA's "MAP Lexile & STAR ZPD
+// Alignment Chart" — this is a generalized national cross-walk, NOT an
+// official Renaissance STAR score. Verify against your actual STAR/AR
+// system before using for real instructional grouping. Scoped to K-6,
+// matching how this district uses AR/ZPD.
+//
+// The chart's Lexile ranges actually overlap between grades (e.g. Grade
+// 2 tops out at 500L while Grade 3 starts at 330L) — only the RIT and
+// ZPD columns are strictly ordered — so this is a grade-keyed lookup
+// with within-grade interpolation by Lexile position, not a pure
+// Lexile-only formula.
+const ZPD_CHART = [
+  { grade: 'K', lexileMin: -400, lexileMax: 0,    zpdMin: 0.0, zpdMax: 1.1 },
+  { grade: '1', lexileMin: 0,    lexileMax: 300,  zpdMin: 1.1, zpdMax: 2.2 },
+  { grade: '2', lexileMin: 140,  lexileMax: 500,  zpdMin: 2.0, zpdMax: 3.2 },
+  { grade: '3', lexileMin: 330,  lexileMax: 700,  zpdMin: 2.6, zpdMax: 4.1 },
+  { grade: '4', lexileMin: 445,  lexileMax: 810,  zpdMin: 3.1, zpdMax: 4.6 },
+  { grade: '5', lexileMin: 565,  lexileMax: 910,  zpdMin: 3.5, zpdMax: 5.2 },
+  { grade: '6', lexileMin: 665,  lexileMax: 1000, zpdMin: 4.0, zpdMax: 6.1 },
+];
+
+// "BR400L" -> -400, "915L" -> 915, "0L" -> 0 (Lexile's own convention
+// represents Beginning Reader codes as negative measures internally).
+function parseLexileNumber(raw) {
+  if (!raw) return NaN;
+  const m = /^(BR)?\s*(-?\d+)L?$/i.exec(String(raw).trim());
+  if (!m) return NaN;
+  const n = parseFloat(m[2]);
+  return m[1] ? -Math.abs(n) : n;
+}
+
+// Approximates a STAR ZPD / AR level from a student's grade and Lexile Max.
+// Returns null outside grades K-6 or when the Lexile value can't be parsed.
+function estimateZPD(grade, lexileMaxRaw) {
+  const row = ZPD_CHART.find(r => r.grade === String(grade));
+  if (!row) return null;
+  const lex = parseLexileNumber(lexileMaxRaw);
+  if (isNaN(lex)) return null;
+  const clamped = Math.max(row.lexileMin, Math.min(row.lexileMax, lex));
+  const frac = row.lexileMax === row.lexileMin ? 0 : (clamped - row.lexileMin) / (row.lexileMax - row.lexileMin);
+  return (row.zpdMin + frac * (row.zpdMax - row.zpdMin)).toFixed(1);
+}
+
+// ============================================================
 // BENCHMARK GOALS (NWEA MAP Growth, Reading)
 // Grade-level target = approximate 50th-percentile (average) RIT
 // score by grade > term, from NWEA's published Normative Data.
@@ -1262,6 +1307,8 @@ function buildDataPageHTML(student, selPeriod) {
   // show the range itself as the headline value in that case.
   const lexile = lexileScore || lexileRange;
   const lexileSub = (lexileScore && lexileRange) ? lexileRange : 'Text complexity band';
+  // Grade K-6 only, per how this district uses AR/ZPD — see ZPD_CHART.
+  const zpdEstimate = ph ? estimateZPD(student.grade, ph.lexileMax || lexileScore) : null;
 
   const levelBadge = LEVEL_BADGE_CLASS[level] || 'lv-none';
   const levelLabel = LEVEL_SHORT[level] || 'No Score';
@@ -1338,6 +1385,11 @@ function buildDataPageHTML(student, selPeriod) {
         <div class="rpt-strip-val" style="font-size:18px">${esc(lexile)}</div>
         <div class="rpt-strip-sub">${esc(lexileSub)}</div>
       </div>` : ''}
+      ${zpdEstimate ? `<div class="rpt-strip-cell">
+        <div class="rpt-strip-label">Est. AR / ZPD</div>
+        <div class="rpt-strip-val" style="font-size:18px">${zpdEstimate}</div>
+        <div class="rpt-strip-sub">Approx. from Lexile — not an official STAR score</div>
+      </div>` : ''}
       <div class="rpt-strip-cell">
         <div class="rpt-strip-label">Semester Growth</div>
         <div class="rpt-strip-val ${GROWTH_CLASS[semGrowth] || ''}" style="font-size:13px;padding-top:4px">${semGrowth || '—'}</div>
@@ -1413,6 +1465,7 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
   const score = ph ? ph.compositeScore : '';
   const pct = ph ? ph.compositePercentile : '';
   const lexile = ph ? (ph.lexileScore || (ph.lexileMin && ph.lexileMax ? `${ph.lexileMin} – ${ph.lexileMax}` : '')) : '';
+  const zpdEstimate = ph ? estimateZPD(student.grade, ph.lexileMax || ph.lexileScore) : null;
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const schoolYear = (ph && ph.row['School Year']) ? ph.row['School Year'] : '';
 
@@ -1473,6 +1526,10 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
     ${lexile ? `<div class="refl-data-cell">
       <div class="refl-data-label">Lexile</div>
       <div class="refl-data-val">${esc(lexile)}</div>
+    </div>` : ''}
+    ${zpdEstimate ? `<div class="refl-data-cell">
+      <div class="refl-data-label">Est. AR/ZPD</div>
+      <div class="refl-data-val">${zpdEstimate}</div>
     </div>` : ''}
     ${isMaintenance
       ? `<div class="refl-data-cell" style="border-left:2px solid #3ec9a7;padding-left:10px">
