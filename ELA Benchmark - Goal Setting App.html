@@ -486,26 +486,32 @@ const GROWTH_CLASS = {
 };
 
 // ============================================================
-// ZPD / AR LEVEL ESTIMATE (from NWEA's Lexile <-> STAR ZPD chart)
-// Reference-only cross-walk from NWEA's "MAP Lexile & STAR ZPD
-// Alignment Chart" — this is a generalized national cross-walk, NOT an
-// official Renaissance STAR score. Verify against your actual STAR/AR
-// system before using for real instructional grouping. Scoped to K-6,
-// matching how this district uses AR/ZPD.
-//
-// The chart's Lexile ranges actually overlap between grades (e.g. Grade
-// 2 tops out at 500L while Grade 3 starts at 330L) — only the RIT and
-// ZPD columns are strictly ordered — so this is a grade-keyed lookup
-// with within-grade interpolation by Lexile position, not a pure
-// Lexile-only formula.
-const ZPD_CHART = [
-  { grade: 'K', lexileMin: -400, lexileMax: 0,    zpdMin: 0.0, zpdMax: 1.1 },
-  { grade: '1', lexileMin: 0,    lexileMax: 300,  zpdMin: 1.1, zpdMax: 2.2 },
-  { grade: '2', lexileMin: 140,  lexileMax: 500,  zpdMin: 2.0, zpdMax: 3.2 },
-  { grade: '3', lexileMin: 330,  lexileMax: 700,  zpdMin: 2.6, zpdMax: 4.1 },
-  { grade: '4', lexileMin: 445,  lexileMax: 810,  zpdMin: 3.1, zpdMax: 4.6 },
-  { grade: '5', lexileMin: 565,  lexileMax: 910,  zpdMin: 3.5, zpdMax: 5.2 },
-  { grade: '6', lexileMin: 665,  lexileMax: 1000, zpdMin: 4.0, zpdMax: 6.1 },
+// LEXILE READING LEVEL (from MetaMetrics' own Lexile Grade Level Charts)
+// Unlike a cross-vendor conversion (e.g. to Renaissance STAR/AR), this
+// stays entirely within the Lexile framework: MetaMetrics' national
+// norms study gives the 50th-percentile (median) Lexile measure by
+// grade and term. A student's reading level here is just "which
+// grade/term's national median Lexile measure is closest to this
+// student's own Lexile score" — nearest-match, not interpolation,
+// since the norms plateau and dip slightly grade-to-grade at the high
+// school end (a real, documented pattern, not a data error), so
+// assuming a smooth monotonic curve across all 39 grade/term points
+// would be misleading right where precision matters most.
+// Source: https://hub.lexile.com/lexile-grade-level-charts/
+const LEXILE_GRADE_CHART = [
+  { grade: 'K',  term: 'BOY', lexile50: -315 }, { grade: 'K',  term: 'MOY', lexile50: -215 }, { grade: 'K',  term: 'EOY', lexile50: -14 },
+  { grade: '1',  term: 'BOY', lexile50: -45 },  { grade: '1',  term: 'MOY', lexile50: 45 },   { grade: '1',  term: 'EOY', lexile50: 110 },
+  { grade: '2',  term: 'BOY', lexile50: 200 },  { grade: '2',  term: 'MOY', lexile50: 275 },  { grade: '2',  term: 'EOY', lexile50: 335 },
+  { grade: '3',  term: 'BOY', lexile50: 415 },  { grade: '3',  term: 'MOY', lexile50: 485 },  { grade: '3',  term: 'EOY', lexile50: 535 },
+  { grade: '4',  term: 'BOY', lexile50: 605 },  { grade: '4',  term: 'MOY', lexile50: 665 },  { grade: '4',  term: 'EOY', lexile50: 710 },
+  { grade: '5',  term: 'BOY', lexile50: 770 },  { grade: '5',  term: 'MOY', lexile50: 820 },  { grade: '5',  term: 'EOY', lexile50: 860 },
+  { grade: '6',  term: 'BOY', lexile50: 905 },  { grade: '6',  term: 'MOY', lexile50: 950 },  { grade: '6',  term: 'EOY', lexile50: 980 },
+  { grade: '7',  term: 'BOY', lexile50: 1015 }, { grade: '7',  term: 'MOY', lexile50: 1050 }, { grade: '7',  term: 'EOY', lexile50: 1075 },
+  { grade: '8',  term: 'BOY', lexile50: 1105 }, { grade: '8',  term: 'MOY', lexile50: 1125 }, { grade: '8',  term: 'EOY', lexile50: 1145 },
+  { grade: '9',  term: 'BOY', lexile50: 1160 }, { grade: '9',  term: 'MOY', lexile50: 1175 }, { grade: '9',  term: 'EOY', lexile50: 1185 },
+  { grade: '10', term: 'BOY', lexile50: 1195 }, { grade: '10', term: 'MOY', lexile50: 1200 }, { grade: '10', term: 'EOY', lexile50: 1200 },
+  { grade: '11', term: 'BOY', lexile50: 1200 }, { grade: '11', term: 'MOY', lexile50: 1195 }, { grade: '11', term: 'EOY', lexile50: 1190 },
+  { grade: '12', term: 'BOY', lexile50: 1180 }, { grade: '12', term: 'MOY', lexile50: 1165 }, { grade: '12', term: 'EOY', lexile50: 1155 },
 ];
 
 // "BR400L" -> -400, "915L" -> 915, "0L" -> 0 (Lexile's own convention
@@ -518,16 +524,21 @@ function parseLexileNumber(raw) {
   return m[1] ? -Math.abs(n) : n;
 }
 
-// Approximates a STAR ZPD / AR level from a student's grade and Lexile Max.
-// Returns null outside grades K-6 or when the Lexile value can't be parsed.
-function estimateZPD(grade, lexileMaxRaw) {
-  const row = ZPD_CHART.find(r => r.grade === String(grade));
-  if (!row) return null;
-  const lex = parseLexileNumber(lexileMaxRaw);
+// Finds the grade/term whose national median Lexile measure is closest to
+// this student's own Lexile score. Returns null when the Lexile value
+// can't be parsed. Works for any grade K-12 (the source chart covers all
+// of them), unlike the AR/ZPD estimate this replaces.
+function estimateReadingLevel(lexileRaw) {
+  const lex = parseLexileNumber(lexileRaw);
   if (isNaN(lex)) return null;
-  const clamped = Math.max(row.lexileMin, Math.min(row.lexileMax, lex));
-  const frac = row.lexileMax === row.lexileMin ? 0 : (clamped - row.lexileMin) / (row.lexileMax - row.lexileMin);
-  return (row.zpdMin + frac * (row.zpdMax - row.zpdMin)).toFixed(1);
+  let best = LEXILE_GRADE_CHART[0];
+  let bestDiff = Math.abs(lex - best.lexile50);
+  for (const row of LEXILE_GRADE_CHART) {
+    const diff = Math.abs(lex - row.lexile50);
+    if (diff < bestDiff) { bestDiff = diff; best = row; }
+  }
+  const gradeLabel = best.grade === 'K' ? 'K' : `Grade ${best.grade}`;
+  return `${gradeLabel} (${PERIOD_LABELS[best.term]})`;
 }
 
 // ============================================================
@@ -1307,8 +1318,7 @@ function buildDataPageHTML(student, selPeriod) {
   // show the range itself as the headline value in that case.
   const lexile = lexileScore || lexileRange;
   const lexileSub = (lexileScore && lexileRange) ? lexileRange : 'Text complexity band';
-  // Grade K-6 only, per how this district uses AR/ZPD — see ZPD_CHART.
-  const zpdEstimate = ph ? estimateZPD(student.grade, ph.lexileMax || lexileScore) : null;
+  const readingLevel = ph ? estimateReadingLevel(ph.lexileMax || lexileScore) : null;
 
   const levelBadge = LEVEL_BADGE_CLASS[level] || 'lv-none';
   const levelLabel = LEVEL_SHORT[level] || 'No Score';
@@ -1385,10 +1395,10 @@ function buildDataPageHTML(student, selPeriod) {
         <div class="rpt-strip-val" style="font-size:18px">${esc(lexile)}</div>
         <div class="rpt-strip-sub">${esc(lexileSub)}</div>
       </div>` : ''}
-      ${zpdEstimate ? `<div class="rpt-strip-cell">
-        <div class="rpt-strip-label">Est. AR / ZPD</div>
-        <div class="rpt-strip-val" style="font-size:18px">${zpdEstimate}</div>
-        <div class="rpt-strip-sub">Approx. from Lexile — not an official STAR score</div>
+      ${readingLevel ? `<div class="rpt-strip-cell">
+        <div class="rpt-strip-label">Reading Level</div>
+        <div class="rpt-strip-val" style="font-size:18px">${esc(readingLevel)}</div>
+        <div class="rpt-strip-sub">Nearest Lexile national median</div>
       </div>` : ''}
       <div class="rpt-strip-cell">
         <div class="rpt-strip-label">Semester Growth</div>
@@ -1465,7 +1475,7 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
   const score = ph ? ph.compositeScore : '';
   const pct = ph ? ph.compositePercentile : '';
   const lexile = ph ? (ph.lexileScore || (ph.lexileMin && ph.lexileMax ? `${ph.lexileMin} – ${ph.lexileMax}` : '')) : '';
-  const zpdEstimate = ph ? estimateZPD(student.grade, ph.lexileMax || ph.lexileScore) : null;
+  const readingLevel = ph ? estimateReadingLevel(ph.lexileMax || ph.lexileScore) : null;
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const schoolYear = (ph && ph.row['School Year']) ? ph.row['School Year'] : '';
 
@@ -1527,9 +1537,9 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
       <div class="refl-data-label">Lexile</div>
       <div class="refl-data-val">${esc(lexile)}</div>
     </div>` : ''}
-    ${zpdEstimate ? `<div class="refl-data-cell">
-      <div class="refl-data-label">Est. AR/ZPD</div>
-      <div class="refl-data-val">${zpdEstimate}</div>
+    ${readingLevel ? `<div class="refl-data-cell">
+      <div class="refl-data-label">Reading Level</div>
+      <div class="refl-data-val" style="font-size:12px">${esc(readingLevel)}</div>
     </div>` : ''}
     ${isMaintenance
       ? `<div class="refl-data-cell" style="border-left:2px solid #3ec9a7;padding-left:10px">
