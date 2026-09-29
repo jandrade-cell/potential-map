@@ -113,7 +113,7 @@ function render() {
   const d = D();
   const has = !!d;
   $('welcome').hidden = has;
-  ['tabs', 'district-row', 'btn-add-data', 'btn-save', 'btn-print'].forEach(id => $(id).hidden = !has);
+  ['tabs', 'district-row', 'btn-add-data', 'btn-save', 'btn-print', 'btn-report'].forEach(id => $(id).hidden = !has);
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', has && v.id === 'view-' + S.view));
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.view === S.view));
   if (!has) return;
@@ -121,6 +121,7 @@ function render() {
   const A = new Map(d.metrics.map(m => [m.id, L.analyze(m)]));
   if (S.view === 'dashboard') renderDashboard(d, A);
   if (S.view === 'summary') renderSummary(d);
+  if (S.view === 'draft') renderDraft(d);
   if (S.view === 'coverage') renderCoverage(d, A);
   if (S.view === 'log') renderLog(d);
   if (S.view === 'settings') renderSettings(d);
@@ -261,6 +262,130 @@ function exportNotes() {
       'Planning direction to consider: ' + s.direction, 'Team notes: ' + ((d.notes[p] || '').trim() || '(none)'), '');
   }
   download(`${slug(d.name)}-next-cycle-notes.txt`, lines.join('\r\n'), 'text/plain');
+}
+
+// ------------------------------------------------------------
+// Next-cycle draft metrics table
+// ------------------------------------------------------------
+const TEMPLATE_COLS = ['Metric #', 'Metric', 'Baseline', 'Year 1 Outcome', 'Year 2 Outcome', 'Target for Year 3 Outcome', 'Current Difference from Baseline'];
+
+function draftRows(d) {
+  const edits = d.draft || {};
+  return L.nextCycleRows(d, { gapPct: d.draftGap || 30 }).map(r => ({
+    ...r, baseline: edits[r.id]?.baseline ?? r.baseline, target: edits[r.id]?.target ?? r.target,
+    edited: !!edits[r.id]
+  }));
+}
+
+function renderDraft(d) {
+  const start = (d.cycleStart || 2024) + 3;
+  $('draft-cycle').textContent = `${start}–${String(start + 3).slice(2)}`;
+  $('draft-gap').value = d.draftGap || 30;
+  const rows = draftRows(d);
+  const missing = rows.filter(r => r.priorStatus === 'Missing').length;
+  $('draft-count').textContent = `${rows.length - missing} metrics${missing ? ` + ${missing} required metric${missing > 1 ? 's' : ''} to add` : ''}`;
+  $('draft-body').innerHTML = rows.map(r => `<tr class="${r.priorStatus === 'Missing' ? 'missing-row' : ''}">
+    <td class="num">${esc(r.codes.join(', '))}</td><td class="num">${esc(r.metricNo)}</td><td>${esc(r.metric)}</td>
+    <td class="wide"><input class="ctl" data-draft="${esc(r.id)}" data-k="baseline" value="${esc(r.baseline)}" aria-label="Baseline"></td>
+    <td class="blank"></td><td class="blank"></td>
+    <td class="wide"><input class="ctl" data-draft="${esc(r.id)}" data-k="target" value="${esc(r.target)}" aria-label="Target"></td>
+    <td class="blank"></td>
+    <td class="notes-cell">${r.priorStatus === 'Missing' ? '' : badge(r.priorStatus) + ' '}${r.priorTarget ? `Current target: ${esc(r.priorTarget.replace(/\.+$/, ''))}. ` : ''}${esc(r.targetBasis)}
+      ${r.flags.length ? `<ul>${r.flags.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}</td></tr>`).join('');
+}
+
+function draftCsv(d) {
+  const q = s => /[",\n]/.test(s) ? `"${String(s).replace(/"/g, '""')}"` : String(s);
+  const head = ['LCFF metric(s)', ...TEMPLATE_COLS, 'Current-cycle status', 'Current-cycle target', 'Target basis', 'Planning flags'];
+  const lines = [head.map(q).join(',')];
+  for (const r of draftRows(d)) lines.push([r.codes.join(' '), r.metricNo, r.metric, r.baseline, '', '', r.target, '',
+    r.priorStatus, r.priorTarget, r.targetBasis, r.flags.join(' ')].map(q).join(','));
+  return '\uFEFF' + lines.join('\r\n');
+}
+
+async function copyDraft(d) {
+  const rows = draftRows(d);
+  const cell = s => `<td style="border:1px solid #999;padding:4px;vertical-align:top">${esc(s)}</td>`;
+  const html = `<table style="border-collapse:collapse;font-family:Arial;font-size:10pt"><tr>${TEMPLATE_COLS.map(h => `<th style="border:1px solid #999;padding:4px;background:#eee">${esc(h)}</th>`).join('')}</tr>
+    ${rows.map(r => `<tr>${[r.metricNo, r.metric, r.baseline, '', '', r.target, ''].map(cell).join('')}</tr>`).join('')}</table>`;
+  const text = [TEMPLATE_COLS.join('\t'), ...rows.map(r => [r.metricNo, r.metric, r.baseline, '', '', r.target, ''].join('\t'))].join('\n');
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+  } catch (e) {
+    // Older browsers / file pages: copy a rendered copy of the table.
+    const box = document.createElement('div');
+    box.innerHTML = html; box.style.position = 'fixed'; box.style.left = '-9999px';
+    document.body.appendChild(box);
+    const range = document.createRange(); range.selectNodeContents(box);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    document.execCommand('copy'); sel.removeAllRanges(); box.remove();
+  }
+  toast('Table copied. Paste it into the LCAP template in Word.');
+}
+
+// ------------------------------------------------------------
+// One-page summary report (print)
+// ------------------------------------------------------------
+function printReport() {
+  const d = D(); if (!d) return;
+  const A = new Map(d.metrics.map(m => [m.id, L.analyze(m)]));
+  const counts = { Priority: 0, Watch: 0, Sustain: 0, Review: 0 };
+  d.metrics.forEach(m => counts[A.get(m.id).status]++);
+  const covered = L.REQUIRED.filter(r => d.metrics.some(m => m.codes.includes(r.code))).length;
+  const attention = d.metrics.filter(m => A.get(m.id).status === 'Priority');
+  const v = (p, m) => p ? esc(L.fmtValue(p.value, m.unit)) : '—';
+  $('view-report').innerHTML = `<div class="report">
+    <div class="eyebrow">Modoc County Office of Education · LCAP Tracker</div>
+    <h2>${esc(d.name)}: LCAP Progress Summary</h2>
+    <div class="rpt-meta">${d.cycleStart ? `${d.cycleStart}–${String(d.cycleStart + 3).slice(2)} LCAP` : ''} · Prepared ${new Date().toLocaleDateString()} · ${d.metrics.length} metrics · ${covered} of 28 required LCFF metrics addressed</div>
+    <div class="rpt-counts">${Object.entries(counts).map(([k, n]) => `<div style="--c:${STATUS_COLOR[k]}"><b>${n}</b>${k}</div>`).join('')}</div>
+    <h3>By LCFF priority</h3>
+    <table><thead><tr><th>Priority</th><th>Metrics</th><th>Most important unresolved need</th><th>Planning direction to consider</th></tr></thead><tbody>
+    ${[1, 2, 3, 4, 5, 6, 7, 8].map(p => { const s = summaryFor(d, p); return `<tr><td>${p}. ${esc(L.PRIORITY_NAMES[p])}</td>
+      <td>${Object.entries(s.counts).filter(([, n]) => n).map(([k, n]) => `${n} ${k}`).join(', ') || '—'}</td><td>${esc(s.need)}</td><td>${esc(s.direction)}</td></tr>`; }).join('')}
+    </tbody></table>
+    <h3>Metrics needing attention (Priority)</h3>
+    <table><thead><tr><th>Metric</th><th>Baseline</th><th>Latest</th><th>Target</th><th>Why</th></tr></thead><tbody>
+    ${attention.map(m => { const a = A.get(m.id); return `<tr><td>${esc(m.metricNo)} ${esc(m.name)}</td><td>${v(a.baseline, m)}</td>
+      <td>${v(a.latest, m)}${a.latest ? ' (' + esc(a.latest.period) + ')' : ''}</td><td>${m.targetValue != null ? esc(L.fmtValue(m.targetValue, m.unit)) : esc(m.targetText)}</td><td>${esc(a.reasons.join(' '))}</td></tr>`; }).join('') || '<tr><td colspan="5">None.</td></tr>'}
+    </tbody></table>
+    <p class="rpt-meta" style="margin-top:14px">Statuses are calculated from each metric's baseline, latest result, and target. They are planning prompts for educational-partner discussion, not conclusions.</p>
+  </div>`;
+  const view = $('view-report');
+  document.body.classList.add('print-report'); view.classList.add('printing');
+  window.print();
+  document.body.classList.remove('print-report'); view.classList.remove('printing');
+}
+
+// ------------------------------------------------------------
+// Guide
+// ------------------------------------------------------------
+function openGuide() {
+  S.modal = { type: 'guide' };
+  openModal(`${modalHead('Using the LCAP Tracker to develop your LCAP', 'A suggested sequence for superintendents and LCAP teams')}
+  <div class="guide">
+    <p>The tracker turns your adopted LCAP into a working data set: every metric, its baseline, each year's outcome, and your target, scored automatically. Use it all year to monitor progress, and in the spring to build the next plan.</p>
+    <h3><span class="when">Start · any time</span><br>1. Import your current LCAP</h3>
+    <ol><li>Choose <strong>Import LCAP</strong> and select the adopted plan (PDF from the state template).</li>
+      <li>On the review screen, check each metric's <em>parsed</em> numbers. Correct any cell where the number is wrong, and check the <em>Indicators</em> column (1A–8A) for each metric.</li>
+      <li>Import. The Dashboard shows every metric as <strong>Priority</strong>, <strong>Watch</strong>, <strong>Sustain</strong>, or <strong>Review</strong>. Open any metric to see why.</li></ol>
+    <h3><span class="when">December · when the Dashboard is released</span><br>2. Add the newest state data</h3>
+    <ol><li>Download the California School Dashboard data files (ELA, Math, ELPI, Chronic Absenteeism, Suspension, Graduation, CCI) from the CDE Dashboard downloadable data files page.</li>
+      <li>Choose <strong>+ Add Data</strong> and upload each file. Every student group and its color is recorded, and groups in Red are flagged on the metric.</li></ol>
+    <h3><span class="when">Fall · winter · spring</span><br>3. Add local results as they come in</h3>
+    <ul><li><strong>NWEA MAP</strong> and <strong>mCLASS</strong> exports: student rows are summarized into percentages on this computer and never saved or sent.</li>
+      <li>Attendance, climate surveys, A–G, CTE, and other local data: use the <strong>CSV template</strong>, any spreadsheet, or type a single result on the metric.</li></ul>
+    <h3><span class="when">Winter · spring</span><br>4. Needs assessment and educational-partner engagement</h3>
+    <ul><li><strong>Next-Cycle Summary</strong>: one card per LCFF priority with the pattern, strongest progress, most important need, an equity question, and a planning direction. Record partner input in <em>Team notes</em>.</li>
+      <li><strong>Summary Report</strong>: a printable overview for board meetings, parent advisory committees, and staff.</li>
+      <li><strong>Required Metrics</strong>: confirms your plan addresses all 28 required metrics and lets you add any that are missing.</li></ul>
+    <h3><span class="when">Spring · drafting the plan</span><br>5. Draft the next LCAP's metrics table</h3>
+    <ul><li><strong>Next-Cycle Draft</strong> lists every metric with its latest result as the new baseline and a suggested Year 3 target, plus flags such as Red student groups or combined measures.</li>
+      <li>Adjust targets with your team, then <strong>Copy table</strong> into the LCAP template in Word or <strong>Download for Excel</strong>.</li></ul>
+    <h3>Saving and sharing</h3>
+    <ul><li>Your work is kept in this browser on this computer. Choose <strong>Save File</strong> to create a district file you can share with your LCAP team or open on another computer with <strong>Open File</strong>.</li>
+      <li>Nothing is sent over the internet unless you turn on the optional AI features in <strong>Settings &amp; AI</strong>. Even then, only district-level LCAP data is sent.</li></ul>
+  </div>`);
 }
 
 // ------------------------------------------------------------
@@ -770,6 +895,18 @@ function wire() {
   $('btn-example').addEventListener('click', () => window.EXAMPLE_DISTRICT && loadExtract(window.EXAMPLE_DISTRICT, 'Example: TBJUSD All State and Local Indicators'));
   $('btn-save').addEventListener('click', saveFile);
   $('btn-add-data').addEventListener('click', openAddData);
+  $('btn-report').addEventListener('click', printReport);
+  $('btn-guide').addEventListener('click', openGuide);
+  $('draft-gap').addEventListener('change', e => { const v = Math.max(5, Math.min(100, +e.target.value || 30)); D().draftGap = v; changed(); });
+  $('draft-body').addEventListener('input', e => {
+    const id = e.target.dataset.draft; if (!id) return;
+    const d = D(); d.draft = d.draft || {};
+    d.draft[id] = { ...(d.draft[id] || {}), [e.target.dataset.k]: e.target.value };
+    persist();
+  });
+  $('btn-draft-reset').addEventListener('click', () => { if (confirm('Discard your edits to the draft table?')) { D().draft = {}; changed(); } });
+  $('btn-draft-copy').addEventListener('click', () => copyDraft(D()));
+  $('btn-draft-csv').addEventListener('click', () => download(`${slug(D().name)}-next-cycle-metrics-draft.csv`, draftCsv(D()), 'text/csv'));
   $('btn-print').addEventListener('click', () => {
     const v = document.querySelector('.view.active'); if (!v) return;
     v.classList.add('printing'); window.print(); v.classList.remove('printing');
@@ -839,6 +976,7 @@ function wire() {
     }
     const act = el.dataset.act;
     if (act === 'close') closeModal();
+    else if (act === 'guide') openGuide();
     else if (act === 'ai-insights') runAIInsights();
     else if (act === 'add-point') addPointFromForm();
     else if (act === 'save-metric') saveMetricSettings();

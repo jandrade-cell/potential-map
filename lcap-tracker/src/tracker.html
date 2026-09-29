@@ -172,6 +172,25 @@ tr.missing td{background:rgba(232,69,60,.06)}
 .add-row{display:grid;grid-template-columns:1.2fr .8fr 1fr 1.6fr auto;gap:12px;align-items:end}
 .kind-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 
+.site-foot{max-width:1280px;margin:0 auto;padding:0 28px 28px;font-size:11px;color:var(--muted)}
+.draft-table th{white-space:normal;vertical-align:bottom}
+.draft-table td.wide{min-width:170px}
+.draft-table .blank{width:64px;min-width:64px}
+.draft-table input.ctl{width:100%;font-size:12px;padding:5px 7px}
+.draft-table td.notes-cell{min-width:260px;font-size:11px;color:var(--text2)}
+.draft-table td.notes-cell ul{padding-left:16px}
+.draft-table tr.missing-row td{background:rgba(232,69,60,.06)}
+.guide h3{font-size:14px;margin:16px 0 6px}
+.guide p,.guide li{font-size:13px;color:var(--text2)}
+.guide ol,.guide ul{padding-left:20px;display:flex;flex-direction:column;gap:5px}
+.guide .when{font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.report h2{font-family:var(--display);font-size:22px}
+.report .rpt-meta{font-size:12px;color:var(--muted);margin-bottom:14px}
+.report .rpt-counts{display:flex;gap:10px;margin:10px 0 16px;flex-wrap:wrap}
+.report .rpt-counts div{border:1px solid var(--border);border-left:4px solid var(--c);border-radius:8px;padding:6px 12px;font-size:12px}
+.report .rpt-counts b{font-family:var(--mono);font-size:18px;margin-right:6px}
+.report h3{font-size:13px;margin:16px 0 6px}
+.report table{font-size:11px}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0b0d13;border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:10px;font-size:13px;z-index:80;max-width:min(560px,92vw);box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .toast.err{border-color:var(--st-priority)}
 #loading{position:fixed;inset:0;background:rgba(15,17,23,.85);z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
@@ -203,6 +222,10 @@ tr.missing td{background:rgba(232,69,60,.06)}
   .card,.sum-card,.prio-head{break-inside:avoid;margin-left:0;width:100%}
   .notes-print{display:block;white-space:pre-wrap;border:1px solid var(--border);border-radius:6px;padding:6px 8px;min-height:40px}
   .table-wrap{overflow:visible}
+  .site-foot{padding:10px 0 0}
+  .toast,.chart-tip{display:none!important}
+  body.print-report header.top{display:none}
+  .draft-table input.ctl{border:none;background:none;padding:0}
 }
 </style>
 <script data-inline="vendor/pdf.min.js"></script>
@@ -214,7 +237,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
 <header class="top">
   <div class="top-row">
     <div class="brand">
-      <div class="eyebrow">LCFF State Priorities · Continuous Monitoring</div>
+      <div class="eyebrow">Modoc County Office of Education</div>
       <h1>LCAP <span>Tracker</span></h1>
       <div class="district-row" id="district-row" hidden>
         <select class="ctl" id="district-select" aria-label="District"></select>
@@ -227,11 +250,14 @@ tr.missing td{background:rgba(232,69,60,.06)}
       <button class="btn btn-ghost" id="btn-save" hidden>Save File</button>
       <label class="btn btn-ghost" style="position:relative;overflow:hidden">Open File<input type="file" id="open-file" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
       <button class="btn btn-ghost" id="btn-print" hidden>Print View</button>
+      <button class="btn btn-ghost" id="btn-report" hidden>Summary Report</button>
+      <button class="btn btn-ghost" id="btn-guide">Guide</button>
     </div>
   </div>
   <nav class="tabs" role="tablist" id="tabs" hidden>
     <button class="tab" role="tab" data-view="dashboard" aria-selected="true">Dashboard</button>
     <button class="tab" role="tab" data-view="summary" aria-selected="false">Next-Cycle Summary</button>
+    <button class="tab" role="tab" data-view="draft" aria-selected="false">Next-Cycle Draft</button>
     <button class="tab" role="tab" data-view="coverage" aria-selected="false">Required Metrics</button>
     <button class="tab" role="tab" data-view="log" aria-selected="false">Data Log</button>
     <button class="tab" role="tab" data-view="settings" aria-selected="false">Settings &amp; AI</button>
@@ -260,7 +286,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
       </div>
     </div>
     <div class="how">
-      <strong>How it stays current</strong>
+      <strong>How it stays current</strong> <button class="linkish" data-act="guide" style="margin-left:8px">New here? Read the guide for LCAP development →</button>
       <ol>
         <li>Every result is stored as a dated point on a timeline (baseline, Year 1, Year 2, then anything you add).</li>
         <li>Each metric's status (Priority, Watch, Sustain) is recalculated from the latest point, the baseline, and the target every time data changes.</li>
@@ -309,6 +335,26 @@ tr.missing td{background:rgba(232,69,60,.06)}
       <thead><tr><th>Metric</th><th>Period</th><th>Group</th><th>Value</th><th>Source</th><th>Added</th><th></th></tr></thead><tbody id="points-body"></tbody></table></div></div>
   </section>
 
+  <section class="view" id="view-draft">
+    <div class="note-box">A starting draft of the metrics table for your <strong id="draft-cycle">next</strong> LCAP, in the state template's column order. Each metric's <strong>latest result becomes the new baseline</strong>, and a Year 3 target is suggested using the rule below. Suggestions are starting points for educational-partner discussion, not recommendations. Edit any baseline or target here; edits are saved with the district file.</div>
+    <div class="filters">
+      <label style="font-size:12px;color:var(--text2);display:flex;gap:8px;align-items:center">Suggested targets close
+        <input class="ctl" type="number" id="draft-gap" min="5" max="100" step="5" style="width:70px">% of the gap to the ideal (100%, 0%, or at standard) over three years</label>
+      <span class="count" id="draft-count"></span>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-ghost" id="btn-draft-reset">Reset edits</button>
+      <button class="btn btn-ghost" id="btn-draft-copy">Copy table (paste into Word)</button>
+      <button class="btn" id="btn-draft-csv">Download for Excel (.csv)</button>
+    </div>
+    <div class="table-wrap"><table class="draft-table">
+      <thead><tr><th>LCFF</th><th>Metric #</th><th>Metric</th><th>Baseline</th><th class="blank">Year 1 Outcome</th><th class="blank">Year 2 Outcome</th><th>Target for Year 3 Outcome</th><th class="blank">Current Difference from Baseline</th><th>Planning notes</th></tr></thead>
+      <tbody id="draft-body"></tbody>
+    </table></div>
+  </section>
+
+  <section class="view" id="view-report"></section>
+
   <section class="view" id="view-settings">
     <div class="grid2">
       <div class="start-card">
@@ -329,6 +375,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
     </div>
   </section>
 </main>
+<footer class="site-foot">LCAP Tracker · Provided by the Modoc County Office of Education · Your data stays on this computer unless you save and share a district file.</footer>
 
 <div class="modal" id="modal" hidden><div class="modal-inner" id="modal-inner"></div></div>
 <div id="loading" hidden><div class="spinner"></div><div id="loading-text">Working…</div></div>

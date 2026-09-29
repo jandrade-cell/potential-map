@@ -60,4 +60,17 @@ assert.ok(a.reasons.some(r => /English learners/.test(r)));
 const covered = L.REQUIRED.filter(r => d.metrics.some(m => m.codes.includes(r.code))).length;
 assert.strictEqual(covered, 28);
 
+// Next-cycle draft: latest result becomes the baseline; targets are suggested
+const draft = L.nextCycleRows(d, { gapPct: 30 });
+const row = no => draft.find(r => r.metricNo === no);
+assert.strictEqual(row('3.10').baseline, '19% (2026)');               // latest chronic absenteeism result
+assert.strictEqual(row('3.10').target, '13.3%');                        // closes 30% of the gap to 0%
+assert.strictEqual(row('1.2').target, 'Maintain 100%');
+assert.strictEqual(row('1.3').target, '4/5');
+assert.ok(/not reached/.test(row('2.1').targetBasis));                  // names the unmet 70% A–G target
+assert.ok(row('1.4').flags.some(f => /English learners/.test(f)));      // Red groups flagged
+const d2 = L.newDistrict('No 4D', 2024);
+L.importLcapRows(d2, ex.rows.filter(r => r.metricNo !== '2.3'), { cycleStart: 2024 });
+assert.ok(L.nextCycleRows(d2).some(r => r.id === 'req:4D' && r.priorStatus === 'Missing'));
+
 console.log('engine tests passed');

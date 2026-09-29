@@ -4,7 +4,7 @@
 Inlines the vendored libraries and the app source into one HTML file so it
 can be opened from a shared drive or USB stick with no internet connection.
 
-    python3 lcap-tracker/build.py
+    python3 build.py
 """
 import json
 import pathlib

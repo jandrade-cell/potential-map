@@ -563,6 +563,73 @@ function prioritySummary(district, p) {
   };
 }
 
+// ------------------------------------------------------------
+// Next-cycle draft: latest result becomes the new baseline, with a
+// suggested Year 3 target. Suggestions are starting points for
+// educational-partner discussion, never final targets.
+// ------------------------------------------------------------
+function suggestTarget(m, a, gapPct = 30) {
+  const u = m.unit, l = a.latest;
+  if (!l) return { value: null, text: 'Set once a baseline is established', basis: 'No numeric result yet.' };
+  if (u === 'fit') return { value: 3, text: 'Maintain Good or Exemplary', basis: 'Facilities maintenance measure.' };
+  if (m.direction === 'maintain') {
+    const v = m.targetValue ?? l.value;
+    return { value: v, text: `Maintain ${fmtValue(v, u)}`, basis: 'Maintenance measure in the current LCAP.' };
+  }
+  const sign = goodSign(m);
+  const g = gapPct / 100;
+  let v, basis;
+  if (u === 'rating') {
+    v = Math.min(5, Math.floor(l.value) + 1);
+    basis = 'One level higher on the 5-point implementation scale.';
+  } else if (u === '%') {
+    const ideal = sign > 0 ? 100 : 0;
+    v = round(l.value + (ideal - l.value) * g, 1);
+    basis = `Closes ${gapPct}% of the gap between the latest result and ${ideal}%.`;
+  } else if (u === 'pts') {
+    const ideal = l.value < 0 ? 0 : l.value + 30;
+    v = round(l.value + (ideal - l.value) * g, 1);
+    basis = l.value < 0 ? `Closes ${gapPct}% of the distance to standard.` : `Grows ${round(30 * g, 1)} points above standard.`;
+  } else {
+    v = round(l.value * (1 + sign * g / 3), 1);
+    basis = `Improves the latest result by about ${round(gapPct / 3, 1)}%.`;
+  }
+  // Name an unmet, more ambitious current target so the team can choose between the two.
+  if (m.targetValue != null && !a.met && (m.targetValue - v) * sign > 0) {
+    basis += ` The current-cycle target (${fmtValue(m.targetValue, u)}) was not reached; carrying it forward is the more ambitious option.`;
+  }
+  return { value: v, text: fmtValue(v, u), basis };
+}
+
+function nextCycleRows(district, { gapPct = 30 } = {}) {
+  const rows = [];
+  const byNo = (x, y) => String(x.metricNo).localeCompare(String(y.metricNo), undefined, { numeric: true });
+  for (const m of district.metrics.slice().sort(byNo)) {
+    const a = analyze(m);
+    const s = suggestTarget(m, a, gapPct);
+    const flags = [];
+    const red = a.groups.filter(g => g.group !== 'ALL' && g.color === 1).map(g => groupName(g.group));
+    if (red.length) flags.push(`Red student groups: ${red.join(', ')}; consider group-specific targets.`);
+    if (a.latest && a.latest.source === 'LCAP') flags.push('Latest value is from the current LCAP; add newer data first.');
+    if (!a.latest) flags.push(a.na ? 'Marked not applicable in the current LCAP.' : 'No numeric result; define how this will be measured.');
+    if ((m.codes || []).length > 1) flags.push(`Reports ${m.codes.join(', ')} together; consider a separate measure for each.`);
+    if (/;/.test((m.lcapText && m.lcapText.baseline) || '') && (String(m.lcapText.baseline).match(/\d+(\.\d+)?%?/g) || []).length > 2)
+      flags.push('Baseline cell combines several values (sites or subjects); consider separate metrics.');
+    rows.push({
+      id: m.id, codes: m.codes, metricNo: m.metricNo, metric: m.name,
+      baseline: a.latest ? `${fmtValue(a.latest.value, m.unit)} (${a.latest.period.replace(/^(Baseline|Year \d) · /, '')})` : ((m.lcapText && m.lcapText.y2) || (m.lcapText && m.lcapText.baseline) || ''),
+      target: s.text, targetBasis: s.basis, priorTarget: m.targetText || (m.targetValue != null ? fmtValue(m.targetValue, m.unit) : ''),
+      priorStatus: a.status, flags
+    });
+  }
+  for (const r of REQUIRED) {
+    if (district.metrics.some(m => (m.codes || []).includes(r.code))) continue;
+    rows.push({ id: 'req:' + r.code, codes: [r.code], metricNo: '', metric: r.name, baseline: '', target: '', targetBasis: '', priorTarget: '',
+      priorStatus: 'Missing', flags: ['Required LCFF metric not in the current LCAP; add it to the new plan.'] });
+  }
+  return rows;
+}
+
 // Stable signature of a metric's data; AI text is "current" only while this matches.
 function dataSig(metric) {
   const s = JSON.stringify([metric.targetValue, metric.direction, metric.primaryGroup,
@@ -575,6 +642,6 @@ root.LCAP = {
   PRIORITY_NAMES, REQUIRED, REQUIRED_BY_CODE, GROUP_NAMES, COLOR_NAMES, STATUS,
   uid, norm, round, fmtValue, fmtDelta, periodOrder, leadingPeriod, parseValue, parseTarget,
   inferCodes, inferDirection, newDistrict, makeMetric, addPoint, importLcapRows,
-  series, analyze, insight, goodSign, prioritySummary, groupName, dataSig
+  series, analyze, insight, goodSign, prioritySummary, groupName, dataSig, suggestTarget, nextCycleRows
 };
 })(typeof window !== 'undefined' ? window : globalThis);
