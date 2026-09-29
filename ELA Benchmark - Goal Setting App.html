@@ -776,6 +776,9 @@ function processCSV(csvText) {
           semesterGrowth: growthQuintileFor(p, r, 'semester'),
           yearGrowth: growthQuintileFor(p, r, 'year'),
           goalAreaNames: r.__goalAreaNames || [],
+          lexileScore: r['LexileScore'] || '',
+          lexileMin: r['LexileMin'] || '',
+          lexileMax: r['LexileMax'] || '',
           row: r
         };
       });
@@ -1238,6 +1241,8 @@ function buildDataPageHTML(student, selPeriod) {
   const yearGrowth = ph ? ph.yearGrowth : '';
   const semGrowthPts = ph && ph.row ? growthObservedFor(displayPeriod, ph.row, 'semester') : '';
   const yearGrowthPts = ph && ph.row ? growthObservedFor(displayPeriod, ph.row, 'year') : '';
+  const lexile = ph ? ph.lexileScore : '';
+  const lexileRange = ph && ph.lexileMin && ph.lexileMax ? `${ph.lexileMin} – ${ph.lexileMax}` : '';
 
   const levelBadge = LEVEL_BADGE_CLASS[level] || 'lv-none';
   const levelLabel = LEVEL_SHORT[level] || 'No Score';
@@ -1255,6 +1260,7 @@ function buildDataPageHTML(student, selPeriod) {
         <div class="td-level-chip ${chipCls} rpt-period-level">${LEVEL_SHORT[pLevel] || '—'}</div>
         ${h.semesterGrowth ? `<div class="rpt-period-growth">${h.semesterGrowth}</div>` : ''}
         ${h.compositePercentile ? `<div class="rpt-period-pct">${ordinal(h.compositePercentile)} pct</div>` : ''}
+        ${h.lexileScore ? `<div class="rpt-period-pct">${esc(h.lexileScore)}</div>` : ''}
       ` : `<div class="rpt-period-score no-data">Not assessed</div>`}
     </div>`;
   }).join('');
@@ -1308,6 +1314,11 @@ function buildDataPageHTML(student, selPeriod) {
         <div class="rpt-strip-val">${pct ? ordinal(pct) : '—'}</div>
         <div class="rpt-strip-sub">Norm-referenced rank</div>
       </div>
+      ${lexile ? `<div class="rpt-strip-cell">
+        <div class="rpt-strip-label">Lexile Level</div>
+        <div class="rpt-strip-val" style="font-size:18px">${esc(lexile)}</div>
+        <div class="rpt-strip-sub">${esc(lexileRange) || 'Text complexity band'}</div>
+      </div>` : ''}
       <div class="rpt-strip-cell">
         <div class="rpt-strip-label">Semester Growth</div>
         <div class="rpt-strip-val ${GROWTH_CLASS[semGrowth] || ''}" style="font-size:13px;padding-top:4px">${semGrowth || '—'}</div>
@@ -1382,6 +1393,7 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
   const level = ph ? ph.compositeLevel : '';
   const score = ph ? ph.compositeScore : '';
   const pct = ph ? ph.compositePercentile : '';
+  const lexile = ph ? ph.lexileScore : '';
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const schoolYear = (ph && ph.row['School Year']) ? ph.row['School Year'] : '';
 
@@ -1438,6 +1450,10 @@ function buildReflectionPageHTML(student, selPeriod, reflType) {
     ${pct ? `<div class="refl-data-cell">
       <div class="refl-data-label">Nat'l %ile</div>
       <div class="refl-data-val">${ordinal(pct)}</div>
+    </div>` : ''}
+    ${lexile ? `<div class="refl-data-cell">
+      <div class="refl-data-label">Lexile</div>
+      <div class="refl-data-val">${esc(lexile)}</div>
     </div>` : ''}
     ${isMaintenance
       ? `<div class="refl-data-cell" style="border-left:2px solid #3ec9a7;padding-left:10px">
