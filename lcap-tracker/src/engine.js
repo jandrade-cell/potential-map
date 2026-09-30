@@ -227,8 +227,9 @@ function inferDirection(name, baseline, target, maintainHint) {
 // ------------------------------------------------------------
 function newDistrict(name = 'New district', cycleStart = null) {
   return {
-    schema: 1, id: uid(), name, cycleStart, createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(), metrics: [], notes: {}, imports: [], ai: { summary: null }
+    schema: 1, id: uid(), name, cycleStart, kind: 'prior', createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(), metrics: [], notes: {}, imports: [], ai: { summary: null },
+    goals: [], actions: [], reflections: {}, annual: {}
   };
 }
 
@@ -638,7 +639,187 @@ function dataSig(metric) {
   return String(h);
 }
 
+// ------------------------------------------------------------
+// Plans: a district holds its previous LCAP (reflection) and its
+// current three-year LCAP (monitoring). Each plan has the same shape
+// as a single-plan district, so every view works on either one.
+// ------------------------------------------------------------
+const ROLE_OFFSET = { baseline: -1, y1: 0, y2: 1, y3: 2 };
+const ROLE_LABEL = { baseline: 'Baseline', y1: 'Year 1', y2: 'Year 2', y3: 'Year 3' };
+
+const schoolYear = y => `${y}–${String(y + 1).slice(2)}`;
+const cycleLabel = start => start ? `${schoolYear(start)} to ${schoolYear(start + 2)}` : 'cycle not set';
+const planYearLabel = (plan, role) => plan.cycleStart && ROLE_OFFSET[role] != null
+  ? `${ROLE_LABEL[role]} (${schoolYear(plan.cycleStart + ROLE_OFFSET[role])})` : ROLE_LABEL[role] || role;
+
+// Which LCAP year (y1..y3) a date falls in; school years start July 1.
+function currentRole(plan, today = new Date()) {
+  if (!plan.cycleStart) return 'y1';
+  const sy = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
+  const n = sy - plan.cycleStart;
+  return n < 0 ? 'baseline' : n >= 2 ? 'y3' : 'y' + (n + 1);
+}
+
+// Sort key that keeps results in LCAP-year order, then by term within the year.
+function roleOrder(plan, role, period) {
+  if (!plan.cycleStart || ROLE_OFFSET[role] == null) return periodOrder(period);
+  const frac = ((periodOrder(period) ?? 0) % 1 + 1) % 1;
+  return plan.cycleStart + ROLE_OFFSET[role] + 0.3 + frac * 0.4;
+}
+
+function newContainer(plan) {
+  return { schema: 2, id: uid(), name: plan.name, plans: [plan], activePlanId: plan.id };
+}
+
+// Older saved data held one plan directly on the district.
+function migrate(x) {
+  if (x && x.schema === 2 && Array.isArray(x.plans)) return x;
+  const plan = { ...x, kind: x.kind || 'prior', goals: x.goals || [], actions: x.actions || [], reflections: x.reflections || {}, annual: x.annual || {} };
+  return { schema: 2, id: x.id || uid(), name: x.name, plans: [plan], activePlanId: plan.id };
+}
+
+function planGoals(plan) {
+  const nos = new Set([...(plan.goals || []).map(g => String(g.no)), ...plan.metrics.map(m => m.goal).filter(Boolean),
+    ...(plan.actions || []).map(a => String(a.goal)).filter(Boolean)]);
+  return [...nos].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    .map(no => (plan.goals || []).find(g => String(g.no) === no) || { no, description: '', type: '' });
+}
+
+// The state template's metrics table for a plan, filled from LCAP-year results.
+function templateRows(plan) {
+  const byNo = (x, y) => String(x.metricNo).localeCompare(String(y.metricNo), undefined, { numeric: true });
+  return plan.metrics.slice().sort(byNo).map(m => {
+    const g = m.primaryGroup || 'ALL';
+    const pick = role => m.points.filter(p => p.role === role && p.group === g)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).pop() || null;
+    const cell = p => !p ? '' : (p.value != null ? fmtValue(p.value, m.unit) : p.text);
+    const base = pick('baseline'), y1 = pick('y1'), y2 = pick('y2'), y3 = pick('y3');
+    const last = [y3, y2, y1].find(p => p && p.value != null);
+    const diff = base && base.value != null && last ? fmtDelta(last.value - base.value, m.unit) : '';
+    return { id: m.id, goal: m.goal, metricNo: m.metricNo, metric: m.name, baseline: cell(base), y1: cell(y1), y2: cell(y2), y3: cell(y3),
+      target: m.targetText || (m.targetValue != null ? fmtValue(m.targetValue, m.unit) : ''), diff };
+  });
+}
+
+// Groups the LCAP text itself names as Red ("EL, Hispanic, and SED were Red").
+function redMentions(text) {
+  const out = [];
+  const re = /([A-Z][A-Za-z/,\s&-]{1,80}?)\s+(?:were|was|are|is|remained)\s+(?:identified\s+(?:in|as)\s+)?(?:in\s+)?(?:the\s+)?Red\b/g;
+  let m; while ((m = re.exec(norm(text)))) out.push(m[1].replace(/^(and|while|but)\s+/i, '').trim());
+  return out;
+}
+
+function listText(items) {
+  if (items.length <= 1) return items.join('');
+  return items.slice(0, -1).join(', ') + (items.length > 2 ? ',' : '') + ' and ' + items[items.length - 1];
+}
+
+const EFFECT = { effective: 'effective', somewhat: 'somewhat effective', not: 'not effective', unclear: 'effectiveness unclear' };
+
+// Draft "Goal Analysis" text for one goal. `role` limits results to an LCAP year (annual update).
+// Action ratings are kept per reflection (the previous LCAP, or each year of the current one).
+const actionReview = (a, key) => (a.ratings && a.ratings[key]) || (key === 'cycle' || !key ? { rating: a.rating || '', evidence: a.evidence || '' } : { rating: '', evidence: '' });
+
+function goalReflection(plan, goalNo, key = 'cycle') {
+  const ms = plan.metrics.filter(m => String(m.goal) === String(goalNo));
+  const acts = (plan.actions || []).filter(a => String(a.goal) === String(goalNo)).map(a => ({ ...a, ...actionReview(a, key) }));
+  const rows = ms.map(m => ({ m, a: analyze(m) }));
+  const by = st => rows.filter(r => r.a.status === st);
+  const desc = r => r.a.latest ? `${r.m.name} (${r.a.points > 1 ? `${fmtValue(r.a.baseline.value, r.m.unit)} to ` : ''}${fmtValue(r.a.latest.value, r.m.unit)}${r.a.target != null ? `; target ${fmtValue(r.a.target, r.m.unit)}` : ''})` : r.m.name;
+  const eff = [];
+  if (!ms.length) eff.push(`Goal ${goalNo} has no metrics in the tracker yet.`);
+  else {
+    eff.push(`Goal ${goalNo} was measured by ${ms.length} metric${ms.length > 1 ? 's' : ''}.`);
+    if (by('Sustain').length) eff.push(`${by('Sustain').length} met or nearly met ${by('Sustain').length > 1 ? 'their targets' : 'its target'}: ${listText(by('Sustain').map(desc))}.`);
+    if (by('Watch').length) eff.push(`${by('Watch').length} showed partial or unstable progress: ${listText(by('Watch').map(desc))}.`);
+    if (by('Priority').length) eff.push(`${by('Priority').length} did not make enough progress: ${listText(by('Priority').map(desc))}.`);
+    const waiting = by('Review').filter(r => r.a.latest && r.a.points < 2 && r.a.latest.role === 'baseline');
+    if (waiting.length) eff.push(`${waiting.length} ${waiting.length > 1 ? 'have baselines' : 'has a baseline'} but no outcome data yet.`);
+    if (by('Review').length > waiting.length) eff.push(`${by('Review').length - waiting.length} could not be scored from the reported data.`);
+  }
+  const red = new Set();
+  rows.forEach(r => {
+    r.a.groups.filter(g => g.group !== 'ALL' && g.color === 1).forEach(g => red.add(groupName(g.group)));
+    if (r.a.latest) redMentions(r.a.latest.text).forEach(x => red.add(x));
+  });
+  if (red.size) eff.push(`Student groups reported in Red on related indicators: ${[...red].join('; ')}.`);
+  const rated = k => acts.filter(a => a.rating === k).map(a => `${a.no} ${a.title}`.trim());
+  if (acts.length) {
+    const parts = Object.keys(EFFECT).filter(k => rated(k).length).map(k => `${EFFECT[k]}: ${listText(rated(k))}`);
+    if (parts.length) eff.push(`Based on the team's review of the ${acts.length} actions, actions rated ${parts.join('; ')}.`);
+    else eff.push(`[Rate the goal's ${acts.length} actions below to describe which actions contributed to these results.]`);
+    acts.filter(a => a.evidence).forEach(a => eff.push(`Action ${a.no}: ${a.evidence.replace(/\.?$/, '.')}`));
+  }
+  const chg = [];
+  by('Priority').forEach(r => chg.push(`Revisit the approach for ${r.m.name}, which ${r.a.flat ? 'did not move from baseline' : r.a.better <= 0 ? 'declined from baseline' : 'improved too little to reach the target'}.`));
+  acts.filter(a => a.rating === 'not').forEach(a => chg.push(`Modify or discontinue Action ${a.no}${a.title ? ` (${a.title})` : ''}.`));
+  acts.filter(a => a.rating === 'effective').slice(0, 3).forEach(a => chg.push(`Continue Action ${a.no}${a.title ? ` (${a.title})` : ''}.`));
+  by('Sustain').filter(r => r.a.met && r.m.direction !== 'maintain').forEach(r => chg.push(`Set a new target for ${r.m.name}, which met its target.`));
+  if (red.size) chg.push('Add student-group targets or actions for the groups in Red.');
+  rows.filter(r => (r.m.codes || []).length > 1).forEach(r => chg.push(`Measure ${r.m.codes.join(', ')} separately instead of in "${r.m.name}".`));
+  if (!chg.length) chg.push('Maintain the current goal, metrics, and actions, and continue monitoring.');
+  return { effectiveness: eff.join(' '), changes: chg.join(' ') };
+}
+
+// Draft "Reflections: Annual Performance" (successes and identified needs).
+function summaryReflection(plan) {
+  const rows = plan.metrics.map(m => ({ m, a: analyze(m) })).filter(r => r.a.latest);
+  const gain = r => r.a.progress ?? (r.a.better > 0 ? 0.5 : 0);
+  const wins = rows.filter(r => r.a.status === 'Sustain' && r.a.better > 0).sort((x, y) => gain(y) - gain(x)).slice(0, 5);
+  const needs = rows.filter(r => r.a.status === 'Priority').sort((x, y) => gain(x) - gain(y));
+  const d = r => `${r.m.name} (${r.a.points > 1 ? `${fmtValue(r.a.baseline.value, r.m.unit)} to ` : ''}${fmtValue(r.a.latest.value, r.m.unit)})`;
+  const red = [];
+  rows.forEach(r => {
+    const g = r.a.groups.filter(x => x.group !== 'ALL' && x.color === 1).map(x => groupName(x.group));
+    const t = redMentions(r.a.latest.text);
+    const all = [...new Set([...g, ...t])];
+    if (all.length) red.push(`${r.m.name}: ${all.join(', ')}`);
+  });
+  const missing = REQUIRED.filter(r => !plan.metrics.some(m => (m.codes || []).includes(r.code)));
+  const successes = wins.length ? `Areas of progress include ${listText(wins.map(d))}.` : 'No metric has yet met or nearly met its target.';
+  const parts = [];
+  if (needs.length) parts.push(`Metrics that did not make enough progress: ${listText(needs.map(d))}.`);
+  if (red.length) parts.push(`Student groups in Red: ${red.join('; ')}.`);
+  if (missing.length) parts.push(`Required metrics not yet measured: ${listText(missing.map(r => `${r.code} ${r.name}`))}.`);
+  return { successes, needs: parts.join(' ') || 'No metric is flagged as a priority.' };
+}
+
+// Start the next three-year plan from a previous plan and its draft table.
+function newPlanFromPrior(prior, { cycleStart, draftRows = null, includeActions = true } = {}) {
+  const plan = { ...newDistrict(prior.name, cycleStart), kind: 'current', goals: (prior.goals || []).map(g => ({ ...g })),
+    actions: includeActions ? (prior.actions || []).map(a => ({ ...a, id: uid(), rating: '', evidence: '', ratings: {} })) : [],
+    reflections: {}, annual: {}, fromPlanId: prior.id };
+  const rows = draftRows || nextCycleRows(prior);
+  for (const r of rows) {
+    const src = prior.metrics.find(m => m.id === r.id);
+    const tgt = parseTarget(r.target, { unit: src && src.unit });
+    const m = makeMetric({ goal: src ? src.goal : '', metricNo: src ? src.metricNo : '', name: r.metric,
+      codes: r.codes && r.codes.length ? r.codes.slice() : null, targetText: r.target, targetValue: tgt.value });
+    m.unit = (src && src.unit) || tgt.unit || null;
+    m.direction = src ? src.direction : inferDirection(m.name, null, null, false);
+    m.priorId = src ? src.id : null;
+    m.lcapText = {};
+    if (src) {
+      const a = analyze(src);
+      const edited = parseValue(r.baseline, { unit: m.unit });
+      const period = a.latest ? a.latest.period.replace(/^(Baseline|Year \d) · /, '') : '';
+      const baseVal = edited.value != null ? edited.value : a.latest ? a.latest.value : null;
+      if (baseVal != null || r.baseline) {
+        addPoint(m, { period: `Baseline${period && !/^(Baseline|Year \d)$/.test(period) ? ' · ' + period : ''}`, order: cycleStart - 0.5,
+          value: baseVal, text: r.baseline, role: 'baseline', source: 'Prior LCAP' });
+      }
+      // Keep the latest student-group results with the baseline so Red groups stay visible.
+      if (a.latest) a.groups.filter(g => g.group !== (src.primaryGroup || 'ALL') && g.period === a.latest.period)
+        .forEach(g => addPoint(m, { period: 'Baseline · ' + g.period, order: cycleStart - 0.5, value: g.value, color: g.color, group: g.group, role: 'baseline', source: 'Prior LCAP' }));
+    }
+    plan.metrics.push(m);
+  }
+  return plan;
+}
+
 root.LCAP = {
+  ROLE_LABEL, schoolYear, cycleLabel, planYearLabel, currentRole, roleOrder, newContainer, migrate,
+  planGoals, templateRows, redMentions, goalReflection, actionReview, summaryReflection, newPlanFromPrior,
   PRIORITY_NAMES, REQUIRED, REQUIRED_BY_CODE, GROUP_NAMES, COLOR_NAMES, STATUS,
   uid, norm, round, fmtValue, fmtDelta, periodOrder, leadingPeriod, parseValue, parseTarget,
   inferCodes, inferDirection, newDistrict, makeMetric, addPoint, importLcapRows,

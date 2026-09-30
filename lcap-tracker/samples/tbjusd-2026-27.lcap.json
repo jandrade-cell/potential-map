@@ -1,7 +1,7 @@
 {
  "format": "lcap-extract",
  "district": "Tulelake Basin Joint USD",
- "cycleStart": 2024,
+ "cycleStart": 2023,
  "source": "TBJUSD All State and Local Indicators workbook (from the adopted LCAP)",
  "rows": [
   {

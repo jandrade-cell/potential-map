@@ -15,10 +15,17 @@ Send `LCAP Tracker.html` as an email attachment or put it on a shared drive (abo
 
 ## What districts do with it
 
-The built-in **Guide** walks through this sequence:
+A district keeps **two plans** in the tracker, switched with the plan menu under the district name:
 
-1. **Import the current LCAP (PDF).** The tracker reads each goal's *Measuring and Reporting Results* table, maps each metric to the 28 required LCFF metrics (1A–8A), and shows a review screen with the number it parsed from every cell.
-2. **Add data whenever it arrives** (*+ Add Data*):
+- the **previous LCAP**, which it reflects on, and
+- the **new three-year LCAP** (for example 2026–27 through 2028–29), which it monitors each year.
+
+The built-in **Guide** walks through the sequence:
+
+**Part 1: Reflect on the previous LCAP**
+
+1. **Import the previous LCAP (PDF)** and choose *"The previous LCAP"* on the review screen. The tracker reads each goal's description, its *Measuring and Reporting Results* table, and its *Actions* table (title, description, total funds, contributing). It maps each metric to the 28 required LCFF metrics (1A–8A) and shows the number it parsed from every cell.
+2. **Add the newest results** (*+ Add Data*). Each upload asks which LCAP year it *counts toward*:
    | Source | What happens |
    |---|---|
    | CA School Dashboard download files (ELA, Math, ELPI, Chronic Absenteeism, Suspension, Graduation, CCI) | District results for every student group, with Dashboard colors. Groups in Red are flagged. |
@@ -28,9 +35,15 @@ The built-in **Guide** walks through this sequence:
    | Any other spreadsheet (DataQuest downloads, local reports) | Choose the metric, value, period, and student-group columns, with an optional row filter. DataQuest reporting-category codes are recognized. |
    | Manual entry | Open a metric and add a single result. |
    Student-level files (NWEA, mCLASS) are summarized into percentages in the browser; student rows are never saved or sent.
-3. **Monitor.** *Dashboard* shows every metric as Priority, Watch, Sustain, or Review, with reasons. *Required Metrics* checks coverage of all 28 required metrics.
-4. **Needs assessment and engagement.** *Next-Cycle Summary* gives one card per LCFF priority (pattern, strongest progress, most important need, equity question, planning direction) with team notes. **Summary Report** prints a one-page overview for boards, advisory committees, and staff.
-5. **Draft the next plan.** *Next-Cycle Draft* lists every metric in the state template's column order, with the latest result as the new baseline, a suggested Year 3 target, and planning flags (Red student groups, combined measures, stale data, missing required metrics). Edit targets, then **Copy table** into the LCAP template in Word or **Download for Excel**.
+3. **Reflection tab.** For each goal: the metrics table in the template's columns with a status for each metric, the goal's actions with an effectiveness rating (effective, somewhat, not effective, unclear) and evidence, and drafted text for *how effective the actions were* and *changes resulting from reflection*. The Plan Summary's *successes* and *identified needs* (lowest performance, student groups in Red, unmet and missing metrics) are drafted too. Drafts refresh from the data until edited; **Copy reflections** pastes everything into the template in Word. *Next-Cycle Summary*, *Summary Report*, and *Required Metrics* support educational-partner engagement.
+
+**Part 2: Build the new plan**
+
+4. **Next-Cycle Draft** lists every metric with its latest result as the new baseline and a suggested Year 3 target, plus planning flags. **Create the new LCAP** copies the goals, metrics, and actions into the new three-year plan with those baselines and targets. After board adoption, the adopted LCAP PDF can be imported as *"The current three-year LCAP"* to replace the draft.
+
+**Part 3: Every year of the new plan**
+
+5. Add each year's results and choose the LCAP year (Year 1 2026–27, Year 2 2027–28, Year 3 2028–29). They fill the template's *Year 1 Outcome* and *Year 2 Outcome* columns and the *Current Difference from Baseline*. On the Reflection tab, pick the year, rate the actions for that year, and edit the drafted annual update. **Copy metrics table** and **Copy reflections** paste straight into Word.
 
 ## How statuses are scored
 
@@ -49,7 +62,7 @@ A student group in Red moves a Sustain metric to Watch. Direction (higher/lower 
 
 ## Optional AI
 
-In *Settings & AI*, a district can enter its own Anthropic API key to have Claude read scanned or non-standard LCAP PDFs and write narrative insights and priority summaries. Requests go directly from the browser to `api.anthropic.com` (model `claude-opus-5-5`). Only district-level LCAP data and aggregate results are sent. AI text is marked out of date when a metric's data changes.
+In *Settings & AI*, a district can enter its own Anthropic API key to have Claude read scanned or non-standard LCAP PDFs (metrics, goals, and actions), write narrative insights and priority summaries, and draft the reflection sections. Requests go directly from the browser to `api.anthropic.com` (model `claude-opus-5-5`). Only district-level LCAP data and aggregate results are sent. AI text is marked out of date when a metric's data changes.
 
 ## Example district
 
@@ -60,8 +73,8 @@ In *Settings & AI*, a district can enter its own Anthropic API key to have Claud
 ```
 LCAP Tracker.html    built app (share this file)
 src/tracker.html     page shell and styles
-src/engine.js        parsing, metric inference, status rules, insights, next-cycle draft (no DOM; testable in Node)
-src/pdf-extract.js   LCAP table extraction from pdf.js text positions
+src/engine.js        parsing, metric inference, status rules, insights, reflections, plans and LCAP years, next-cycle draft (no DOM; testable in Node)
+src/pdf-extract.js   LCAP metrics, goals, and actions tables from pdf.js text positions
 src/importers.js     Dashboard, NWEA, mCLASS, CSV template, generic importers
 src/ai.js            optional Claude API calls
 src/ui.js            rendering and interactions

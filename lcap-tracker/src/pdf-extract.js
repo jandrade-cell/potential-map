@@ -152,6 +152,91 @@ function extractTables(pages) {
   }).filter(r => r.metric || r.baseline);
 }
 
+// ------------------------------------------------------------
+// Goal and action tables (same column approach, simpler headers)
+// ------------------------------------------------------------
+const GOAL_SPEC = {
+  anchor: /^description$/i, must: /^goal\b/i, key: 'no', keyRe: /^\d{1,2}$/, required: ['description'], singleRow: true,
+  classify: t => /^goal( ?#)?$|^#$/.test(t) ? 'no' : /^description$/.test(t) ? 'description' : /^type( of goal)?$/.test(t) ? 'type' : null,
+  end: /^(state priorit|an explanation of why|measuring and reporting|goal analysis|actions?\s*$|action\s*#)/i
+};
+const ACTION_SPEC = {
+  anchor: /^title$/i, must: /^acti?o?n?\b|^actio/i, key: 'no', keyRe: /^\d{1,2}\.\d{1,2}[a-z]?$/i, required: ['title'],
+  classify: t => /^actio?n?( ?#)?$|^#$/.test(t) ? 'no' : /^title$/.test(t) ? 'title' : /^description$/.test(t) ? 'description'
+    : /^total( funds)?$/.test(t) ? 'funds' : /^contribut/.test(t) ? 'contributing' : null,
+  end: /^(goal analysis|increased or improved|insert or delete rows|goal\s*#|goal$|required descriptions|measuring and reporting|an explanation of why)/i
+};
+
+function findSpecHeader(page, spec) {
+  for (const anchor of page.items.filter(i => spec.anchor.test(i.str.trim()))) {
+    const band = page.items.filter(i => i.y >= anchor.y - 14 && i.y <= anchor.y + 24);
+    if (!band.some(i => spec.must.test(i.str.trim()))) continue;
+    const cols = {};
+    for (const it of band.sort((p, q) => p.x - q.x)) {
+      const k = spec.classify(it.str.toLowerCase().replace(/\s+/g, ' ').trim());
+      if (k && cols[k] == null) cols[k] = it.x;
+    }
+    if (spec.required.every(k => cols[k] != null) && cols[spec.key] != null) {
+      const bottom = Math.max(...band.filter(i => spec.classify(i.str.toLowerCase().trim()) || spec.must.test(i.str.trim())).map(i => i.y + i.h * 0.3));
+      return { cols, bottom };
+    }
+  }
+  return null;
+}
+
+function extractSpec(pages, spec) {
+  const rows = [];
+  let active = null, current = null;
+  const flush = () => { if (current) { rows.push(current); current = null; } };
+  for (const page of pages) {
+    const header = findSpecHeader(page, spec);
+    let startY = -Infinity;
+    if (header) { flush(); active = header; startY = header.bottom; }
+    if (!active) continue;
+    for (const line of lines(page.items)) {
+      if (line.y <= startY) continue;
+      if (NOISE.test(line.text) && line.items.length <= 3 && (line.y < 50 || line.y > page.height - 60)) continue;
+      if (spec.end.test(line.text)) { flush(); active = null; break; }
+      if (line.items.some(i => spec.anchor.test(i.str.trim())) && line.items.some(i => spec.must.test(i.str.trim()))) continue;
+      for (const it of line.items) {
+        const col = columnOf(active.cols, it.x);
+        const txt = it.str.trim();
+        if (spec.singleRow) {
+          // One record per table (goal tables): cell alignment varies, so keep every line.
+          current ||= { page: page.n, cells: {} };
+          if (col === spec.key && !spec.keyRe.test(txt)) continue;
+        } else if (col === spec.key && spec.keyRe.test(txt)) { flush(); current = { page: page.n, cells: {} }; }
+        if (!current) continue;
+        const last = current.last && current.last[col];
+        const glued = last && Math.abs(last.y - it.y) < it.h * 0.4 && it.x - (last.x + last.w) < it.h * 0.12;
+        current.cells[col] = (current.cells[col] ? current.cells[col] + (glued ? '' : ' ') : '') + txt;
+        (current.last ||= {})[col] = it;
+      }
+    }
+  }
+  flush();
+  return rows.map(r => {
+    const o = { page: 'p. ' + r.page };
+    for (const k of Object.keys(r.cells)) o[k] = r.cells[k].replace(/\s+/g, ' ').replace(/(\w)- (\w)/g, '$1-$2').trim();
+    return o;
+  });
+}
+
+function extractGoals(pages) {
+  const seen = new Set();
+  return extractSpec(pages, GOAL_SPEC)
+    .map(g => ({ no: g.no, description: g.description || '', type: g.type || '', page: g.page }))
+    .filter(g => g.no && !seen.has(g.no) && seen.add(g.no));
+}
+
+function extractActions(pages) {
+  const seen = new Set();
+  return extractSpec(pages, ACTION_SPEC)
+    .map(a => ({ goal: a.no.split('.')[0], no: a.no, title: a.title || '', description: a.description || '',
+      funds: a.funds || '', contributing: a.contributing || '', page: a.page }))
+    .filter(a => !seen.has(a.no) && seen.add(a.no));
+}
+
 function detectMeta(pages) {
   const text = pages.slice(0, 3).map(p => lines(p.items).map(l => l.text).join('\n')).join('\n');
   const all = pages.map(p => lines(p.items).slice(-4).map(l => l.text).join('\n')).join('\n');
@@ -165,18 +250,18 @@ function detectMeta(pages) {
   let lcapYear = null;
   m = (text + all).match(/(20\d\d)\s*[-–]\s*(?:20)?\d\d\s+Local Control and Accountability Plan/i);
   if (m) lcapYear = +m[1];
-  // Statewide three-year cycles: 2024–27, 2027–30, ...
-  const cycleStart = lcapYear ? 2024 + 3 * Math.floor((lcapYear - 2024) / 3) : null;
-  return { district, lcapYear, cycleStart };
+  return { district, lcapYear };
 }
 
 async function extractLcapPdf(data, onProgress) {
   const pages = await readPdf(data, onProgress);
   const rows = extractTables(pages);
+  const goals = extractGoals(pages);
+  const actions = extractActions(pages);
   const meta = detectMeta(pages);
   const textChars = pages.reduce((n, p) => n + p.items.reduce((k, i) => k + i.str.length, 0), 0);
-  return { rows, ...meta, pageCount: pages.length, scanned: textChars < pages.length * 40 };
+  return { rows, goals, actions, ...meta, pageCount: pages.length, scanned: textChars < pages.length * 40 };
 }
 
-root.LcapPdf = { extractLcapPdf, readPdf, extractTables, detectMeta, lines };
+root.LcapPdf = { extractLcapPdf, readPdf, extractTables, extractGoals, extractActions, detectMeta, lines };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -176,7 +176,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
 .chart-tip{position:fixed;pointer-events:none;background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:11px;z-index:60;color:var(--text)}
 .changes{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
 .changes li{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px}
-.add-row{display:grid;grid-template-columns:1.2fr .8fr 1fr 1.6fr auto;gap:12px;align-items:end}
+.add-row{display:grid;grid-template-columns:1.1fr .7fr .8fr 1.3fr 1.3fr auto;gap:12px;align-items:end}
 .kind-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 
 .site-foot{max-width:1280px;margin:0 auto;padding:0 28px 28px;font-size:11px;color:var(--muted)}
@@ -200,6 +200,23 @@ tr.missing td{background:rgba(232,69,60,.06)}
 .report table{font-size:11px}
 .tile,.card,.sum-card,.start-card,.prio-head,.table-wrap,.how{box-shadow:var(--shadow)}
 .chart-tip{box-shadow:0 4px 16px rgba(16,24,40,.12)}
+.refl-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.refl-head h2{font-family:var(--display);font-size:22px;font-weight:600}
+.refl-sub{font-size:13px;color:var(--text2);max-width:760px;margin-top:4px}
+.refl-head .lbl .ctl{display:block;margin-top:4px;text-transform:none;letter-spacing:0;font-weight:400}
+.refl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.refl-card h3{font-family:var(--display);font-size:18px;font-weight:600;margin-bottom:8px}
+.refl-card h4{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.refl-card .lbl{margin-top:12px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.refl-card .lbl .linkish,.refl-card .lbl .src-tag{text-transform:none;letter-spacing:0;font-weight:400}
+.refl-goal-head{display:flex;align-items:center;gap:8px}
+textarea.goal-desc{min-height:40px;font-size:13px}
+textarea.refl{font-size:13px;line-height:1.5}
+.actions-table td{vertical-align:top}
+.actions-table textarea.ctl{min-height:40px;min-width:200px;font-size:12px}
+.actions-table select.ctl{min-width:150px}
+.act-desc{font-size:11px;color:var(--muted);max-width:380px}
+.next-plan{border-color:rgba(36,87,58,.35);background:rgba(36,87,58,.04)}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:10px;font-size:13px;z-index:80;max-width:min(560px,92vw);box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .toast.err{border-color:var(--st-priority)}
 #loading{position:fixed;inset:0;background:rgba(255,255,255,.9);z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
@@ -236,6 +253,8 @@ tr.missing td{background:rgba(232,69,60,.06)}
   .site-foot{padding:10px 0 0}
   .toast,.chart-tip{display:none!important}
   body.print-report header.top{display:none}
+  .refl-card{break-inside:avoid-page}
+  textarea.refl{display:none}
   .draft-table input.ctl{border:none;background:none;padding:0}
 }
 </style>
@@ -254,6 +273,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
       <h1>LCAP <span>Tracker</span></h1>
       <div class="district-row" id="district-row" hidden>
         <select class="ctl" id="district-select" aria-label="District"></select>
+        <select class="ctl" id="plan-select" aria-label="Plan"></select>
         <span class="meta" id="district-meta"></span>
       </div>
     </div>
@@ -270,6 +290,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
   </div>
   <nav class="tabs" role="tablist" id="tabs" hidden>
     <button class="tab" role="tab" data-view="dashboard" aria-selected="true">Dashboard</button>
+    <button class="tab" role="tab" data-view="reflect" aria-selected="false">Reflection</button>
     <button class="tab" role="tab" data-view="summary" aria-selected="false">Next-Cycle Summary</button>
     <button class="tab" role="tab" data-view="draft" aria-selected="false">Next-Cycle Draft</button>
     <button class="tab" role="tab" data-view="coverage" aria-selected="false">Required Metrics</button>
@@ -280,12 +301,12 @@ tr.missing td{background:rgba(232,69,60,.06)}
 
 <main>
   <section id="welcome" class="welcome">
-    <h2>Keep your LCAP metrics current all year</h2>
-    <p class="lead">Drop in your adopted LCAP. The tracker pulls every goal's metrics table, maps each metric to the LCFF state priorities, and scores progress against your targets. Add new results whenever they arrive (Dashboard files, NWEA, mCLASS, or a simple CSV) and the status, insights, and next-cycle summary update immediately.</p>
+    <h2>Reflect on your LCAP and build the next one</h2>
+    <p class="lead">Drop in your previous LCAP. The tracker pulls every goal's metrics and actions, scores progress against your targets, and drafts the reflections the new template asks for. Then start the new three-year LCAP from it and add each year's results as they arrive (Dashboard files, NWEA, mCLASS, or a simple CSV). Statuses, reflections, and the annual update refresh immediately.</p>
     <div class="start-grid">
       <div class="start-card">
         <h3>1. Import your LCAP</h3>
-        <p>The state-template PDF (any year of the 2024–27 cycle). Text-based PDFs work offline; scanned PDFs need the optional AI setting.</p>
+        <p>The state-template PDF of your previous LCAP (or your current one, to monitor it). Text-based PDFs work offline; scanned PDFs need the optional AI setting.</p>
         <div class="drop" id="welcome-drop"><input type="file" accept=".pdf" id="welcome-pdf"><strong>Choose LCAP PDF</strong><br>or drag it here</div>
       </div>
       <div class="start-card">
@@ -295,7 +316,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
       </div>
       <div class="start-card">
         <h3>Explore an example</h3>
-        <p>Tulelake Basin Joint USD's 2024–27 LCAP metrics (baseline, Year 1, Year 2), ready to try adding new data.</p>
+        <p>Tulelake Basin Joint USD's previous LCAP metrics (baseline, Year 1, Year 2), ready for reflection and for starting a new plan.</p>
         <button class="btn" id="btn-example">Load example district</button>
       </div>
     </div>
@@ -349,6 +370,8 @@ tr.missing td{background:rgba(232,69,60,.06)}
       <thead><tr><th>Metric</th><th>Period</th><th>Group</th><th>Value</th><th>Source</th><th>Added</th><th></th></tr></thead><tbody id="points-body"></tbody></table></div></div>
   </section>
 
+  <section class="view" id="view-reflect"><div id="reflect-body"></div></section>
+
   <section class="view" id="view-draft">
     <div class="note-box">A starting draft of the metrics table for your <strong id="draft-cycle">next</strong> LCAP, in the state template's column order. Each metric's <strong>latest result becomes the new baseline</strong>, and a Year 3 target is suggested using the rule below. Suggestions are starting points for educational-partner discussion, not recommendations. Edit any baseline or target here; edits are saved with the district file.</div>
     <div class="filters">
@@ -358,6 +381,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
     </div>
     <div class="toolbar">
       <button class="btn btn-ghost" id="btn-draft-reset">Reset edits</button>
+      <button class="btn btn-ghost" id="btn-draft-create">Create the new LCAP from this draft</button>
       <button class="btn btn-ghost" id="btn-draft-copy">Copy table (paste into Word)</button>
       <button class="btn" id="btn-draft-csv">Download for Excel (.csv)</button>
     </div>
@@ -375,7 +399,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
         <h3>District</h3>
         <div class="field"><label class="lbl" for="set-name">District name</label><input class="ctl" id="set-name"></div>
         <div class="field"><label class="lbl" for="set-cycle">LCAP cycle</label>
-          <select class="ctl" id="set-cycle"><option value="2024">2024–25 to 2026–27</option><option value="2027">2027–28 to 2029–30</option><option value="2030">2030–31 to 2032–33</option></select></div>
+          <select class="ctl" id="set-cycle"></select></div>
         <div class="actions"><button class="btn btn-ghost btn-sm" id="btn-new-district">+ Start another district</button><button class="btn btn-danger btn-sm" id="btn-delete-district">Remove district from this browser</button></div>
       </div>
       <div class="start-card">

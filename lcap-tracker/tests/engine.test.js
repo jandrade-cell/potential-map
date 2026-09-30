@@ -73,4 +73,36 @@ const d2 = L.newDistrict('No 4D', 2024);
 L.importLcapRows(d2, ex.rows.filter(r => r.metricNo !== '2.3'), { cycleStart: 2024 });
 assert.ok(L.nextCycleRows(d2).some(r => r.id === 'req:4D' && r.priorStatus === 'Missing'));
 
+// Two-plan workflow: reflect on the previous LCAP, start and monitor the next one
+const prior = L.newDistrict('Plan Test USD', 2023);
+L.importLcapRows(prior, ex.rows, { cycleStart: 2023 });
+prior.actions = [{ id: 'a1', goal: '1', no: '1.1', title: 'Coaching', ratings: { cycle: { rating: 'not', evidence: 'No change in walkthroughs.' } } }];
+const refl = L.goalReflection(prior, '1', 'cycle');
+assert.ok(/not effective: 1\.1 Coaching/.test(refl.effectiveness));
+assert.ok(/No change in walkthroughs/.test(refl.effectiveness));
+assert.ok(/Modify or discontinue Action 1\.1/.test(refl.changes));
+assert.ok(/EL, Hispanic/.test(L.summaryReflection(prior).needs));      // Red groups named in the LCAP text
+assert.deepStrictEqual(L.redMentions('EL, Hispanic, LTEL, and SED were Red; White was Orange.'), ['EL, Hispanic, LTEL, and SED']);
+
+const next = L.newPlanFromPrior(prior, { cycleStart: 2026 });
+assert.strictEqual(next.kind, 'current');
+assert.strictEqual(next.actions[0].ratings.cycle, undefined);             // ratings start fresh
+const ela2 = next.metrics.find(m => m.metricNo === '1.4');
+assert.strictEqual(L.templateRows(next).find(r => r.metricNo === '1.4').baseline, '-68.4 pts');
+assert.strictEqual(L.currentRole(next, new Date('2026-10-01')), 'y1');
+assert.strictEqual(L.currentRole(next, new Date('2028-02-01')), 'y2');
+assert.strictEqual(L.currentRole(next, new Date('2029-02-01')), 'y3');
+L.addPoint(ela2, { period: 'Dashboard 2026', value: -61.2, role: 'y1', order: L.roleOrder(next, 'y1', 'Dashboard 2026') });
+L.addPoint(ela2, { period: 'Dashboard 2027', value: -55, role: 'y2', order: L.roleOrder(next, 'y2', 'Dashboard 2027') });
+const tr = L.templateRows(next).find(r => r.metricNo === '1.4');
+assert.deepStrictEqual([tr.y1, tr.y2, tr.diff], ['-61.2 pts', '-55 pts', '+13.4 points']);
+assert.ok(/baseline/.test(L.goalReflection(next, '3', 'y1').effectiveness));   // "have baselines but no outcome data yet"
+
+// Older single-plan saves become a district with one previous-LCAP plan
+const old = { schema: 1, id: 'x1', name: 'Old USD', metrics: [], notes: {} };
+const mig = L.migrate(old);
+assert.strictEqual(mig.schema, 2);
+assert.strictEqual(mig.plans[0].kind, 'prior');
+assert.strictEqual(L.migrate(mig), mig);
+
 console.log('engine tests passed');

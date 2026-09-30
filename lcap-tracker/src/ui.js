@@ -21,7 +21,16 @@ const S = {
 // ------------------------------------------------------------
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const D = () => S.store.districts[S.store.currentId] || null;
+// A district (container) holds plans; D() is the active plan, which has the
+// same shape as a single-plan district so the views work on either plan.
+const C = () => S.store.districts[S.store.currentId] || null;
+const D = () => { const c = C(); return c ? (c.plans.find(p => p.id === c.activePlanId) || c.plans[0]) : null; };
+const shortCycle = cs => cs ? `${cs}–${String(cs + 3).slice(2)}` : '';
+const planTitle = p => p.kind === 'current' ? `${shortCycle(p.cycleStart)} LCAP · monitoring` : `Previous LCAP ${shortCycle(p.cycleStart)} · reflection`;
+const cycleOptions = sel => Array.from({ length: 16 }, (_, i) => 2017 + i)
+  .map(y => `<option value="${y}" ${+sel === y ? 'selected' : ''}>${L.cycleLabel(y)}</option>`).join('');
+const roleOptions = (plan, sel) => ['baseline', 'y1', 'y2', 'y3'].map(r => `<option value="${r}" ${sel === r ? 'selected' : ''}>${esc(L.planYearLabel(plan, r))}</option>`).join('')
+  + `<option value="" ${sel === '' ? 'selected' : ''}>Not an LCAP-year outcome (monitoring only)</option>`;
 const fmtDate = iso => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); } catch (e) { return iso; } };
 const primaryPriority = m => m.codes && m.codes.length ? +m.codes[0][0] : 0;
 const metricType = m => (m.codes || []).map(c => L.REQUIRED_BY_CODE[c]?.type).filter(Boolean)[0] || '';
@@ -51,7 +60,14 @@ function download(name, text, type = 'application/json') {
 // Storage (browser + district files)
 // ------------------------------------------------------------
 function loadStore() {
-  try { const s = JSON.parse(localStorage.getItem(STORE_KEY)); if (s && s.districts) S.store = s; } catch (e) { /* private window or blocked storage */ }
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && s.districts) {
+      const out = {};
+      for (const [k, v] of Object.entries(s.districts)) { const c = L.migrate(v); out[c.id] = c; if (s.currentId === k) s.currentId = c.id; }
+      s.districts = out; S.store = s;
+    }
+  } catch (e) { /* private window or blocked storage */ }
   try { S.apiKey = localStorage.getItem(KEY_KEY) || ''; S.remember = !!S.apiKey; } catch (e) { /* same */ }
 }
 let saveTimer = null;
@@ -62,18 +78,19 @@ function persist() {
     catch (e) { toast('This browser would not save the data. Use Save File to keep your work.', true); }
   }, 120);
 }
-function changed() { const d = D(); if (d) d.updatedAt = new Date().toISOString(); persist(); render(); }
+function changed() { const d = D(); if (d) d.updatedAt = C().updatedAt = new Date().toISOString(); persist(); render(); }
 
-function addDistrict(d) {
-  S.store.districts[d.id] = d;
-  S.store.currentId = d.id;
+function addDistrict(plan) {
+  const c = L.newContainer(plan);
+  S.store.districts[c.id] = c;
+  S.store.currentId = c.id;
   S.filter = { status: '', prio: '', type: '', q: '' };
   persist();
 }
 
 function saveFile() {
-  const d = D(); if (!d) return;
-  const payload = { format: 'lcap-tracker', version: 1, savedAt: new Date().toISOString(), district: d };
+  const d = C(); if (!d) return;
+  const payload = { format: 'lcap-tracker', version: 2, savedAt: new Date().toISOString(), district: d };
   download(`${slug(d.name)}-lcap-tracker-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(payload, null, 1));
   toast('District file saved. Share it with your team or open it on another computer.');
 }
@@ -81,10 +98,11 @@ function saveFile() {
 async function openFile(file) {
   try {
     const j = JSON.parse(await file.text());
-    if (j.format === 'lcap-tracker' && j.district && Array.isArray(j.district.metrics)) {
-      const d = j.district;
-      if (S.store.districts[d.id] && !confirm(`Replace the copy of "${d.name}" in this browser with the file's version (saved ${fmtDate(j.savedAt)})?`)) return;
-      addDistrict(d); render(); toast(`Opened ${d.name}.`);
+    if (j.format === 'lcap-tracker' && j.district && (Array.isArray(j.district.metrics) || Array.isArray(j.district.plans))) {
+      const c = L.migrate(j.district);
+      if (S.store.districts[c.id] && !confirm(`Replace the copy of "${c.name}" in this browser with the file's version (saved ${fmtDate(j.savedAt)})?`)) return;
+      S.store.districts[c.id] = c; S.store.currentId = c.id; persist();
+      render(); toast(`Opened ${c.name}.`);
     } else if (j.format === 'lcap-extract' && Array.isArray(j.rows)) {
       loadExtract(j, file.name);
     } else throw new Error('Not a district file');
@@ -114,6 +132,8 @@ function render() {
   const has = !!d;
   $('welcome').hidden = has;
   ['tabs', 'district-row', 'btn-add-data', 'btn-save', 'btn-print', 'btn-report'].forEach(id => $(id).hidden = !has);
+  if (has && d.kind === 'current' && S.view === 'draft') S.view = 'dashboard';
+  document.querySelector('.tab[data-view="draft"]').hidden = has && d.kind === 'current';
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', has && v.id === 'view-' + S.view));
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.view === S.view));
   if (!has) return;
@@ -121,6 +141,7 @@ function render() {
   const A = new Map(d.metrics.map(m => [m.id, L.analyze(m)]));
   if (S.view === 'dashboard') renderDashboard(d, A);
   if (S.view === 'summary') renderSummary(d);
+  if (S.view === 'reflect') renderReflect(d);
   if (S.view === 'draft') renderDraft(d);
   if (S.view === 'coverage') renderCoverage(d, A);
   if (S.view === 'log') renderLog(d);
@@ -128,11 +149,13 @@ function render() {
 }
 
 function renderDistrictRow(d) {
+  const c = C();
   $('district-select').innerHTML = Object.values(S.store.districts)
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map(x => `<option value="${x.id}" ${x.id === d.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
-  const cyc = d.cycleStart ? `${d.cycleStart}–${String(d.cycleStart + 3).slice(2)} LCAP` : 'LCAP cycle not set';
-  $('district-meta').textContent = `${cyc} · ${d.metrics.length} metrics · updated ${fmtDate(d.updatedAt)}`;
+    .map(x => `<option value="${x.id}" ${x.id === c.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+  $('plan-select').innerHTML = c.plans.slice().sort((a, b) => (a.cycleStart || 0) - (b.cycleStart || 0))
+    .map(p => `<option value="${p.id}" ${p.id === d.id ? 'selected' : ''}>${esc(planTitle(p))}</option>`).join('');
+  $('district-meta').textContent = `${d.metrics.length} metrics · updated ${fmtDate(d.updatedAt)}`;
 }
 
 function currentInsight(m, a) {
@@ -338,7 +361,7 @@ function printReport() {
     <img class="rpt-logo" src="${document.querySelector('.logo').src}" alt="Modoc County Office of Education logo">
     <div class="eyebrow">Modoc County Office of Education · LCAP Tracker</div>
     <h2>${esc(d.name)}: LCAP Progress Summary</h2>
-    <div class="rpt-meta">${d.cycleStart ? `${d.cycleStart}–${String(d.cycleStart + 3).slice(2)} LCAP` : ''} · Prepared ${new Date().toLocaleDateString()} · ${d.metrics.length} metrics · ${covered} of 28 required LCFF metrics addressed</div>
+    <div class="rpt-meta">${esc(planTitle(d))} · Prepared ${new Date().toLocaleDateString()} · ${d.metrics.length} metrics · ${covered} of 28 required LCFF metrics addressed</div>
     <div class="rpt-counts">${Object.entries(counts).map(([k, n]) => `<div style="--c:${STATUS_COLOR[k]}"><b>${n}</b>${k}</div>`).join('')}</div>
     <h3>By LCFF priority</h3>
     <table><thead><tr><th>Priority</th><th>Metrics</th><th>Most important unresolved need</th><th>Planning direction to consider</th></tr></thead><tbody>
@@ -359,32 +382,210 @@ function printReport() {
 }
 
 // ------------------------------------------------------------
+// Reflection (previous LCAP) and annual update (current LCAP)
+// ------------------------------------------------------------
+const RATINGS = [['', 'Not rated'], ['effective', 'Effective'], ['somewhat', 'Somewhat effective'], ['not', 'Not effective'], ['unclear', 'Unclear / not enough data']];
+
+function reflectKey(d) {
+  if (d.kind !== 'current') return 'cycle';
+  if (!S.reflectRole || !['y1', 'y2', 'y3'].includes(S.reflectRole)) {
+    const r = L.currentRole(d); S.reflectRole = r === 'baseline' ? 'y1' : r;
+  }
+  return S.reflectRole;
+}
+function reflectTitle(d, key) {
+  return d.kind === 'current' ? `Annual update: ${L.planYearLabel(d, key)}` : `Reflection on the previous LCAP (${L.cycleLabel(d.cycleStart)})`;
+}
+
+// Saved text wins; otherwise the draft is generated from current data.
+function reflectText(d, key) {
+  const saved = (d.reflections && d.reflections[key]) || {};
+  const sum = L.summaryReflection(d);
+  const goals = {};
+  for (const g of L.planGoals(d)) {
+    const gen = L.goalReflection(d, g.no, key);
+    const sv = (saved.goals || {})[g.no] || {};
+    goals[g.no] = { effectiveness: sv.effectiveness ?? gen.effectiveness, changes: sv.changes ?? gen.changes,
+      editedE: sv.effectiveness != null, editedC: sv.changes != null };
+  }
+  const ss = saved.summary || {};
+  return { summary: { successes: ss.successes ?? sum.successes, needs: ss.needs ?? sum.needs, editedS: ss.successes != null, editedN: ss.needs != null }, goals };
+}
+
+function templateTable(rows, withStatus, d) {
+  const y3 = rows.some(r => r.y3);
+  const A = withStatus ? new Map(d.metrics.map(m => [m.id, L.analyze(m)])) : null;
+  return `<div class="table-wrap"><table><thead><tr><th>Metric #</th><th>Metric</th><th>Baseline</th><th>Year 1 Outcome</th><th>Year 2 Outcome</th>${y3 ? '<th>Year 3 Outcome</th>' : ''}<th>Target for Year 3 Outcome</th><th>Current Difference from Baseline</th>${withStatus ? '<th>Status</th>' : ''}</tr></thead><tbody>
+    ${rows.map(r => `<tr><td class="num">${esc(r.metricNo)}</td><td><button class="linkish" data-metric="${r.id}">${esc(r.metric)}</button></td><td>${esc(r.baseline)}</td><td>${esc(r.y1)}</td><td>${esc(r.y2)}</td>${y3 ? `<td>${esc(r.y3)}</td>` : ''}<td>${esc(r.target)}</td><td class="num">${esc(r.diff)}</td>${withStatus ? `<td>${badge(A.get(r.id).status)}</td>` : ''}</tr>`).join('')
+      || `<tr><td colspan="${withStatus ? 9 : 8}" class="empty">No metrics for this goal.</td></tr>`}</tbody></table></div>`;
+}
+
+function renderReflect(d) {
+  const key = reflectKey(d);
+  const T = reflectText(d, key);
+  const rows = L.templateRows(d);
+  const c = C();
+  const next = c.plans.find(p => p.kind === 'current');
+  const rev = a => L.actionReview(a, key);
+  const editedTag = (ed, field) => ed ? `<button class="linkish no-print" data-redraft="${field}" title="Replace your edits with a fresh draft from the data">↺ Redraft from data</button>` : '<span class="src-tag">Draft from data. Edit freely.</span>';
+  const goalHtml = L.planGoals(d).map(g => {
+    const acts = (d.actions || []).filter(a => String(a.goal) === String(g.no));
+    const t = T.goals[g.no];
+    return `<section class="refl-card">
+      <div class="refl-goal-head"><h3>Goal ${esc(g.no)}</h3>${g.type ? `<span class="pill">${esc(g.type)}</span>` : ''}</div>
+      <textarea class="ctl goal-desc" data-goal-desc="${esc(g.no)}" rows="2" placeholder="Goal description (from the LCAP)">${esc(g.description)}</textarea>
+      <h4>Measuring and reporting results</h4>
+      ${templateTable(rows.filter(r => String(r.goal) === String(g.no)), true, d)}
+      <h4>Actions${acts.length ? '' : ' <span class="src-tag">None found in the PDF. Add them to rate effectiveness.</span>'}</h4>
+      ${acts.length ? `<div class="table-wrap"><table class="actions-table"><thead><tr><th>#</th><th>Title</th><th>Total funds</th><th>Contributing</th><th>Effectiveness</th><th>Evidence / notes</th><th></th></tr></thead><tbody>
+        ${acts.map(a => `<tr><td class="num">${esc(a.no)}</td><td><strong>${esc(a.title)}</strong><div class="act-desc">${esc(a.description)}</div></td>
+          <td class="num">${esc(a.funds)}</td><td>${esc(a.contributing)}</td>
+          <td><select class="ctl" data-act-rating="${a.id}">${RATINGS.map(([v, l]) => `<option value="${v}" ${rev(a).rating === v ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
+          <td><textarea class="ctl" rows="2" data-act-evidence="${a.id}" placeholder="What shows it worked or not?">${esc(rev(a).evidence || '')}</textarea></td>
+          <td><button class="x no-print" title="Remove action" data-del-action="${a.id}">✕</button></td></tr>`).join('')}</tbody></table></div>` : ''}
+      <button class="btn btn-ghost btn-sm no-print" data-add-action="${esc(g.no)}" style="margin-top:8px">+ Add action</button>
+      <div class="refl-text">
+        <label class="lbl">How effective were the actions in making progress toward the goal? ${editedTag(t.editedE, `goals.${g.no}.effectiveness`)}</label>
+        <textarea class="ctl refl" data-refl="goals.${esc(g.no)}.effectiveness" rows="6">${esc(t.effectiveness)}</textarea>
+        <div class="notes-print">${esc(t.effectiveness)}</div>
+        <label class="lbl">Changes to the goal, metrics, targets, or actions ${editedTag(t.editedC, `goals.${g.no}.changes`)}</label>
+        <textarea class="ctl refl" data-refl="goals.${esc(g.no)}.changes" rows="4">${esc(t.changes)}</textarea>
+        <div class="notes-print">${esc(t.changes)}</div>
+      </div>
+    </section>`;
+  }).join('');
+  $('reflect-body').innerHTML = `
+    <div class="refl-head">
+      <div><h2>${esc(reflectTitle(d, key))}</h2>
+        <p class="refl-sub">${d.kind === 'current'
+          ? 'Add each year\'s results with <strong>+ Add Data</strong> (they fill the Year 1 and Year 2 outcome columns), rate the actions, and edit the drafts for the annual update.'
+          : 'Drafts for the new LCAP template\'s reflection sections, built from this plan\'s results. Rate each action, add evidence, and edit the text. Drafts refresh from the data until you edit them.'}</p></div>
+      ${d.kind === 'current' ? `<label class="lbl no-print">Year<select class="ctl" id="reflect-year">${['y1', 'y2', 'y3'].map(r => `<option value="${r}" ${key === r ? 'selected' : ''}>${esc(L.planYearLabel(d, r))}</option>`).join('')}</select></label>` : ''}
+    </div>
+    <div class="toolbar">
+      ${S.apiKey ? '<button class="btn btn-ghost" id="btn-refl-ai">✦ Draft with AI</button>' : ''}
+      <button class="btn btn-ghost" id="btn-refl-redraft">Redraft all from data</button>
+      <button class="btn btn-ghost" id="btn-refl-table">Copy metrics table</button>
+      <button class="btn" id="btn-refl-copy">Copy reflections (paste into Word)</button>
+    </div>
+    <section class="refl-card">
+      <h3>Plan Summary: Reflections, Annual Performance</h3>
+      <label class="lbl">Successes ${editedTag(T.summary.editedS, 'summary.successes')}</label>
+      <textarea class="ctl refl" data-refl="summary.successes" rows="4">${esc(T.summary.successes)}</textarea>
+      <div class="notes-print">${esc(T.summary.successes)}</div>
+      <label class="lbl">Identified needs (lowest performance, student groups in Red, unmet metrics) ${editedTag(T.summary.editedN, 'summary.needs')}</label>
+      <textarea class="ctl refl" data-refl="summary.needs" rows="5">${esc(T.summary.needs)}</textarea>
+      <div class="notes-print">${esc(T.summary.needs)}</div>
+    </section>
+    ${goalHtml || '<div class="empty">No goals yet. Import an LCAP to begin.</div>'}
+    ${d.kind !== 'current' ? `<section class="refl-card next-plan no-print">
+      <h3>Start the next LCAP</h3>
+      ${next ? `<p>This district already has a <strong>${esc(planTitle(next))}</strong> plan. <button class="linkish" data-open-plan="${next.id}">Open it →</button> Creating it again replaces that plan and its results.</p>` : ''}
+      <p>Creates the new three-year plan from this one: the same goals, metrics${(d.actions || []).length ? ', and actions' : ''}, with the <strong>Next-Cycle Draft</strong> baselines and targets (edit them there first). Then add each year's results to it.</p>
+      <div class="actions" style="align-items:center">
+        <label class="lbl" style="margin:0">New cycle <select class="ctl" id="np-cycle">${cycleOptions((d.cycleStart || 2023) + 3)}</select></label>
+        ${(d.actions || []).length ? '<label style="font-size:12px;display:flex;gap:6px"><input type="checkbox" id="np-actions" checked> Copy actions</label>' : ''}
+        <button class="btn" id="btn-create-plan">${next ? 'Recreate' : 'Create'} the new LCAP</button>
+      </div></section>` : ''}`;
+}
+
+function setReflect(d, path, value) {
+  const key = reflectKey(d);
+  d.reflections = d.reflections || {};
+  const root = d.reflections[key] ||= {};
+  const parts = path.split('.');
+  let o = root;
+  for (const p of parts.slice(0, -1)) o = o[p] ||= {};
+  if (value === undefined) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = value;
+}
+
+function createPlan(prior, cycleStart, includeActions) {
+  const c = C();
+  const existing = c.plans.find(p => p.kind === 'current');
+  if (existing && !confirm(`Replace the existing ${planTitle(existing)} and its ${existing.metrics.reduce((n, m) => n + m.points.length, 0)} results?`)) return;
+  const plan = L.newPlanFromPrior(prior, { cycleStart, draftRows: draftRows(prior), includeActions });
+  c.plans = c.plans.filter(p => p !== existing).concat(plan);
+  c.activePlanId = plan.id;
+  plan.imports.push({ at: new Date().toISOString(), type: 'New plan', file: `Started from ${planTitle(prior)}`, count: plan.metrics.length });
+  S.view = 'dashboard'; S.reflectRole = null; changed();
+  toast(`Created the ${shortCycle(cycleStart)} LCAP with ${plan.metrics.length} metrics. Add each year's results with + Add Data.`);
+}
+
+function reflectionHtml(d) {
+  const key = reflectKey(d);
+  const T = reflectText(d, key);
+  const rows = L.templateRows(d);
+  const p = s => `<p style="font-family:Arial;font-size:11pt">${esc(s)}</p>`;
+  const tbl = rs => { const y3 = rs.some(r => r.y3); const cols = ['Metric #', 'Metric', 'Baseline', 'Year 1 Outcome', 'Year 2 Outcome', ...(y3 ? ['Year 3 Outcome'] : []), 'Target for Year 3 Outcome', 'Current Difference from Baseline'];
+    return `<table style="border-collapse:collapse;font-family:Arial;font-size:10pt"><tr>${cols.map(h => `<th style="border:1px solid #999;padding:4px;background:#eee">${esc(h)}</th>`).join('')}</tr>
+    ${rs.map(r => `<tr>${[r.metricNo, r.metric, r.baseline, r.y1, r.y2, ...(y3 ? [r.y3] : []), r.target, r.diff].map(v => `<td style="border:1px solid #999;padding:4px;vertical-align:top">${esc(v)}</td>`).join('')}</tr>`).join('')}</table>`; };
+  let html = `<h2 style="font-family:Arial">${esc(C().name)}: ${esc(reflectTitle(d, key))}</h2>
+    <h3 style="font-family:Arial">Reflections: Annual Performance</h3><p style="font-family:Arial;font-size:11pt"><strong>Successes.</strong> ${esc(T.summary.successes)}</p><p style="font-family:Arial;font-size:11pt"><strong>Identified needs.</strong> ${esc(T.summary.needs)}</p>`;
+  for (const g of L.planGoals(d)) {
+    const acts = (d.actions || []).filter(a => String(a.goal) === String(g.no));
+    html += `<h3 style="font-family:Arial">Goal ${esc(g.no)}</h3>${g.description ? p(g.description) : ''}${tbl(rows.filter(r => String(r.goal) === String(g.no)))}`;
+    if (acts.length) html += `<p style="font-family:Arial;font-size:11pt"><strong>Actions reviewed:</strong> ${acts.map(a => `${esc(a.no)} ${esc(a.title)} (${esc(RATINGS.find(x => x[0] === (L.actionReview(a, key).rating || ''))[1].toLowerCase())})`).join('; ')}</p>`;
+    html += `<p style="font-family:Arial;font-size:11pt"><strong>Effectiveness of the actions.</strong> ${esc(T.goals[g.no].effectiveness)}</p><p style="font-family:Arial;font-size:11pt"><strong>Changes resulting from reflection.</strong> ${esc(T.goals[g.no].changes)}</p>`;
+  }
+  const text = html.replace(/<\/(p|h2|h3|tr)>/g, '\n').replace(/<\/t[dh]>/g, '\t').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  return { html, text };
+}
+
+async function runAIReflections() {
+  const d = D(); const key = reflectKey(d);
+  const saved = d.reflections && d.reflections[key];
+  if (saved && (saved.summary || saved.goals) && !confirm('Replace your edited reflection text with AI drafts?')) return;
+  loading('Claude is drafting the reflections… this can take a minute or two.');
+  try {
+    const out = await AI.writeReflections({ apiKey: S.apiKey, plan: d, key, yearLabel: reflectTitle(d, key), onText: k => loading(`Claude is drafting the reflections… (${k.toLocaleString()} characters received)`) });
+    d.reflections = d.reflections || {};
+    d.reflections[key] = { summary: { successes: out.successes, needs: out.needs },
+      goals: Object.fromEntries(out.goals.map(g => [String(g.goal), { effectiveness: g.effectiveness, changes: g.changes }])) };
+    loading(null); changed(); toast('AI drafts added. Review and edit them before using them in the LCAP.');
+  } catch (e) { loading(null); toast('AI request failed: ' + e.message, true); }
+}
+
+async function copyHtml(html, text, msg) {
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+  } catch (e) {
+    const box = document.createElement('div');
+    box.innerHTML = html; box.style.position = 'fixed'; box.style.left = '-9999px';
+    document.body.appendChild(box);
+    const range = document.createRange(); range.selectNodeContents(box);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    document.execCommand('copy'); sel.removeAllRanges(); box.remove();
+  }
+  toast(msg);
+}
+
+// ------------------------------------------------------------
 // Guide
 // ------------------------------------------------------------
 function openGuide() {
   S.modal = { type: 'guide' };
-  openModal(`${modalHead('Using the LCAP Tracker to develop your LCAP', 'A suggested sequence for superintendents and LCAP teams')}
+  openModal(`${modalHead('Using the LCAP Tracker for the new LCAP cycle', 'Reflect on the previous LCAP, build the new three-year plan, then update it each year')}
   <div class="guide">
-    <p>The tracker turns your adopted LCAP into a working data set: every metric, its baseline, each year's outcome, and your target, scored automatically. Use it all year to monitor progress, and in the spring to build the next plan.</p>
-    <h3><span class="when">Start · any time</span><br>1. Import your current LCAP</h3>
-    <ol><li>Choose <strong>Import LCAP</strong> and select the adopted plan (PDF from the state template).</li>
-      <li>On the review screen, check each metric's <em>parsed</em> numbers. Correct any cell where the number is wrong, and check the <em>Indicators</em> column (1A–8A) for each metric.</li>
-      <li>Import. The Dashboard shows every metric as <strong>Priority</strong>, <strong>Watch</strong>, <strong>Sustain</strong>, or <strong>Review</strong>. Open any metric to see why.</li></ol>
-    <h3><span class="when">December · when the Dashboard is released</span><br>2. Add the newest state data</h3>
-    <ol><li>Download the California School Dashboard data files (ELA, Math, ELPI, Chronic Absenteeism, Suspension, Graduation, CCI) from the CDE Dashboard downloadable data files page.</li>
-      <li>Choose <strong>+ Add Data</strong> and upload each file. Every student group and its color is recorded, and groups in Red are flagged on the metric.</li></ol>
-    <h3><span class="when">Fall · winter · spring</span><br>3. Add local results as they come in</h3>
-    <ul><li><strong>NWEA MAP</strong> and <strong>mCLASS</strong> exports: student rows are summarized into percentages on this computer and never saved or sent.</li>
-      <li>Attendance, climate surveys, A–G, CTE, and other local data: use the <strong>CSV template</strong>, any spreadsheet, or type a single result on the metric.</li></ul>
-    <h3><span class="when">Winter · spring</span><br>4. Needs assessment and educational-partner engagement</h3>
-    <ul><li><strong>Next-Cycle Summary</strong>: one card per LCFF priority with the pattern, strongest progress, most important need, an equity question, and a planning direction. Record partner input in <em>Team notes</em>.</li>
-      <li><strong>Summary Report</strong>: a printable overview for board meetings, parent advisory committees, and staff.</li>
-      <li><strong>Required Metrics</strong>: confirms your plan addresses all 28 required metrics and lets you add any that are missing.</li></ul>
-    <h3><span class="when">Spring · drafting the plan</span><br>5. Draft the next LCAP's metrics table</h3>
-    <ul><li><strong>Next-Cycle Draft</strong> lists every metric with its latest result as the new baseline and a suggested Year 3 target, plus flags such as Red student groups or combined measures.</li>
-      <li>Adjust targets with your team, then <strong>Copy table</strong> into the LCAP template in Word or <strong>Download for Excel</strong>.</li></ul>
+    <p>A district keeps two plans in the tracker: the <strong>previous LCAP</strong>, which it reflects on, and the <strong>new three-year LCAP</strong> (for example 2026–27 through 2028–29), which it monitors each year. Switch between them with the plan menu under the district name.</p>
+    <h3><span class="when">Part 1 · Reflect on the previous LCAP</span><br>1. Import the previous LCAP</h3>
+    <ol><li>Choose <strong>Import LCAP</strong>, select the PDF, and on the review screen choose <em>"The previous LCAP"</em> and its three-year cycle.</li>
+      <li>Check each metric's <em>parsed</em> numbers and its <em>Indicators</em> (1A–8A). The tracker also reads each goal's description and its actions.</li></ol>
+    <h3>2. Add the newest results</h3>
+    <ul><li><strong>+ Add Data</strong>: California School Dashboard files (every student group and color), NWEA MAP, mCLASS, DataQuest, the CSV template, or single results. Choose which LCAP year each upload <em>counts toward</em>.</li>
+      <li>NWEA and mCLASS student rows are summarized into percentages on this computer and are never saved or sent.</li></ul>
+    <h3>3. Write the reflections (Reflection tab)</h3>
+    <ul><li>For each goal: review the metrics against their targets, rate each action (effective, somewhat, not effective, unclear), and add evidence.</li>
+      <li>The tracker drafts <em>how effective the actions were</em> and <em>changes resulting from reflection</em> for each goal, plus the Plan Summary's <em>successes</em> and <em>identified needs</em>. Edit the drafts; <strong>Copy reflections</strong> pastes them into the template in Word.</li>
+      <li>Use the <strong>Next-Cycle Summary</strong>, <strong>Summary Report</strong>, and <strong>Required Metrics</strong> tabs with educational partners.</li></ul>
+    <h3><span class="when">Part 2 · Build the new plan</span><br>4. Draft the new metrics and start the new LCAP</h3>
+    <ul><li><strong>Next-Cycle Draft</strong> lists every metric with its latest result as the new baseline and a suggested Year 3 target. Edit targets with your team.</li>
+      <li>Choose <strong>Create the new LCAP</strong>. The tracker copies the goals, metrics, and actions into a new three-year plan with those baselines and targets.</li>
+      <li>After the board adopts the plan, you can import the adopted LCAP PDF as <em>"The current three-year LCAP"</em> to replace the draft.</li></ul>
+    <h3><span class="when">Part 3 · Every year of the new plan</span><br>5. Add the year's results and write the annual update</h3>
+    <ul><li>Each year (2026–27, 2027–28, 2028–29), add results with <strong>+ Add Data</strong> and choose the LCAP year they count toward. They fill the template's Year 1 and Year 2 outcome columns and the current difference from baseline.</li>
+      <li>On the <strong>Reflection</strong> tab, pick the year, rate the actions, and edit the drafted goal analysis and annual performance reflections.</li></ul>
     <h3>Saving and sharing</h3>
-    <ul><li>Your work is kept in this browser on this computer. Choose <strong>Save File</strong> to create a district file you can share with your LCAP team or open on another computer with <strong>Open File</strong>.</li>
+    <ul><li>Work is kept in this browser. <strong>Save File</strong> creates a district file with both plans that your LCAP team can open on any computer with <strong>Open File</strong>.</li>
       <li>Nothing is sent over the internet unless you turn on the optional AI features in <strong>Settings &amp; AI</strong>. Even then, only district-level LCAP data is sent.</li></ul>
   </div>`);
 }
@@ -435,7 +636,8 @@ function renderLog(d) {
 // ------------------------------------------------------------
 function renderSettings(d) {
   $('set-name').value = d.name;
-  $('set-cycle').value = String(d.cycleStart || 2024);
+  $('set-cycle').innerHTML = cycleOptions(d.cycleStart || 2023);
+  $('set-name').value = C().name;
   $('set-key').value = S.apiKey;
   $('set-remember').checked = S.remember;
   $('ai-model-note').innerHTML = `<span style="font-size:11px;color:var(--muted)">Model: <code>${AI.MODEL}</code>. Calls go directly from this browser to api.anthropic.com and are billed to the key's account.</span>`;
@@ -520,6 +722,7 @@ function openMetric(id) {
         <div class="field"><label class="lbl" for="np-value">Value${m.unit ? ' (' + esc(m.unit === 'pts' ? 'points, below = negative' : m.unit) + ')' : ''}</label><input class="ctl" id="np-value" inputmode="decimal"></div>
         <div class="field"><label class="lbl" for="np-group">Group</label><input class="ctl" id="np-group" list="np-groups" value="ALL"><datalist id="np-groups">${Object.keys(L.GROUP_NAMES).concat(groupOpts).filter((v, i, a2) => a2.indexOf(v) === i).map(g => `<option value="${esc(g)}">${esc(L.groupName(g))}</option>`).join('')}</datalist></div>
         <div class="field"><label class="lbl" for="np-note">Note (optional)</label><input class="ctl" id="np-note"></div>
+        <div class="field"><label class="lbl" for="np-role">Counts toward</label><select class="ctl" id="np-role">${roleOptions(D(), L.currentRole(D()))}</select></div>
         <button class="btn" data-act="add-point">Add</button>
       </div></div>
     <details class="section"><summary style="cursor:pointer;font-size:12px;color:var(--muted)">Metric settings (name, indicator mapping, direction, target)</summary>
@@ -546,7 +749,9 @@ function addPointFromForm() {
   const value = raw === '' ? null : parseFloat(raw.replace(/[%,]/g, ''));
   if (raw !== '' && !isFinite(value)) { toast('Value must be a number.', true); return; }
   const before = L.analyze(m).status;
-  L.addPoint(m, { period, value, group: I.groupCode($('np-group').value), text: $('np-note').value.trim(), source: 'Manual' });
+  const role = $('np-role').value || null;
+  L.addPoint(m, { period, value, group: I.groupCode($('np-group').value), text: $('np-note').value.trim(), source: 'Manual',
+    role, order: role ? L.roleOrder(d, role, period) : undefined });
   d.imports.push({ at: new Date().toISOString(), type: 'Manual entry', file: m.metricNo + ' ' + m.name, count: 1 });
   const after = L.analyze(m).status;
   S.flash.add(m.id);
@@ -594,19 +799,31 @@ function openReview(r) {
   const pages = [...new Set(r.rows.map(x => x.page))];
   const warn = !r.rows.length ? `<div class="note-box warn">No metrics tables were found${r.scanned ? '. The PDF looks scanned (no selectable text)' : ''}. ${S.apiKey ? 'Try <strong>Read with AI</strong> below.' : 'Add an API key in Settings &amp; AI to read unusual or scanned LCAPs, or add rows manually below.'}</div>` : '';
   const cell = (i, k) => `<textarea class="ctl" data-i="${i}" data-k="${k}">${esc(r.rows[i][k])}</textarea><div class="parsed" data-parsed="${i}-${k}">${esc(parsedLabel(r.rows[i][k]))}</div>`;
-  const districtName = r.district || (d && !d.metrics.length ? d.name : '') || '';
+  const c = C();
+  const districtName = r.district || (c && !d.metrics.length ? c.name : '') || '';
+  const sameName = x => !r.district || L.norm(x.name).toLowerCase() === L.norm(r.district).toLowerCase();
+  const targetId = r.targetId ?? (c && sameName(c) ? c.id : 'new');
+  const target = S.store.districts[targetId];
+  const kind = r.kind || (target && target.plans.some(p => p.kind === 'prior') && !target.plans.some(p => p.kind === 'current') ? 'current' : 'prior');
+  const cycle = r.cycleStart || (kind === 'current' ? (r.lcapYear || 2026) : (r.lcapYear ? r.lcapYear - 2 : 2023));
+  const existing = target && target.plans.find(p => p.kind === kind);
+  const counts = [r.goals && r.goals.length ? `${r.goals.length} goals` : '', r.actions && r.actions.length ? `${r.actions.length} actions` : ''].filter(Boolean);
   openModal(`
     ${modalHead('Review LCAP metrics', `${esc(r.fileName || '')}${r.pageCount ? ` · ${r.pageCount} pages` : ''} · ${esc(r.method || '')}`)}
     ${warn}
-    ${r.rows.length ? `<div class="note-box">Found <strong>${r.rows.length} metrics</strong>${pages.length ? ` on ${esc(pages.slice(0, 8).join(', '))}${pages.length > 8 ? '…' : ''}` : ''}. Check the text and the <em>parsed</em> numbers under each cell; the tracker scores progress from those numbers. Fix anything that looks off before importing. You can also change it later.</div>` : ''}
-    <div class="grid3">
+    ${r.rows.length ? `<div class="note-box">Found <strong>${r.rows.length} metrics</strong>${pages.length ? ` on ${esc(pages.slice(0, 8).join(', '))}${pages.length > 8 ? '…' : ''}` : ''}${counts.length ? `, plus <strong>${counts.join(' and ')}</strong> (used for reflections)` : ''}. Check the text and the <em>parsed</em> numbers under each cell; the tracker scores progress from those numbers. Fix anything that looks off before importing. You can also change it later.</div>` : ''}
+    <div class="grid2">
       <div class="field"><label class="lbl" for="rv-name">District</label><input class="ctl" id="rv-name" value="${esc(districtName)}"></div>
-      <div class="field"><label class="lbl" for="rv-cycle">LCAP cycle</label><select class="ctl" id="rv-cycle">
-        ${[2024, 2027, 2030].map(y => `<option value="${y}" ${(r.cycleStart || 2024) === y ? 'selected' : ''}>${y}–${String(y + 3).slice(2)} (baseline ≈ ${y - 1}–${String(y).slice(2)})</option>`).join('')}</select></div>
-      <div class="field"><label class="lbl" for="rv-target">Add to</label><select class="ctl" id="rv-target">
+      <div class="field"><label class="lbl" for="rv-target">Add to</label><select class="ctl" id="rv-target" data-rv="targetId">
         <option value="new">A new district</option>
-        ${Object.values(S.store.districts).map(x => `<option value="${x.id}" ${d && x.id === d.id && (!r.district || L.norm(x.name).toLowerCase() === L.norm(r.district).toLowerCase()) ? 'selected' : ''}>Update: ${esc(x.name)}</option>`).join('')}</select></div>
+        ${Object.values(S.store.districts).map(x => `<option value="${x.id}" ${x.id === targetId ? 'selected' : ''}>Update: ${esc(x.name)}</option>`).join('')}</select></div>
+      <div class="field"><label class="lbl" for="rv-kind">This LCAP is</label><select class="ctl" id="rv-kind" data-rv="kind">
+        <option value="prior" ${kind === 'prior' ? 'selected' : ''}>The previous LCAP: reflect on it and draft the next plan</option>
+        <option value="current" ${kind === 'current' ? 'selected' : ''}>The current three-year LCAP: monitor it each year</option></select></div>
+      <div class="field"><label class="lbl" for="rv-cycle">Three-year cycle</label><select class="ctl" id="rv-cycle" data-rv="cycleStart">${cycleOptions(cycle)}</select></div>
     </div>
+    ${existing && existing.metrics.length ? `<label style="font-size:12px;display:flex;gap:6px;margin-top:8px"><input type="checkbox" id="rv-replace" ${existing.fromPlanId ? 'checked' : ''}>
+      Replace the ${existing.metrics.length} metrics, goals, and actions already in this district's ${kind === 'current' ? 'current' : 'previous'} LCAP${existing.fromPlanId ? ' (currently a draft started from the previous LCAP)' : ''}. Unchecked: update matching metrics and add new ones.</label>` : ''}
     <div class="table-wrap section"><table class="review-table">
       <thead><tr><th></th><th>#</th><th>Metric</th><th>Indicators</th><th>Baseline</th><th>Year 1</th><th>Year 2</th><th>Target (Year 3)</th></tr></thead>
       <tbody>${r.rows.map((row, i) => `<tr>
@@ -624,6 +841,22 @@ function openReview(r) {
     </div>`);
 }
 
+function mergeGoalsActions(d, goals, actions) {
+  d.goals = d.goals || []; d.actions = d.actions || [];
+  for (const g of goals) {
+    const old = d.goals.find(x => String(x.no) === String(g.no));
+    if (old) Object.assign(old, { description: g.description || old.description, type: g.type || old.type });
+    else d.goals.push({ no: String(g.no), description: g.description || '', type: g.type || '' });
+  }
+  for (const a of actions) {
+    const old = d.actions.find(x => String(x.no) === String(a.no));
+    const fields = { goal: String(a.goal || String(a.no).split('.')[0]), no: String(a.no), title: a.title || '', description: a.description || '',
+      funds: a.funds || '', contributing: a.contributing || '' };
+    if (old) Object.assign(old, fields);
+    else d.actions.push({ id: L.uid(), ...fields, rating: '', evidence: '' });
+  }
+}
+
 function parsedLabel(text) {
   if (!String(text || '').trim()) return '';
   const p = L.parseValue(text);
@@ -636,12 +869,21 @@ function reviewImport() {
     codes: String(Array.isArray(x.codes) ? x.codes.join(',') : x.codes).toUpperCase().split(/[\s,;]+/).filter(c => L.REQUIRED_BY_CODE[c]) }));
   if (!rows.length) { toast('Select at least one metric to import.', true); return; }
   const cycle = +$('rv-cycle').value;
+  const kind = $('rv-kind').value;
   const name = $('rv-name').value.trim() || 'District';
   let d;
-  if ($('rv-target').value === 'new') { d = L.newDistrict(name, cycle); addDistrict(d); }
-  else { d = S.store.districts[$('rv-target').value]; S.store.currentId = d.id; d.name = name || d.name; d.cycleStart = d.cycleStart || cycle; }
+  if ($('rv-target').value === 'new') { d = { ...L.newDistrict(name, cycle), kind }; addDistrict(d); }
+  else {
+    const c = S.store.districts[$('rv-target').value];
+    S.store.currentId = c.id; c.name = name || c.name;
+    d = c.plans.find(p => p.kind === kind);
+    if (!d) { d = { ...L.newDistrict(c.name, cycle), kind }; c.plans.push(d); }
+    else if ($('rv-replace') && $('rv-replace').checked) { d.metrics = []; d.goals = []; d.actions = []; d.reflections = {}; delete d.fromPlanId; }
+    d.cycleStart = cycle; c.activePlanId = d.id; c.plans.forEach(p => p.name = c.name);
+  }
   const before = new Map(d.metrics.map(m => [m.id, L.analyze(m).status]));
   const res = L.importLcapRows(d, rows, { cycleStart: cycle, sourceLabel: 'LCAP' });
+  mergeGoalsActions(d, r.goals || [], r.actions || []);
   d.imports.push({ at: new Date().toISOString(), type: 'LCAP', file: r.fileName || 'LCAP', count: res.points });
   d.metrics.forEach(m => { if (before.size && (!before.has(m.id) || before.get(m.id) !== L.analyze(m).status)) S.flash.add(m.id); });
   closeModal(); S.view = 'dashboard'; changed();
@@ -658,7 +900,7 @@ async function reviewWithAI() {
     b64 = btoa(b64);
     const out = await AI.extractLcap({ apiKey: S.apiKey, pdfBase64: b64, onText: n => loading(`Claude is reading the LCAP… (${n.toLocaleString()} characters received)`) });
     loading(null);
-    openReview({ ...r, rows: out.rows, district: out.district || r.district, cycleStart: out.cycleStart || r.cycleStart, method: 'Read with AI' });
+    openReview({ ...r, rows: out.rows, goals: out.goals, actions: out.actions, district: out.district || r.district, lcapYear: out.lcapYear || r.lcapYear, method: 'Read with AI' });
   } catch (e) { loading(null); toast('AI extraction failed: ' + e.message, true); }
 }
 
@@ -694,7 +936,7 @@ async function handleDataFile(file) {
     const tables = await I.readTable(file);
     loading(null);
     if (!tables.length) { toast('No rows found in that file.', true); return; }
-    S.add = { file: file.name, tables, sheet: 0, kind: I.detectKind(tables[0], file.name), cfg: {} };
+    S.add = { file: file.name, tables, sheet: 0, kind: I.detectKind(tables[0], file.name), cfg: {}, role: L.currentRole(D()) };
     initAddConfig();
     renderAddStep();
   } catch (e) { loading(null); toast('Could not read that file: ' + e.message, true); }
@@ -806,6 +1048,8 @@ function renderAddStep() {
         ${a.tables.length > 1 ? `<select class="ctl" data-add="sheet">${a.tables.map((x, i) => `<option value="${i}" ${i === a.sheet ? 'selected' : ''}>Sheet: ${esc(x.name)}</option>`).join('')}</select>` : ''}
         <select class="ctl" data-add="kind">${Object.entries(kinds).map(([k, v]) => `<option value="${k}" ${k === a.kind ? 'selected' : ''}>Read as: ${v}</option>`).join('')}</select>
         <span class="pill">${t.rows.length.toLocaleString()} rows</span>
+        <label style="font-size:12px;display:flex;gap:6px;align-items:center;margin-left:auto">Counts toward
+          <select class="ctl" data-add="role">${roleOptions(d, a.role)}</select></label>
       </div>
       ${form}
     </div>
@@ -829,7 +1073,8 @@ function commitAdd() {
   for (const p of proposals) {
     const m = d.metrics.find(x => x.id === p.metricId);
     if (!m) continue;
-    const r = L.addPoint(m, p);
+    const role = S.add.role || null;
+    const r = L.addPoint(m, { ...p, role, order: role ? L.roleOrder(d, role, p.period) : p.order });
     r.replaced ? replaced++ : added++;
     touched.add(m.id);
   }
@@ -905,6 +1150,66 @@ function wire() {
     d.draft[id] = { ...(d.draft[id] || {}), [e.target.dataset.k]: e.target.value };
     persist();
   });
+  // Reflection view
+  const rv = $('view-reflect');
+  rv.addEventListener('input', e => {
+    const t = e.target, d = D();
+    if (t.dataset.refl) {
+      setReflect(d, t.dataset.refl, t.value);
+      const pr = t.nextElementSibling; if (pr && pr.classList.contains('notes-print')) pr.textContent = t.value;
+      persist();
+    } else if (t.dataset.goalDesc != null) {
+      d.goals = d.goals || [];
+      let g = d.goals.find(x => String(x.no) === t.dataset.goalDesc);
+      if (!g) { g = { no: t.dataset.goalDesc, description: '', type: '' }; d.goals.push(g); }
+      g.description = t.value; persist();
+    }
+  });
+  rv.addEventListener('change', e => {
+    const t = e.target, d = D();
+    if (t.id === 'reflect-year') { S.reflectRole = t.value; return render(); }
+    const act = (d.actions || []).find(a => a.id === (t.dataset.actRating || t.dataset.actEvidence));
+    if (!act) return;
+    const key = reflectKey(d);
+    act.ratings = act.ratings || {};
+    const cur = { ...L.actionReview(act, key) };
+    if (t.dataset.actRating != null) cur.rating = t.value; else cur.evidence = t.value.trim();
+    act.ratings[key] = cur;
+    changed();
+  });
+  rv.addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return;
+    const d = D();
+    if (t.dataset.redraft) { setReflect(d, t.dataset.redraft, undefined); changed(); }
+    else if (t.dataset.addAction) {
+      const title = prompt(`Title of the new action for Goal ${t.dataset.addAction}`); if (!title) return;
+      const nums = (d.actions || []).filter(a => String(a.goal) === t.dataset.addAction).map(a => +String(a.no).split('.')[1] || 0);
+      (d.actions ||= []).push({ id: L.uid(), goal: t.dataset.addAction, no: `${t.dataset.addAction}.${(nums.length ? Math.max(...nums) : 0) + 1}`,
+        title: title.trim(), description: '', funds: '', contributing: '', rating: '', evidence: '' });
+      changed();
+    }
+    else if (t.dataset.delAction) {
+      const a = d.actions.find(x => x.id === t.dataset.delAction);
+      if (a && confirm(`Remove action ${a.no} ${a.title}?`)) { d.actions = d.actions.filter(x => x !== a); changed(); }
+    }
+    else if (t.dataset.openPlan) { C().activePlanId = t.dataset.openPlan; S.view = 'dashboard'; persist(); render(); }
+    else if (t.id === 'btn-refl-ai') runAIReflections();
+    else if (t.id === 'btn-refl-redraft') {
+      if (!confirm('Replace all edited reflection text on this page with fresh drafts from the data? Action ratings and evidence are kept.')) return;
+      if (d.reflections) delete d.reflections[reflectKey(d)]; changed();
+    }
+    else if (t.id === 'btn-refl-copy') { const r = reflectionHtml(d); copyHtml(r.html, r.text, 'Reflections copied. Paste them into the LCAP template in Word.'); }
+    else if (t.id === 'btn-refl-table') {
+      const rows = L.templateRows(d); const y3 = rows.some(r => r.y3);
+      const cols = ['Metric #', 'Metric', 'Baseline', 'Year 1 Outcome', 'Year 2 Outcome', ...(y3 ? ['Year 3 Outcome'] : []), 'Target for Year 3 Outcome', 'Current Difference from Baseline'];
+      const vals = r => [r.metricNo, r.metric, r.baseline, r.y1, r.y2, ...(y3 ? [r.y3] : []), r.target, r.diff];
+      const html = `<table style="border-collapse:collapse;font-family:Arial;font-size:10pt"><tr>${cols.map(h => `<th style="border:1px solid #999;padding:4px;background:#eee">${esc(h)}</th>`).join('')}</tr>${rows.map(r => `<tr>${vals(r).map(v => `<td style="border:1px solid #999;padding:4px">${esc(v)}</td>`).join('')}</tr>`).join('')}</table>`;
+      copyHtml(html, [cols.join('\t'), ...rows.map(r => vals(r).join('\t'))].join('\n'), 'Metrics table copied. Paste it into the LCAP template in Word.');
+    }
+    else if (t.id === 'btn-create-plan') createPlan(d, +$('np-cycle').value, $('np-actions') ? $('np-actions').checked : false);
+  });
+  $('btn-draft-create').addEventListener('click', () => createPlan(D(), (D().cycleStart || 2023) + 3, true));
+
   $('btn-draft-reset').addEventListener('click', () => { if (confirm('Discard your edits to the draft table?')) { D().draft = {}; changed(); } });
   $('btn-draft-copy').addEventListener('click', () => copyDraft(D()));
   $('btn-draft-csv').addEventListener('click', () => download(`${slug(D().name)}-next-cycle-metrics-draft.csv`, draftCsv(D()), 'text/csv'));
@@ -913,6 +1218,7 @@ function wire() {
     v.classList.add('printing'); window.print(); v.classList.remove('printing');
   });
   $('district-select').addEventListener('change', e => { S.store.currentId = e.target.value; persist(); render(); });
+  $('plan-select').addEventListener('change', e => { C().activePlanId = e.target.value; S.filter.status = ''; persist(); render(); });
 
   // Dashboard filters
   $('tiles').addEventListener('click', e => { const t = e.target.closest('.tile'); if (!t) return; S.filter.status = S.filter.status === t.dataset.status ? '' : t.dataset.status; render(); });
@@ -934,7 +1240,7 @@ function wire() {
   $('log-source').addEventListener('change', render);
 
   // Settings
-  $('set-name').addEventListener('change', e => { D().name = e.target.value.trim() || D().name; changed(); });
+  $('set-name').addEventListener('change', e => { const c = C(); c.name = e.target.value.trim() || c.name; c.plans.forEach(p => p.name = c.name); changed(); });
   $('set-cycle').addEventListener('change', e => { D().cycleStart = +e.target.value; changed(); });
   const saveKey = () => {
     S.apiKey = $('set-key').value.trim(); S.remember = $('set-remember').checked;
@@ -944,12 +1250,12 @@ function wire() {
   $('set-remember').addEventListener('change', saveKey);
   $('btn-new-district').addEventListener('click', () => {
     const name = prompt('District name'); if (!name) return;
-    addDistrict(L.newDistrict(name.trim(), 2024)); S.view = 'dashboard'; render();
+    addDistrict(L.newDistrict(name.trim(), 2023)); S.view = 'dashboard'; render();
     toast('District created. Import its LCAP, or add metrics from the Required Metrics tab.');
   });
   $('btn-delete-district').addEventListener('click', () => {
-    const d = D();
-    if (!confirm(`Remove "${d.name}" from this browser? Save a district file first if you want to keep it.`)) return;
+    const d = C();
+    if (!confirm(`Remove "${d.name}" (all plans) from this browser? Save a district file first if you want to keep it.`)) return;
     delete S.store.districts[d.id];
     S.store.currentId = Object.keys(S.store.districts)[0] || null;
     S.view = 'dashboard'; persist(); render();
@@ -989,7 +1295,7 @@ function wire() {
     else if (act === 'review-import') reviewImport();
     else if (act === 'review-ai') reviewWithAI();
     else if (act === 'review-add-row') {
-      S.review.district = $('rv-name').value; S.review.cycleStart = +$('rv-cycle').value;
+      S.review.district = $('rv-name').value; S.review.cycleStart = +$('rv-cycle').value; S.review.kind = $('rv-kind').value; S.review.targetId = $('rv-target').value;
       S.review.rows.push({ metricNo: '', metric: '', baseline: '', y1: '', y2: '', target: '', diff: '', page: 'added', include: true, codes: [] });
       openReview(S.review);
     }
@@ -1016,10 +1322,19 @@ function wire() {
   $('modal').addEventListener('change', e => {
     const t = e.target;
     if (S.modal?.type === 'review' && t.dataset.inc != null) { S.review.rows[+t.dataset.inc].include = t.checked; return; }
+    if (S.modal?.type === 'review' && t.dataset.rv) {
+      const r = S.review;
+      r.district = $('rv-name').value;
+      r[t.dataset.rv] = t.dataset.rv === 'cycleStart' ? +t.value : t.value;
+      if (t.dataset.rv === 'kind') delete r.cycleStart;
+      if (t.dataset.rv !== 'cycleStart') { r.kind = $('rv-kind').value; if (t.dataset.rv === 'targetId') delete r.kind; }
+      return openReview(r);
+    }
     if (t.id === 'add-file' && t.files[0]) return handleDataFile(t.files[0]);
     if (!S.add) return;
     if (t.dataset.add === 'sheet') { S.add.sheet = +t.value; S.add.kind = I.detectKind(S.add.tables[S.add.sheet], S.add.file); initAddConfig(); return renderAddStep(); }
     if (t.dataset.add === 'kind') { S.add.kind = t.value; initAddConfig(); return renderAddStep(); }
+    if (t.dataset.add === 'role') { S.add.role = t.value; return; }
     if (t.dataset.cfg) {
       const k = t.dataset.cfg;
       S.add.cfg[k] = t.type === 'checkbox' ? t.checked : t.type === 'number' ? +t.value : t.value;
