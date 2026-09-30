@@ -26,7 +26,10 @@ button{font-family:var(--font)}
 /* Header */
 header.top{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px 0;position:sticky;top:0;z-index:20}
 .top-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand-wrap{display:flex;align-items:center;gap:14px}
+.logo{height:58px;width:auto;border-radius:6px;display:block}
 .brand{display:flex;flex-direction:column}
+.report .rpt-logo{height:44px;width:auto;border-radius:4px;margin-bottom:6px}
 .eyebrow{font-family:var(--display);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 h1{font-family:var(--display);font-size:21px;font-weight:600;line-height:1.2}
 h1 span{color:var(--accent)}
@@ -209,6 +212,8 @@ tr.missing td{background:rgba(232,69,60,.06)}
   .strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sum-grid,.start-grid,.grid2,.grid3{grid-template-columns:1fr}
   .add-row{grid-template-columns:1fr 1fr}
+  .logo{height:42px}
+  .brand-wrap{gap:10px;align-items:flex-start}
   .card{margin-left:0;width:100%}
   input.search{min-width:0;max-width:none;flex-basis:100%}
   .count{margin-left:0}
@@ -240,6 +245,8 @@ tr.missing td{background:rgba(232,69,60,.06)}
 
 <header class="top">
   <div class="top-row">
+    <div class="brand-wrap">
+    <img class="logo" src="assets/modoc-coe-logo.png" alt="Modoc County Office of Education logo">
     <div class="brand">
       <div class="eyebrow">Modoc County Office of Education</div>
       <h1>LCAP <span>Tracker</span></h1>
@@ -247,6 +254,7 @@ tr.missing td{background:rgba(232,69,60,.06)}
         <select class="ctl" id="district-select" aria-label="District"></select>
         <span class="meta" id="district-meta"></span>
       </div>
+    </div>
     </div>
     <div class="actions">
       <button class="btn" id="btn-add-data" hidden>+ Add Data</button>

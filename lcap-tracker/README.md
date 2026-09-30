@@ -65,6 +65,7 @@ src/pdf-extract.js   LCAP table extraction from pdf.js text positions
 src/importers.js     Dashboard, NWEA, mCLASS, CSV template, generic importers
 src/ai.js            optional Claude API calls
 src/ui.js            rendering and interactions
+assets/              Modoc COE logo (embedded into the page at build time)
 vendor/              pdf.js 3.11 (Apache-2.0), SheetJS 0.18 (Apache-2.0)
 samples/             example district
 tests/engine.test.js

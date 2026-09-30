@@ -335,6 +335,7 @@ function printReport() {
   const attention = d.metrics.filter(m => A.get(m.id).status === 'Priority');
   const v = (p, m) => p ? esc(L.fmtValue(p.value, m.unit)) : '—';
   $('view-report').innerHTML = `<div class="report">
+    <img class="rpt-logo" src="${document.querySelector('.logo').src}" alt="Modoc County Office of Education logo">
     <div class="eyebrow">Modoc County Office of Education · LCAP Tracker</div>
     <h2>${esc(d.name)}: LCAP Progress Summary</h2>
     <div class="rpt-meta">${d.cycleStart ? `${d.cycleStart}–${String(d.cycleStart + 3).slice(2)} LCAP` : ''} · Prepared ${new Date().toLocaleDateString()} · ${d.metrics.length} metrics · ${covered} of 28 required LCFF metrics addressed</div>

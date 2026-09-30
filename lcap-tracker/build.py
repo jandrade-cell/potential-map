@@ -6,6 +6,7 @@ can be opened from a shared drive or USB stick with no internet connection.
 
     python3 build.py
 """
+import base64
 import json
 import pathlib
 import re
@@ -37,6 +38,13 @@ def main():
         '<script type="text/plain" id="pdf-worker-src" data-inline-text="vendor/pdf.worker.min.js"></script>',
         '<script type="text/plain" id="pdf-worker-src">' + read("vendor/pdf.worker.min.js") + "</script>",
     )
+
+    # Images referenced from the page are embedded as data URIs.
+    def embed_img(m):
+        data = base64.b64encode((ROOT / m.group(1)).read_bytes()).decode()
+        return f'src="data:image/png;base64,{data}"'
+
+    html = re.sub(r'src="(assets/[^"]+\.png)"', embed_img, html)
 
     example = json.loads(read("samples/tbjusd-2026-27.lcap.json"))
     html = html.replace("/*EXAMPLE_DISTRICT*/null", script_safe(json.dumps(example, ensure_ascii=False)))
