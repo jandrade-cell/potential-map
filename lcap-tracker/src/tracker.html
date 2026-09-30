@@ -26,7 +26,9 @@ button{font-family:var(--font)}
 /* Header */
 header.top{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px 0;position:sticky;top:0;z-index:20}
 .top-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.brand-wrap{display:flex;align-items:center;gap:14px}
+.brand-wrap{display:flex;align-items:center;gap:14px;min-width:0;max-width:100%}
+.brand-wrap .brand{min-width:0}
+#district-select{max-width:100%;min-width:0;text-overflow:ellipsis}
 .logo{height:58px;width:auto;border-radius:6px;display:block}
 .brand{display:flex;flex-direction:column}
 .report .rpt-logo{height:44px;width:auto;border-radius:4px;margin-bottom:6px}
