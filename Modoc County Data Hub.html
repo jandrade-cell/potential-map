@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modoc County Data Hub</title>
+<script>/* PapaParse 5 - embedded for offline use */
+/* @license
+Papa Parse
+v5.5.3
+https://github.com/mholt/PapaParse
+License: MIT
+*/
+((e,t)=>{"function"==typeof define&&define.amd?define([],t):"object"==typeof module&&"undefined"!=typeof exports?module.exports=t():e.Papa=t()})(this,function r(){var n="undefined"!=typeof self?self:"undefined"!=typeof window?window:void 0!==n?n:{};var d,s=!n.document&&!!n.postMessage,a=n.IS_PAPA_WORKER||!1,o={},h=0,v={};function u(e){this._handle=null,this._finished=!1,this._completed=!1,this._halted=!1,this._input=null,this._baseIndex=0,this._partialLine="",this._rowCount=0,this._start=0,this._nextChunk=null,this.isFirstChunk=!0,this._completeResults={data:[],errors:[],meta:{}},function(e){var t=b(e);t.chunkSize=parseInt(t.chunkSize),e.step||e.chunk||(t.chunkSize=null);this._handle=new i(t),(this._handle.streamer=this)._config=t}.call(this,e),this.parseChunk=function(t,e){var i=parseInt(this._config.skipFirstNLines)||0;if(this.isFirstChunk&&0<i){let e=this._config.newline;e||(r=this._config.quoteChar||'"',e=this._handle.guessLineEndings(t,r)),t=[...t.split(e).slice(i)].join(e)}this.isFirstChunk&&U(this._config.beforeFirstChunk)&&void 0!==(r=this._config.beforeFirstChunk(t))&&(t=r),this.isFirstChunk=!1,this._halted=!1;var i=this._partialLine+t,r=(this._partialLine="",this._handle.parse(i,this._baseIndex,!this._finished));if(!this._handle.paused()&&!this._handle.aborted()){t=r.meta.cursor,i=(this._finished||(this._partialLine=i.substring(t-this._baseIndex),this._baseIndex=t),r&&r.data&&(this._rowCount+=r.data.length),this._finished||this._config.preview&&this._rowCount>=this._config.preview);if(a)n.postMessage({results:r,workerId:v.WORKER_ID,finished:i});else if(U(this._config.chunk)&&!e){if(this._config.chunk(r,this._handle),this._handle.paused()||this._handle.aborted())return void(this._halted=!0);this._completeResults=r=void 0}return this._config.step||this._config.chunk||(this._completeResults.data=this._completeResults.data.concat(r.data),this._completeResults.errors=this._completeResults.errors.concat(r.errors),this._completeResults.meta=r.meta),this._completed||!i||!U(this._config.complete)||r&&r.meta.aborted||(this._config.complete(this._completeResults,this._input),this._completed=!0),i||r&&r.meta.paused||this._nextChunk(),r}this._halted=!0},this._sendError=function(e){U(this._config.error)?this._config.error(e):a&&this._config.error&&n.postMessage({workerId:v.WORKER_ID,error:e,finished:!1})}}function f(e){var r;(e=e||{}).chunkSize||(e.chunkSize=v.RemoteChunkSize),u.call(this,e),this._nextChunk=s?function(){this._readChunk(),this._chunkLoaded()}:function(){this._readChunk()},this.stream=function(e){this._input=e,this._nextChunk()},this._readChunk=function(){if(this._finished)this._chunkLoaded();else{if(r=new XMLHttpRequest,this._config.withCredentials&&(r.withCredentials=this._config.withCredentials),s||(r.onload=y(this._chunkLoaded,this),r.onerror=y(this._chunkError,this)),r.open(this._config.downloadRequestBody?"POST":"GET",this._input,!s),this._config.downloadRequestHeaders){var e,t=this._config.downloadRequestHeaders;for(e in t)r.setRequestHeader(e,t[e])}var i;this._config.chunkSize&&(i=this._start+this._config.chunkSize-1,r.setRequestHeader("Range","bytes="+this._start+"-"+i));try{r.send(this._config.downloadRequestBody)}catch(e){this._chunkError(e.message)}s&&0===r.status&&this._chunkError()}},this._chunkLoaded=function(){4===r.readyState&&(r.status<200||400<=r.status?this._chunkError():(this._start+=this._config.chunkSize||r.responseText.length,this._finished=!this._config.chunkSize||this._start>=(e=>null!==(e=e.getResponseHeader("Content-Range"))?parseInt(e.substring(e.lastIndexOf("/")+1)):-1)(r),this.parseChunk(r.responseText)))},this._chunkError=function(e){e=r.statusText||e;this._sendError(new Error(e))}}function l(e){(e=e||{}).chunkSize||(e.chunkSize=v.LocalChunkSize),u.call(this,e);var i,r,n="undefined"!=typeof FileReader;this.stream=function(e){this._input=e,r=e.slice||e.webkitSlice||e.mozSlice,n?((i=new FileReader).onload=y(this._chunkLoaded,this),i.onerror=y(this._chunkError,this)):i=new FileReaderSync,this._nextChunk()},this._nextChunk=function(){this._finished||this._config.preview&&!(this._rowCount<this._config.preview)||this._readChunk()},this._readChunk=function(){var e=this._input,t=(this._config.chunkSize&&(t=Math.min(this._start+this._config.chunkSize,this._input.size),e=r.call(e,this._start,t)),i.readAsText(e,this._config.encoding));n||this._chunkLoaded({target:{result:t}})},this._chunkLoaded=function(e){this._start+=this._config.chunkSize,this._finished=!this._config.chunkSize||this._start>=this._input.size,this.parseChunk(e.target.result)},this._chunkError=function(){this._sendError(i.error)}}function c(e){var i;u.call(this,e=e||{}),this.stream=function(e){return i=e,this._nextChunk()},this._nextChunk=function(){var e,t;if(!this._finished)return e=this._config.chunkSize,i=e?(t=i.substring(0,e),i.substring(e)):(t=i,""),this._finished=!i,this.parseChunk(t)}}function p(e){u.call(this,e=e||{});var t=[],i=!0,r=!1;this.pause=function(){u.prototype.pause.apply(this,arguments),this._input.pause()},this.resume=function(){u.prototype.resume.apply(this,arguments),this._input.resume()},this.stream=function(e){this._input=e,this._input.on("data",this._streamData),this._input.on("end",this._streamEnd),this._input.on("error",this._streamError)},this._checkIsFinished=function(){r&&1===t.length&&(this._finished=!0)},this._nextChunk=function(){this._checkIsFinished(),t.length?this.parseChunk(t.shift()):i=!0},this._streamData=y(function(e){try{t.push("string"==typeof e?e:e.toString(this._config.encoding)),i&&(i=!1,this._checkIsFinished(),this.parseChunk(t.shift()))}catch(e){this._streamError(e)}},this),this._streamError=y(function(e){this._streamCleanUp(),this._sendError(e)},this),this._streamEnd=y(function(){this._streamCleanUp(),r=!0,this._streamData("")},this),this._streamCleanUp=y(function(){this._input.removeListener("data",this._streamData),this._input.removeListener("end",this._streamEnd),this._input.removeListener("error",this._streamError)},this)}function i(m){var n,s,a,t,o=Math.pow(2,53),h=-o,u=/^\s*-?(\d+\.?|\.\d+|\d+\.\d+)([eE][-+]?\d+)?\s*$/,d=/^((\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)))$/,i=this,r=0,f=0,l=!1,e=!1,c=[],p={data:[],errors:[],meta:{}};function y(e){return"greedy"===m.skipEmptyLines?""===e.join("").trim():1===e.length&&0===e[0].length}function g(){if(p&&a&&(k("Delimiter","UndetectableDelimiter","Unable to auto-detect delimiting character; defaulted to '"+v.DefaultDelimiter+"'"),a=!1),m.skipEmptyLines&&(p.data=p.data.filter(function(e){return!y(e)})),_()){if(p)if(Array.isArray(p.data[0])){for(var e=0;_()&&e<p.data.length;e++)p.data[e].forEach(t);p.data.splice(0,1)}else p.data.forEach(t);function t(e,t){U(m.transformHeader)&&(e=m.transformHeader(e,t)),c.push(e)}}function i(e,t){for(var i=m.header?{}:[],r=0;r<e.length;r++){var n=r,s=e[r],s=((e,t)=>(e=>(m.dynamicTypingFunction&&void 0===m.dynamicTyping[e]&&(m.dynamicTyping[e]=m.dynamicTypingFunction(e)),!0===(m.dynamicTyping[e]||m.dynamicTyping)))(e)?"true"===t||"TRUE"===t||"false"!==t&&"FALSE"!==t&&((e=>{if(u.test(e)){e=parseFloat(e);if(h<e&&e<o)return 1}})(t)?parseFloat(t):d.test(t)?new Date(t):""===t?null:t):t)(n=m.header?r>=c.length?"__parsed_extra":c[r]:n,s=m.transform?m.transform(s,n):s);"__parsed_extra"===n?(i[n]=i[n]||[],i[n].push(s)):i[n]=s}return m.header&&(r>c.length?k("FieldMismatch","TooManyFields","Too many fields: expected "+c.length+" fields but parsed "+r,f+t):r<c.length&&k("FieldMismatch","TooFewFields","Too few fields: expected "+c.length+" fields but parsed "+r,f+t)),i}var r;p&&(m.header||m.dynamicTyping||m.transform)&&(r=1,!p.data.length||Array.isArray(p.data[0])?(p.data=p.data.map(i),r=p.data.length):p.data=i(p.data,0),m.header&&p.meta&&(p.meta.fields=c),f+=r)}function _(){return m.header&&0===c.length}function k(e,t,i,r){e={type:e,code:t,message:i};void 0!==r&&(e.row=r),p.errors.push(e)}U(m.step)&&(t=m.step,m.step=function(e){p=e,_()?g():(g(),0!==p.data.length&&(r+=e.data.length,m.preview&&r>m.preview?s.abort():(p.data=p.data[0],t(p,i))))}),this.parse=function(e,t,i){var r=m.quoteChar||'"',r=(m.newline||(m.newline=this.guessLineEndings(e,r)),a=!1,m.delimiter?U(m.delimiter)&&(m.delimiter=m.delimiter(e),p.meta.delimiter=m.delimiter):((r=((e,t,i,r,n)=>{var s,a,o,h;n=n||[",","\t","|",";",v.RECORD_SEP,v.UNIT_SEP];for(var u=0;u<n.length;u++){for(var d,f=n[u],l=0,c=0,p=0,g=(o=void 0,new E({comments:r,delimiter:f,newline:t,preview:10}).parse(e)),_=0;_<g.data.length;_++)i&&y(g.data[_])?p++:(d=g.data[_].length,c+=d,void 0===o?o=d:0<d&&(l+=Math.abs(d-o),o=d));0<g.data.length&&(c/=g.data.length-p),(void 0===a||l<=a)&&(void 0===h||h<c)&&1.99<c&&(a=l,s=f,h=c)}return{successful:!!(m.delimiter=s),bestDelimiter:s}})(e,m.newline,m.skipEmptyLines,m.comments,m.delimitersToGuess)).successful?m.delimiter=r.bestDelimiter:(a=!0,m.delimiter=v.DefaultDelimiter),p.meta.delimiter=m.delimiter),b(m));return m.preview&&m.header&&r.preview++,n=e,s=new E(r),p=s.parse(n,t,i),g(),l?{meta:{paused:!0}}:p||{meta:{paused:!1}}},this.paused=function(){return l},this.pause=function(){l=!0,s.abort(),n=U(m.chunk)?"":n.substring(s.getCharIndex())},this.resume=function(){i.streamer._halted?(l=!1,i.streamer.parseChunk(n,!0)):setTimeout(i.resume,3)},this.aborted=function(){return e},this.abort=function(){e=!0,s.abort(),p.meta.aborted=!0,U(m.complete)&&m.complete(p),n=""},this.guessLineEndings=function(e,t){e=e.substring(0,1048576);var t=new RegExp(P(t)+"([^]*?)"+P(t),"gm"),i=(e=e.replace(t,"")).split("\r"),t=e.split("\n"),e=1<t.length&&t[0].length<i[0].length;if(1===i.length||e)return"\n";for(var r=0,n=0;n<i.length;n++)"\n"===i[n][0]&&r++;return r>=i.length/2?"\r\n":"\r"}}function P(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function E(C){var S=(C=C||{}).delimiter,O=C.newline,x=C.comments,I=C.step,A=C.preview,T=C.fastMode,D=null,L=!1,F=null==C.quoteChar?'"':C.quoteChar,j=F;if(void 0!==C.escapeChar&&(j=C.escapeChar),("string"!=typeof S||-1<v.BAD_DELIMITERS.indexOf(S))&&(S=","),x===S)throw new Error("Comment character same as delimiter");!0===x?x="#":("string"!=typeof x||-1<v.BAD_DELIMITERS.indexOf(x))&&(x=!1),"\n"!==O&&"\r"!==O&&"\r\n"!==O&&(O="\n");var z=0,M=!1;this.parse=function(i,t,r){if("string"!=typeof i)throw new Error("Input must be a string");var n=i.length,e=S.length,s=O.length,a=x.length,o=U(I),h=[],u=[],d=[],f=z=0;if(!i)return w();if(T||!1!==T&&-1===i.indexOf(F)){for(var l=i.split(O),c=0;c<l.length;c++){if(d=l[c],z+=d.length,c!==l.length-1)z+=O.length;else if(r)return w();if(!x||d.substring(0,a)!==x){if(o){if(h=[],k(d.split(S)),R(),M)return w()}else k(d.split(S));if(A&&A<=c)return h=h.slice(0,A),w(!0)}}return w()}for(var p=i.indexOf(S,z),g=i.indexOf(O,z),_=new RegExp(P(j)+P(F),"g"),m=i.indexOf(F,z);;)if(i[z]===F)for(m=z,z++;;){if(-1===(m=i.indexOf(F,m+1)))return r||u.push({type:"Quotes",code:"MissingQuotes",message:"Quoted field unterminated",row:h.length,index:z}),E();if(m===n-1)return E(i.substring(z,m).replace(_,F));if(F===j&&i[m+1]===j)m++;else if(F===j||0===m||i[m-1]!==j){-1!==p&&p<m+1&&(p=i.indexOf(S,m+1));var y=v(-1===(g=-1!==g&&g<m+1?i.indexOf(O,m+1):g)?p:Math.min(p,g));if(i.substr(m+1+y,e)===S){d.push(i.substring(z,m).replace(_,F)),i[z=m+1+y+e]!==F&&(m=i.indexOf(F,z)),p=i.indexOf(S,z),g=i.indexOf(O,z);break}y=v(g);if(i.substring(m+1+y,m+1+y+s)===O){if(d.push(i.substring(z,m).replace(_,F)),b(m+1+y+s),p=i.indexOf(S,z),m=i.indexOf(F,z),o&&(R(),M))return w();if(A&&h.length>=A)return w(!0);break}u.push({type:"Quotes",code:"InvalidQuotes",message:"Trailing quote on quoted field is malformed",row:h.length,index:z}),m++}}else if(x&&0===d.length&&i.substring(z,z+a)===x){if(-1===g)return w();z=g+s,g=i.indexOf(O,z),p=i.indexOf(S,z)}else if(-1!==p&&(p<g||-1===g))d.push(i.substring(z,p)),z=p+e,p=i.indexOf(S,z);else{if(-1===g)break;if(d.push(i.substring(z,g)),b(g+s),o&&(R(),M))return w();if(A&&h.length>=A)return w(!0)}return E();function k(e){h.push(e),f=z}function v(e){var t=0;return t=-1!==e&&(e=i.substring(m+1,e))&&""===e.trim()?e.length:t}function E(e){return r||(void 0===e&&(e=i.substring(z)),d.push(e),z=n,k(d),o&&R()),w()}function b(e){z=e,k(d),d=[],g=i.indexOf(O,z)}function w(e){if(C.header&&!t&&h.length&&!L){var s=h[0],a=Object.create(null),o=new Set(s);let n=!1;for(let r=0;r<s.length;r++){let i=s[r];if(a[i=U(C.transformHeader)?C.transformHeader(i,r):i]){let e,t=a[i];for(;e=i+"_"+t,t++,o.has(e););o.add(e),s[r]=e,a[i]++,n=!0,(D=null===D?{}:D)[e]=i}else a[i]=1,s[r]=i;o.add(i)}n&&console.warn("Duplicate headers found and renamed."),L=!0}return{data:h,errors:u,meta:{delimiter:S,linebreak:O,aborted:M,truncated:!!e,cursor:f+(t||0),renamedHeaders:D}}}function R(){I(w()),h=[],u=[]}},this.abort=function(){M=!0},this.getCharIndex=function(){return z}}function g(e){var t=e.data,i=o[t.workerId],r=!1;if(t.error)i.userError(t.error,t.file);else if(t.results&&t.results.data){var n={abort:function(){r=!0,_(t.workerId,{data:[],errors:[],meta:{aborted:!0}})},pause:m,resume:m};if(U(i.userStep)){for(var s=0;s<t.results.data.length&&(i.userStep({data:t.results.data[s],errors:t.results.errors,meta:t.results.meta},n),!r);s++);delete t.results}else U(i.userChunk)&&(i.userChunk(t.results,n,t.file),delete t.results)}t.finished&&!r&&_(t.workerId,t.results)}function _(e,t){var i=o[e];U(i.userComplete)&&i.userComplete(t),i.terminate(),delete o[e]}function m(){throw new Error("Not implemented.")}function b(e){if("object"!=typeof e||null===e)return e;var t,i=Array.isArray(e)?[]:{};for(t in e)i[t]=b(e[t]);return i}function y(e,t){return function(){e.apply(t,arguments)}}function U(e){return"function"==typeof e}return v.parse=function(e,t){var i=(t=t||{}).dynamicTyping||!1;U(i)&&(t.dynamicTypingFunction=i,i={});if(t.dynamicTyping=i,t.transform=!!U(t.transform)&&t.transform,!t.worker||!v.WORKERS_SUPPORTED)return i=null,v.NODE_STREAM_INPUT,"string"==typeof e?(e=(e=>65279!==e.charCodeAt(0)?e:e.slice(1))(e),i=new(t.download?f:c)(t)):!0===e.readable&&U(e.read)&&U(e.on)?i=new p(t):(n.File&&e instanceof File||e instanceof Object)&&(i=new l(t)),i.stream(e);(i=(()=>{var e;return!!v.WORKERS_SUPPORTED&&(e=(()=>{var e=n.URL||n.webkitURL||null,t=r.toString();return v.BLOB_URL||(v.BLOB_URL=e.createObjectURL(new Blob(["var global = (function() { if (typeof self !== 'undefined') { return self; } if (typeof window !== 'undefined') { return window; } if (typeof global !== 'undefined') { return global; } return {}; })(); global.IS_PAPA_WORKER=true; ","(",t,")();"],{type:"text/javascript"})))})(),(e=new n.Worker(e)).onmessage=g,e.id=h++,o[e.id]=e)})()).userStep=t.step,i.userChunk=t.chunk,i.userComplete=t.complete,i.userError=t.error,t.step=U(t.step),t.chunk=U(t.chunk),t.complete=U(t.complete),t.error=U(t.error),delete t.worker,i.postMessage({input:e,config:t,workerId:i.id})},v.unparse=function(e,t){var n=!1,_=!0,m=",",y="\r\n",s='"',a=s+s,i=!1,r=null,o=!1,h=((()=>{if("object"==typeof t){if("string"!=typeof t.delimiter||v.BAD_DELIMITERS.filter(function(e){return-1!==t.delimiter.indexOf(e)}).length||(m=t.delimiter),"boolean"!=typeof t.quotes&&"function"!=typeof t.quotes&&!Array.isArray(t.quotes)||(n=t.quotes),"boolean"!=typeof t.skipEmptyLines&&"string"!=typeof t.skipEmptyLines||(i=t.skipEmptyLines),"string"==typeof t.newline&&(y=t.newline),"string"==typeof t.quoteChar&&(s=t.quoteChar),"boolean"==typeof t.header&&(_=t.header),Array.isArray(t.columns)){if(0===t.columns.length)throw new Error("Option columns is empty");r=t.columns}void 0!==t.escapeChar&&(a=t.escapeChar+s),t.escapeFormulae instanceof RegExp?o=t.escapeFormulae:"boolean"==typeof t.escapeFormulae&&t.escapeFormulae&&(o=/^[=+\-@\t\r].*$/)}})(),new RegExp(P(s),"g"));"string"==typeof e&&(e=JSON.parse(e));if(Array.isArray(e)){if(!e.length||Array.isArray(e[0]))return u(null,e,i);if("object"==typeof e[0])return u(r||Object.keys(e[0]),e,i)}else if("object"==typeof e)return"string"==typeof e.data&&(e.data=JSON.parse(e.data)),Array.isArray(e.data)&&(e.fields||(e.fields=e.meta&&e.meta.fields||r),e.fields||(e.fields=Array.isArray(e.data[0])?e.fields:"object"==typeof e.data[0]?Object.keys(e.data[0]):[]),Array.isArray(e.data[0])||"object"==typeof e.data[0]||(e.data=[e.data])),u(e.fields||[],e.data||[],i);throw new Error("Unable to serialize unrecognized input");function u(e,t,i){var r="",n=("string"==typeof e&&(e=JSON.parse(e)),"string"==typeof t&&(t=JSON.parse(t)),Array.isArray(e)&&0<e.length),s=!Array.isArray(t[0]);if(n&&_){for(var a=0;a<e.length;a++)0<a&&(r+=m),r+=k(e[a],a);0<t.length&&(r+=y)}for(var o=0;o<t.length;o++){var h=(n?e:t[o]).length,u=!1,d=n?0===Object.keys(t[o]).length:0===t[o].length;if(i&&!n&&(u="greedy"===i?""===t[o].join("").trim():1===t[o].length&&0===t[o][0].length),"greedy"===i&&n){for(var f=[],l=0;l<h;l++){var c=s?e[l]:l;f.push(t[o][c])}u=""===f.join("").trim()}if(!u){for(var p=0;p<h;p++){0<p&&!d&&(r+=m);var g=n&&s?e[p]:p;r+=k(t[o][g],p)}o<t.length-1&&(!i||0<h&&!d)&&(r+=y)}}return r}function k(e,t){var i,r;return null==e?"":e.constructor===Date?JSON.stringify(e).slice(1,25):(r=!1,o&&"string"==typeof e&&o.test(e)&&(e="'"+e,r=!0),i=e.toString().replace(h,a),(r=r||!0===n||"function"==typeof n&&n(e,t)||Array.isArray(n)&&n[t]||((e,t)=>{for(var i=0;i<t.length;i++)if(-1<e.indexOf(t[i]))return!0;return!1})(i,v.BAD_DELIMITERS)||-1<i.indexOf(m)||" "===i.charAt(0)||" "===i.charAt(i.length-1))?s+i+s:i)}},v.RECORD_SEP=String.fromCharCode(30),v.UNIT_SEP=String.fromCharCode(31),v.BYTE_ORDER_MARK="\ufeff",v.BAD_DELIMITERS=["\r","\n",'"',v.BYTE_ORDER_MARK],v.WORKERS_SUPPORTED=!s&&!!n.Worker,v.NODE_STREAM_INPUT=1,v.LocalChunkSize=10485760,v.RemoteChunkSize=5242880,v.DefaultDelimiter=",",v.Parser=E,v.ParserHandle=i,v.NetworkStreamer=f,v.FileStreamer=l,v.StringStreamer=c,v.ReadableStreamStreamer=p,n.jQuery&&((d=n.jQuery).fn.parse=function(o){var i=o.config||{},h=[];return this.each(function(e){if(!("INPUT"===d(this).prop("tagName").toUpperCase()&&"file"===d(this).attr("type").toLowerCase()&&n.FileReader)||!this.files||0===this.files.length)return!0;for(var t=0;t<this.files.length;t++)h.push({file:this.files[t],inputElem:this,instanceConfig:d.extend({},i)})}),e(),this;function e(){if(0===h.length)U(o.complete)&&o.complete();else{var e,t,i,r,n=h[0];if(U(o.before)){var s=o.before(n.file,n.inputElem);if("object"==typeof s){if("abort"===s.action)return e="AbortError",t=n.file,i=n.inputElem,r=s.reason,void(U(o.error)&&o.error({name:e},t,i,r));if("skip"===s.action)return void u();"object"==typeof s.config&&(n.instanceConfig=d.extend(n.instanceConfig,s.config))}else if("skip"===s)return void u()}var a=n.instanceConfig.complete;n.instanceConfig.complete=function(e){U(a)&&a(e,n.file,n.inputElem),u()},v.parse(n.file,n.instanceConfig)}}function u(){h.splice(0,1),e()}}),a&&(n.onmessage=function(e){e=e.data;void 0===v.WORKER_ID&&e&&(v.WORKER_ID=e.workerId);"string"==typeof e.input?n.postMessage({workerId:v.WORKER_ID,results:v.parse(e.input,e.config),finished:!0}):(n.File&&e.input instanceof File||e.input instanceof Object)&&(e=v.parse(e.input,e.config))&&n.postMessage({workerId:v.WORKER_ID,results:e,finished:!0})}),(f.prototype=Object.create(u.prototype)).constructor=f,(l.prototype=Object.create(u.prototype)).constructor=l,(c.prototype=Object.create(c.prototype)).constructor=c,(p.prototype=Object.create(u.prototype)).constructor=p,v});
+</script>
+<style>
+/* Offline-safe: system fonts only, no external requests */
+:root{
+  color-scheme:light;
+  --bg:#f4f5f2; --surface:#ffffff; --surface2:#f0f1ed; --border:#dcddd6;
+  --text:#14161a; --text2:#4b4e55; --muted:#6c7079;
+  --accent:#1c6e5a; --accent-soft:#e2f1ec; --link:#1f5fae;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --display:'Georgia','Cambria','Times New Roman',serif;
+  --mono:'Consolas','Menlo','Monaco','Courier New',monospace;
+  --radius:10px;
+  /* CA Dashboard performance colors (always shown with a text label) */
+  --c1:#c8302e; --c2:#e8762b; --c3:#f2c230; --c4:#2f8f3a; --c5:#1f5fb4; --c0:#b9bbb4;
+  /* CAASPP achievement levels: diverging red <-> blue */
+  --lvl-notmet:#b8302f; --lvl-near:#e98b8a; --lvl-met:#6da7ec; --lvl-exc:#1c5cab;
+  --series-1:#2a78d6; --series-2:#eb6834;
+  --warn-bg:#fff6e0; --warn-border:#eebd4c;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111317; --surface:#1a1d23; --surface2:#22262e; --border:#323743;
+    --text:#eceef2; --text2:#c0c4cc; --muted:#8d93a0;
+    --accent:#43c0a0; --accent-soft:#18322c; --link:#79aef0;
+    --c0:#4a4e57;
+    --lvl-notmet:#d64a49; --lvl-near:#9e4c4b; --lvl-met:#3e6fa8; --lvl-exc:#6da7ec;
+    --series-1:#3987e5; --series-2:#d95926;
+    --warn-bg:#2d2615; --warn-border:#8a6a1f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111317; --surface:#1a1d23; --surface2:#22262e; --border:#323743;
+  --text:#eceef2; --text2:#c0c4cc; --muted:#8d93a0;
+  --accent:#43c0a0; --accent-soft:#18322c; --link:#79aef0;
+  --c0:#4a4e57;
+  --lvl-notmet:#d64a49; --lvl-near:#9e4c4b; --lvl-met:#3e6fa8; --lvl-exc:#6da7ec;
+  --series-1:#3987e5; --series-2:#d95926;
+  --warn-bg:#2d2615; --warn-border:#8a6a1f;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--font)}
+a{color:var(--link)}
+button,select,input{font:inherit;color:inherit}
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border)}
+.topbar-inner{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.brand{display:flex;flex-direction:column;line-height:1.15;margin-right:auto}
+.brand b{font-family:var(--display);font-size:19px;font-weight:700}
+.brand span{font-size:12px;color:var(--muted)}
+.ctl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+select{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;max-width:340px;font-size:13px}
+.btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#0d1a16}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{color:#0d1a16}}
+.btn.danger{color:#c8302e}
+main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
+.crumbs{font-size:12px;color:var(--muted);margin-bottom:4px}
+.crumbs a{cursor:pointer}
+h1{font-family:var(--display);font-size:30px;line-height:1.15;margin:0 0 4px}
+.sub{color:var(--text2);margin:0 0 18px}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:0 0 18px}
+.section-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:12px}
+.section-head h2{font-size:18px;margin:0}
+.section-head .meta{font-size:12px;color:var(--muted)}
+.section-head .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+h3{font-size:14px;margin:18px 0 8px}
+.note{font-size:12px;color:var(--muted);margin:8px 0 0}
+.callout{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:8px;padding:8px 12px;font-size:12.5px;margin:0 0 12px}
+.empty{border:1px dashed var(--border);border-radius:8px;padding:18px;color:var(--text2);text-align:center}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.tile{border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface);cursor:default}
+.tile .t-label{font-size:12px;font-weight:600;color:var(--text2)}
+.tile .t-value{font-size:26px;font-weight:700;line-height:1.2;margin-top:4px;font-variant-numeric:tabular-nums}
+.tile .t-unit{font-size:12px;font-weight:500;color:var(--muted)}
+.tile .t-foot{font-size:12px;color:var(--muted);margin-top:4px}
+.gauge{display:flex;gap:2px;margin:8px 0 2px}
+.gauge i{flex:1;height:6px;border-radius:3px;background:var(--surface2)}
+.gauge i.on{height:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.chip::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--dot,var(--c0));flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.chip.c0{color:var(--muted)}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:var(--surface2);font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;position:sticky;top:0}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.lvl-school td:first-child{padding-left:26px}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:var(--accent-soft)}
+tr.state-row td{color:var(--muted);font-style:italic}
+.cell-sub{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.ent-link{color:var(--link);font-weight:600;cursor:pointer;text-decoration:none}
+.ent-link:hover{text-decoration:underline}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.pill.ok{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+/* CAASPP stacked bars */
+.stack-row{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;margin:6px 0}
+.stack-row .lbl{font-size:13px;font-weight:600}
+.stack-row .lbl small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.stack{display:flex;gap:2px;height:22px}
+.stack span{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;min-width:0;overflow:hidden}
+.stack span:first-child{border-radius:4px 0 0 4px}
+.stack span:last-child{border-radius:0 4px 4px 0}
+.stack .s-notmet{background:var(--lvl-notmet)} .stack .s-near{background:var(--lvl-near)}
+.stack .s-met{background:var(--lvl-met)} .stack .s-exc{background:var(--lvl-exc)}
+.stack span.sm{font-size:0}
+@media (max-width:640px){.stack span.mid{font-size:0}}
+.stack-row .tot{font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--text2);margin:4px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.two-col{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.trend svg{width:100%;max-width:520px;height:auto;display:block}
+.trend .axis{stroke:var(--border)} .trend text{fill:var(--muted);font-size:12px}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.links a{font-size:12.5px}
+/* Data panel */
+.drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:41;border-left:1px solid var(--border);overflow-y:auto;padding:18px;transform:translateX(100%);transition:transform .2s}
+.drawer.open{transform:none}
+.drawer-bg.open{display:block}
+.drop{border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center;color:var(--text2);cursor:pointer;margin:10px 0}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop b{color:var(--text)}
+ol.steps{padding-left:18px;margin:6px 0 10px} ol.steps li{margin:4px 0}
+.filelist{font-size:12.5px} .filelist div{display:flex;gap:8px;justify-content:space-between;border-bottom:1px solid var(--border);padding:6px 0}
+.progress{font-size:12.5px;color:var(--accent);min-height:18px;white-space:pre-line}
+.tip{position:fixed;z-index:60;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;line-height:1.4;padding:6px 9px;border-radius:6px;max-width:280px;display:none;white-space:pre-line}
+.welcome{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.welcome .section{margin:0}
+@media (max-width:640px){
+  h1{font-size:24px}
+  .stack-row{grid-template-columns:96px 1fr 52px}
+  select{max-width:100%}
+  .ctl{width:100%} .ctl select{flex:1}
+}
+@media print{
+  .topbar,.drawer,.drawer-bg,.no-print{display:none!important}
+  body{background:#fff;color:#000}
+  .section{break-inside:avoid;border-color:#ccc}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><b>Modoc County Data Hub</b><span>CA School Dashboard + CAASPP, in one place</span></div>
+    <label class="ctl">View
+      <select id="entitySel" aria-label="Choose county, district, or school"></select>
+    </label>
+    <button class="btn" id="printBtn" title="Print or save this page as PDF">Print</button>
+    <button class="btn primary" id="dataBtn">Load data</button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer" aria-label="Data files">
+  <div class="section-head"><h2>Data files</h2><div class="right"><button class="btn" id="closeDrawer">Close</button></div></div>
+  <p class="note" style="margin-top:0">Everything stays in this browser. Files are read on your computer; only Modoc County rows (plus statewide rows, for comparison) are kept. Nothing is uploaded anywhere.</p>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose data files">
+    <b>Drop files here</b> or click to choose<br>
+    <span class="note">.zip, .txt, or .csv · Dashboard download files, CAASPP research files, CAASPP entities file</span>
+    <input type="file" id="fileInput" multiple accept=".txt,.csv,.zip,.tab" hidden>
+  </div>
+  <div class="progress" id="progress" aria-live="polite"></div>
+
+  <h3>1 · CA School Dashboard files</h3>
+  <ol class="steps">
+    <li>Go to the CDE <a href="https://www.cde.ca.gov/ta/ac/cm/" target="_blank" rel="noopener">CA School Dashboard and System of Support</a> page and open <b>Downloadable Data Files</b>.</li>
+    <li>Download the indicator files you want for the year (ELA, Math, Chronic Absenteeism, Suspension, Graduation, English Learner Progress, College/Career).</li>
+    <li>Drop them here. Keep CDE's file names (e.g. <code>eladownload2025.txt</code>); the name tells the hub which indicator it is.</li>
+  </ol>
+  <h3>2 · CAASPP research files</h3>
+  <ol class="steps">
+    <li>Go to <a href="https://caaspp-elpac.ets.org/caaspp/ResearchFileListSB" target="_blank" rel="noopener">CAASPP Research Files (Smarter Balanced)</a>.</li>
+    <li>Pick the year, choose <b>Modoc</b> county (the small county file), and download the <b>All Student Groups</b> file. A statewide file also works, but it's large and slower to read.</li>
+    <li>Also download the <b>Entities</b> file for the same year (it has school and district names). Then drop both here.</li>
+  </ol>
+  <p class="note">Load several years of either source to see trends. Loading the same file again replaces it instead of adding a duplicate.</p>
+
+  <h3>Loaded</h3>
+  <div class="filelist" id="fileList"></div>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+    <button class="btn danger" id="clearBtn">Clear all data</button>
+    <button class="btn" id="themeBtn">Toggle light/dark</button>
+  </div>
+</aside>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+'use strict';
+/* =========================================================================
+   Constants and reference data
+   ========================================================================= */
+const COUNTY_CODE = '25';                       // Modoc County CDS county code
+const COUNTY_KEY  = COUNTY_CODE + '000000000000'; // 14-digit key for the county
+const STATE_KEY   = '00000000000000';
+
+const IND = {
+  ela:     {name:'English Language Arts', short:'ELA',            unit:'pts', better:'high', kind:'dfs'},
+  math:    {name:'Mathematics',           short:'Math',           unit:'pts', better:'high', kind:'dfs'},
+  chronic: {name:'Chronic Absenteeism',   short:'Chronic Abs.',   unit:'%',   better:'low',  kind:'pct'},
+  susp:    {name:'Suspension Rate',       short:'Suspension',     unit:'%',   better:'low',  kind:'pct'},
+  grad:    {name:'Graduation Rate',       short:'Graduation',     unit:'%',   better:'high', kind:'pct'},
+  elpi:    {name:'English Learner Progress', short:'EL Progress', unit:'%',   better:'high', kind:'pct'},
+  cci:     {name:'College/Career',        short:'College/Career', unit:'%',   better:'high', kind:'pct'},
+};
+const IND_ORDER = ['ela','math','chronic','susp','grad','elpi','cci'];
+const COLOR_NAME = {0:'No color',1:'Red',2:'Orange',3:'Yellow',4:'Green',5:'Blue'};
+
+const DASH_GROUPS = {
+  ALL:'All Students', AA:'Black/African American', AI:'American Indian or Alaska Native', AS:'Asian',
+  FI:'Filipino', HI:'Hispanic', PI:'Pacific Islander', WH:'White', MR:'Two or More Races',
+  EL:'English Learners', ELO:'English Learners Only', RFP:'Reclassified Fluent English Proficient Only',
+  EO:'English Only', LTEL:'Long-Term English Learners', SED:'Socioeconomically Disadvantaged',
+  SWD:'Students with Disabilities', FOS:'Foster Youth', HOM:'Homeless',
+};
+const DASH_GROUP_ORDER = ['ALL','EL','LTEL','FOS','HOM','SED','SWD','AA','AI','AS','FI','HI','PI','MR','WH','ELO','RFP','EO'];
+
+/* CAASPP student group IDs. Loading CAASPP's Student Groups file overrides these labels. */
+const CA_GROUPS_BUILTIN = {
+  1:'All Students', 3:'Male', 4:'Female', 31:'Economically disadvantaged', 111:'Not economically disadvantaged',
+  128:'Reported disabilities', 99:'No reported disabilities', 160:'English learners', 180:'English only',
+  74:'Black or African American', 75:'American Indian or Alaska Native', 76:'Asian', 77:'Filipino',
+  78:'Hispanic or Latino', 79:'Native Hawaiian or Pacific Islander', 80:'White', 144:'Two or more races',
+};
+const CA_TESTS = {1:'ELA', 2:'Math'};
+const CA_GRADE = g => g === 13 ? 'All grades' : (g === 11 ? 'Grade 11' : 'Grade ' + g);
+
+/* =========================================================================
+   State and storage (IndexedDB; falls back to memory only)
+   ========================================================================= */
+const S = {
+  dash: [],      // {y, ind, cds, rtype, sname, dname, group, denom, status, pdenom, pstatus, change, color, file}
+  caaspp: [],    // {y, cds, type, group, grade, test, enr, tested, scored, mss, exc, met, metab, near, notmet, file}
+  names: {},     // cds14 -> {name, type:'county'|'district'|'school', district}
+  caGroups: {},  // id -> label (from file)
+  files: [],     // {name, kind, label, rows, year, loaded}
+  view: COUNTY_KEY,
+  dashYear: null, caYear: null,
+};
+
+const DB = (() => {
+  let dbp = null;
+  function open(){
+    if (dbp) return dbp;
+    dbp = new Promise((res, rej) => {
+      try{
+        const r = indexedDB.open('modoc-data-hub', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('kv');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      }catch(e){ rej(e); }
+    });
+    return dbp;
+  }
+  async function get(k){
+    try{ const db = await open(); return await new Promise((res,rej)=>{const t=db.transaction('kv').objectStore('kv').get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error);}); }
+    catch(e){ return undefined; }
+  }
+  async function set(k,v){
+    try{ const db = await open(); await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error);}); }
+    catch(e){ console.warn('Could not save to browser storage', e); }
+  }
+  return {get,set};
+})();
+
+async function save(){
+  await DB.set('data', {dash:S.dash, caaspp:S.caaspp, names:S.names, caGroups:S.caGroups, files:S.files, v:1});
+}
+async function restore(){
+  const d = await DB.get('data');
+  if (d && d.v === 1){ Object.assign(S, {dash:d.dash||[], caaspp:d.caaspp||[], names:d.names||{}, caGroups:d.caGroups||{}, files:d.files||[]}); }
+}
+
+/* =========================================================================
+   Helpers
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function num(v){
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim().replace(/,/g,'');
+  if (s === '' || s === '*' || s === '--' || s.toUpperCase() === 'N/A') return null;
+  const n = Number(s); return Number.isFinite(n) ? n : null;
+}
+function fmt(n, d=1){ return n === null || n === undefined || !Number.isFinite(n) ? '—' : n.toFixed(d); }
+function fmtInt(n){ return n === null || n === undefined ? '—' : Math.round(n).toLocaleString(); }
+function signed(n, d=1){ if (n === null || n === undefined || !Number.isFinite(n)) return '—'; return (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n).toFixed(d); }
+function pad(s, n){ s = String(s ?? '').trim(); return s.padStart(n, '0'); }
+const uniq = a => [...new Set(a)];
+const distKey = cds => cds.slice(0,7) + '0000000';
+function levelOf(cds){
+  if (cds === STATE_KEY) return 'state';
+  if (cds.slice(2) === '000000000000') return 'county';
+  if (cds.slice(7) === '0000000') return 'district';
+  return 'school';
+}
+function entityName(cds){
+  if (cds === COUNTY_KEY) return 'Modoc County';
+  if (cds === STATE_KEY) return 'California';
+  return (S.names[cds] && S.names[cds].name) || ('CDS ' + cds);
+}
+function yearFromName(name){
+  const m = String(name).match(/(20\d{2})/); return m ? Number(m[1]) : null;
+}
+function setProgress(t){ $('#progress').textContent = t || ''; }
+
+/* =========================================================================
+   File reading: zip extraction, delimiter sniffing, streaming parse
+   ========================================================================= */
+async function unzip(file){
+  const buf = file;
+  const size = buf.size;
+  const tailLen = Math.min(size, 65557);
+  const tail = new DataView(await buf.slice(size - tailLen).arrayBuffer());
+  let eocd = -1;
+  for (let i = tailLen - 22; i >= 0; i--){ if (tail.getUint32(i, true) === 0x06054b50){ eocd = i; break; } }
+  if (eocd < 0) throw new Error('Not a readable .zip file');
+  const count = tail.getUint16(eocd + 10, true);
+  const cdSize = tail.getUint32(eocd + 12, true);
+  const cdOff = tail.getUint32(eocd + 16, true);
+  const cd = new DataView(await buf.slice(cdOff, cdOff + cdSize).arrayBuffer());
+  const out = [];
+  let p = 0;
+  for (let i = 0; i < count; i++){
+    if (cd.getUint32(p, true) !== 0x02014b50) break;
+    const method = cd.getUint16(p + 10, true);
+    const csize = cd.getUint32(p + 20, true);
+    const nlen = cd.getUint16(p + 28, true), xlen = cd.getUint16(p + 30, true), clen = cd.getUint16(p + 32, true);
+    const lho = cd.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(new Uint8Array(cd.buffer, cd.byteOffset + p + 46, nlen));
+    p += 46 + nlen + xlen + clen;
+    if (/\/$/.test(name) || !/\.(txt|csv|tab)$/i.test(name)) continue;
+    const lh = new DataView(await buf.slice(lho, lho + 30).arrayBuffer());
+    const start = lho + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    const raw = buf.slice(start, start + csize);
+    let blob;
+    if (method === 0) blob = raw;
+    else if (method === 8){
+      if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot open .zip files. Unzip it first and drop the .txt file.');
+      blob = await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+    } else throw new Error('Unsupported zip compression in ' + name);
+    out.push(new File([blob], name.split('/').pop()));
+  }
+  return out;
+}
+
+async function sniff(file){
+  const head = await file.slice(0, 8192).text();
+  const line = head.split(/\r?\n/)[0] || '';
+  const counts = {'^':0,'\t':0,',':0,'|':0};
+  for (const c of line) if (c in counts) counts[c]++;
+  const delim = Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
+  const headers = line.split(delim).map(h => h.replace(/^"|"$/g,'').trim());
+  return {delim, headers, keys: headers.map(norm)};
+}
+
+function classify(name, keys){
+  const has = k => keys.includes(k);
+  if (has('cds') && has('studentgroup') && has('currstatus')) return 'dash';
+  if (has('testid') && has('grade') && (has('countycode') || has('districtcode'))) return 'caaspp';
+  if (has('countyname') && has('typeid') && has('schoolcode') && !has('testid')) return 'entities';
+  if (keys.some(k => /demographic|studentgroup/.test(k)) && keys.some(k => /name/.test(k)) && keys.length <= 8) return 'groups';
+  return null;
+}
+
+function dashIndicatorFromName(name){
+  const n = name.toLowerCase();
+  if (/elpi|elprogress/.test(n)) return 'elpi';
+  if (/ela/.test(n)) return 'ela';
+  if (/math/.test(n)) return 'math';
+  if (/chronic|chrabs|absent/.test(n)) return 'chronic';
+  if (/susp/.test(n)) return 'susp';
+  if (/grad/.test(n)) return 'grad';
+  if (/cci|college|career/.test(n)) return 'cci';
+  return null;
+}
+
+function parseStream(file, delim, onRows){
+  return new Promise((resolve, reject) => {
+    let seen = 0;
+    Papa.parse(file, {
+      delimiter: delim, header: true, skipEmptyLines: true, chunkSize: 1024 * 1024 * 4,
+      transformHeader: h => norm(h),
+      chunk: (res) => { seen += res.data.length; onRows(res.data); setProgress(`Reading ${file.name}… ${seen.toLocaleString()} rows`); },
+      complete: () => resolve(seen),
+      error: reject,
+    });
+  });
+}
+
+async function ingest(fileList){
+  let files = [];
+  for (const f of fileList){
+    if (/\.zip$/i.test(f.name)){
+      try{ setProgress('Opening ' + f.name + '…'); files.push(...(await unzip(f))); }
+      catch(e){ alert(f.name + ': ' + e.message); }
+    } else files.push(f);
+  }
+  // Entities and group lists first so names resolve.
+  const sniffed = [];
+  for (const f of files){ const s = await sniff(f); sniffed.push({f, s, kind: classify(f.name, s.keys)}); }
+  const order = {entities:0, groups:1, dash:2, caaspp:3};
+  sniffed.sort((a,b) => (order[a.kind] ?? 9) - (order[b.kind] ?? 9));
+  const report = [];
+  for (const {f, s, kind} of sniffed){
+    try{
+      if (kind === 'dash') report.push(await loadDash(f, s));
+      else if (kind === 'caaspp') report.push(await loadCaaspp(f, s));
+      else if (kind === 'entities') report.push(await loadEntities(f, s));
+      else if (kind === 'groups') report.push(await loadGroups(f, s));
+      else report.push(`${f.name}: not recognized as a Dashboard, CAASPP, or entities file — skipped.`);
+    }catch(e){ console.error(e); report.push(`${f.name}: could not be read (${e.message}).`); }
+  }
+  setProgress('Saving…');
+  await save();
+  setProgress(report.join('\n'));
+  pickDefaultYears(true);
+  renderAll();
+}
+
+function recordFile(entry){
+  S.files = S.files.filter(x => x.name !== entry.name);
+  S.files.push(Object.assign({loaded: new Date().toISOString()}, entry));
+}
+
+async function loadDash(f, s){
+  let ind = dashIndicatorFromName(f.name);
+  if (!ind){
+    const ans = prompt(`Which Dashboard indicator is "${f.name}"?\nType one of: ${IND_ORDER.join(', ')}`, '');
+    ind = ans && IND[ans.trim().toLowerCase()] ? ans.trim().toLowerCase() : null;
+    if (!ind) return `${f.name}: skipped (indicator not identified).`;
+  }
+  const fileYear = yearFromName(f.name);
+  const rows = [];
+  await parseStream(f, s.delim, data => {
+    for (const r of data){
+      const cds = pad(r.cds, 14);
+      const rtype = String(r.rtype || '').trim().toUpperCase();
+      const inCounty = cds.startsWith(COUNTY_CODE) || /modoc/i.test(r.countyname || '');
+      if (!(inCounty || rtype === 'X')) continue;
+      const key = rtype === 'X' ? STATE_KEY : cds;
+      rows.push({
+        y: num(r.reportingyear) || fileYear, ind, cds:key, rtype,
+        group: String(r.studentgroup || '').trim().toUpperCase(),
+        denom: num(r.currdenom), status: num(r.currstatus),
+        pdenom: num(r.priordenom), pstatus: num(r.priorstatus),
+        change: num(r.change), color: num(r.color) || 0, file: f.name,
+      });
+      if (rtype !== 'X'){
+        const lvl = levelOf(cds);
+        if (lvl === 'school' && r.schoolname) S.names[cds] = S.names[cds] || {name:r.schoolname.trim(), type:'school'};
+        if (lvl === 'school' && r.districtname && !S.names[distKey(cds)]) S.names[distKey(cds)] = {name:r.districtname.trim(), type:'district'};
+        if (lvl === 'district' && r.districtname) S.names[cds] = {name:r.districtname.trim(), type:'district'};
+      }
+    }
+  });
+  const years = uniq(rows.map(r=>r.y));
+  S.dash = S.dash.filter(r => !(r.ind === ind && years.includes(r.y)) && r.file !== f.name).concat(rows);
+  recordFile({name:f.name, kind:'dash', label:`Dashboard · ${IND[ind].name}`, rows:rows.length, year:years.join(', ')});
+  return `${f.name}: Dashboard ${IND[ind].name} ${years.join(', ')} — ${rows.length.toLocaleString()} Modoc/state rows kept.`;
+}
+
+async function loadCaaspp(f, s){
+  const rows = [];
+  const fileYear = yearFromName(f.name);
+  await parseStream(f, s.delim, data => {
+    for (const r of data){
+      const cc = pad(r.countycode, 2), dc = pad(r.districtcode, 5), sc = pad(r.schoolcode, 7);
+      const cds = cc + dc + sc;
+      const isState = cds === STATE_KEY;
+      if (!(cc === COUNTY_CODE || isState)) continue;
+      const test = num(r.testid);
+      if (!CA_TESTS[test]) continue;
+      if (r.testtype && String(r.testtype).trim() && String(r.testtype).trim().toUpperCase() !== 'B') continue;
+      rows.push({
+        y: num(r.testyear) || fileYear, cds, type: num(r.typeid),
+        group: num(r.studentgroupid ?? r.subgroupid ?? r.demographicid), grade: num(r.grade), test,
+        enr: num(r.studentsenrolled), tested: num(r.studentstested), scored: num(r.studentswithscores),
+        mss: num(r.meanscalescore),
+        exc: num(r.percentagestandardexceeded), met: num(r.percentagestandardmet),
+        metab: num(r.percentagestandardmetandabove), near: num(r.percentagestandardnearlymet),
+        notmet: num(r.percentagestandardnotmet), file: f.name,
+      });
+    }
+  });
+  const years = uniq(rows.map(r=>r.y));
+  S.caaspp = S.caaspp.filter(r => !years.includes(r.y) || !rowsOverlap(r, rows)).filter(r => r.file !== f.name).concat(rows);
+  recordFile({name:f.name, kind:'caaspp', label:'CAASPP Smarter Balanced (ELA/Math)', rows:rows.length, year:years.join(', ')});
+  if (!rows.length) return `${f.name}: no Modoc County rows found in this CAASPP file.`;
+  return `${f.name}: CAASPP ${years.join(', ')} — ${rows.length.toLocaleString()} Modoc/state rows kept.`;
+}
+// A new CAASPP file replaces existing rows for the same year+entity scope (county file vs statewide file overlap).
+function rowsOverlap(old, rows){
+  if (!rowsOverlap._set || rowsOverlap._rows !== rows){ rowsOverlap._rows = rows; rowsOverlap._set = new Set(rows.map(r => r.y + '|' + r.cds)); }
+  return rowsOverlap._set.has(old.y + '|' + old.cds);
+}
+
+async function loadEntities(f, s){
+  let n = 0;
+  await parseStream(f, s.delim, data => {
+    for (const r of data){
+      const cc = pad(r.countycode, 2); if (cc !== COUNTY_CODE) continue;
+      const cds = cc + pad(r.districtcode,5) + pad(r.schoolcode,7);
+      const lvl = levelOf(cds);
+      if (lvl === 'county') continue;
+      const name = (lvl === 'district' ? r.districtname : r.schoolname || r.districtname || '').trim();
+      if (name){ S.names[cds] = {name, type:lvl}; n++; }
+    }
+  });
+  recordFile({name:f.name, kind:'entities', label:'CAASPP entities (names)', rows:n, year:yearFromName(f.name) || ''});
+  return `${f.name}: ${n} Modoc school/district names loaded.`;
+}
+
+async function loadGroups(f, s){
+  let n = 0;
+  const idKey = s.keys.find(k => /^(demographicid|studentgroupid|demographicidnum)$/.test(k)) || s.keys.find(k => /id/.test(k));
+  const nameKey = s.keys.find(k => /name/.test(k));
+  await parseStream(f, s.delim, data => {
+    for (const r of data){ const id = num(r[idKey]); if (id !== null && r[nameKey]){ S.caGroups[id] = r[nameKey].trim(); n++; } }
+  });
+  recordFile({name:f.name, kind:'groups', label:'CAASPP student group names', rows:n, year:''});
+  return `${f.name}: ${n} CAASPP student group names loaded.`;
+}
+
+/* =========================================================================
+   Data access
+   ========================================================================= */
+const dashYears = () => uniq(S.dash.map(r=>r.y)).filter(Boolean).sort((a,b)=>b-a);
+const caYears   = () => uniq(S.caaspp.map(r=>r.y)).filter(Boolean).sort((a,b)=>b-a);
+function pickDefaultYears(force){
+  const dy = dashYears(), cy = caYears();
+  if (force || !dy.includes(S.dashYear)) S.dashYear = dy[0] || null;
+  if (force || !cy.includes(S.caYear)) S.caYear = cy[0] || null;
+}
+function caGroupName(id){ return S.caGroups[id] || CA_GROUPS_BUILTIN[id] || ('Student group ID ' + id); }
+
+function dashRow(cds, ind, group, y){
+  return S.dash.find(r => r.cds === cds && r.ind === ind && r.group === group && r.y === y) || null;
+}
+/* County roll-up from district (LEA) rows: denominator-weighted mean of status.
+   Official county values are used instead if the file contains a county row. */
+function dashCounty(ind, group, y){
+  const official = dashRow(COUNTY_KEY, ind, group, y);
+  if (official) return Object.assign({official:true}, official);
+  const lea = S.dash.filter(r => r.ind === ind && r.group === group && r.y === y && r.rtype === 'D' && r.cds.startsWith(COUNTY_CODE));
+  const w = (rows, dk, sk) => { let n=0, s=0; for (const r of rows){ if (r[dk] && r[sk] !== null){ n += r[dk]; s += r[dk]*r[sk]; } } return n ? {n, v:s/n} : null; };
+  const cur = w(lea, 'denom', 'status');
+  if (!cur) return null;
+  const pri = w(lea, 'pdenom', 'pstatus');
+  return {calculated:true, cds:COUNTY_KEY, ind, group, y, denom:cur.n, status:cur.v, pdenom:pri?pri.n:null, pstatus:pri?pri.v:null,
+          change: pri ? cur.v - pri.v : null, color:0, leas: lea.length};
+}
+function dashFor(cds, ind, group, y){ return cds === COUNTY_KEY ? dashCounty(ind, group, y) : dashRow(cds, ind, group, y); }
+
+function caRow(cds, test, group, grade, y){
+  return S.caaspp.find(r => r.cds === cds && r.test === test && r.group === group && r.grade === grade && r.y === y) || null;
+}
+function metab(r){ if (!r) return null; if (r.metab !== null) return r.metab; if (r.met !== null && r.exc !== null) return r.met + r.exc; return null; }
+
+/* Entities known in Modoc, from any source */
+function entities(){
+  const keys = new Set(Object.keys(S.names));
+  S.dash.forEach(r => { if (r.cds !== STATE_KEY && r.cds !== COUNTY_KEY) keys.add(r.cds); });
+  S.caaspp.forEach(r => { if (r.cds !== STATE_KEY && r.cds !== COUNTY_KEY) keys.add(r.cds); });
+  const all = [...keys].filter(k => k.startsWith(COUNTY_CODE) && k.length === 14);
+  const districts = all.filter(k => levelOf(k) === 'district');
+  all.filter(k => levelOf(k) === 'school').forEach(k => { if (!districts.includes(distKey(k))) districts.push(distKey(k)); });
+  districts.sort((a,b) => entityName(a).localeCompare(entityName(b)));
+  return districts.map(d => ({cds:d, schools: all.filter(k => levelOf(k)==='school' && distKey(k)===d).sort((a,b)=>entityName(a).localeCompare(entityName(b)))}));
+}
+
+/* =========================================================================
+   Rendering pieces
+   ========================================================================= */
+function colorChip(color, text){
+  const c = color || 0;
+  return `<span class="chip c${c}" style="--dot:var(--c${c})">${esc(text ?? COLOR_NAME[c])}</span>`;
+}
+function gauge(color){
+  let h = '<div class="gauge" aria-hidden="true">';
+  for (let i=1;i<=5;i++) h += `<i class="${color===i?'on':''}" style="${color===i?`background:var(--c${i})`:''}"></i>`;
+  return h + '</div>';
+}
+function statusText(ind, v){ if (v === null || v === undefined) return '—'; const m = IND[ind]; return m.kind === 'dfs' ? signed(v) : fmt(v) + '%'; }
+function unitWord(ind){ return IND[ind].kind === 'dfs' ? 'points from standard' : 'percent'; }
+function changeText(ind, r){
+  if (!r || r.change === null || r.change === undefined) return 'No prior-year comparison';
+  const m = IND[ind];
+  if (Math.abs(r.change) < 0.05) return 'Maintained (±0.0)';
+  const dir = r.change > 0 ? 'Increased' : 'Declined';
+  const good = (r.change > 0) === (m.better === 'high');
+  return `${dir} ${Math.abs(r.change).toFixed(1)}${m.kind==='dfs'?' pts':' pct pts'}${good ? '' : ''}`;
+}
+function tipFor(ind, r, who){
+  if (!r) return `${who}\n${IND[ind].name}: no data`;
+  const lines = [`${who} · ${IND[ind].name}`, `Status: ${statusText(ind, r.status)} ${IND[ind].kind==='dfs'?'(points from standard)':''}`.trim(), changeText(ind, r)];
+  if (r.denom !== null) lines.push(`Students counted: ${fmtInt(r.denom)}`);
+  if (r.calculated) lines.push('Calculated roll-up of district records — not an official Dashboard color');
+  else lines.push(`Performance color: ${COLOR_NAME[r.color||0]}`);
+  lines.push(IND[ind].better === 'low' ? 'Lower is better' : 'Higher is better');
+  return lines.join('\n');
+}
+
+function indicatorTiles(cds, y){
+  const isCounty = cds === COUNTY_KEY;
+  const tiles = IND_ORDER.map(ind => {
+    const r = dashFor(cds, ind, 'ALL', y);
+    if (!r) return '';
+    const st = dashRow(STATE_KEY, ind, 'ALL', y);
+    return `<div class="tile" data-tip="${esc(tipFor(ind, r, entityName(cds)))}">
+      <div class="t-label">${esc(IND[ind].name)}</div>
+      <div class="t-value">${statusText(ind, r.status)} <span class="t-unit">${IND[ind].kind==='dfs'?'pts':''}</span></div>
+      ${r.calculated ? '<div class="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="t-foot">Calculated · no color</div>'
+                     : gauge(r.color) + `<div class="t-foot">${colorChip(r.color)}</div>`}
+      <div class="t-foot">${esc(changeText(ind, r))}</div>
+      <div class="t-foot">${st ? 'State: ' + statusText(ind, st.status) : ''}${r.denom!==null?` · n=${fmtInt(r.denom)}`:''}</div>
+    </div>`;
+  }).join('');
+  if (!tiles) return `<div class="empty">No Dashboard indicators for ${esc(entityName(cds))} in ${y}.</div>`;
+  return `<div class="grid">${tiles}</div>` +
+    (isCounty && !IND_ORDER.some(i => dashRow(COUNTY_KEY,i,'ALL',y)) ? `<p class="note">The CA School Dashboard does not publish county-wide results. County figures here are weighted averages of every Modoc LEA's results (weighted by the number of students counted). They have no performance color and are not official Dashboard results.</p>` : '');
+}
+
+function dashCell(ind, r, who){
+  if (!r) return `<td class="num"><span class="cell-sub">—</span></td>`;
+  const chip = r.calculated ? `<span class="cell-sub" style="font-weight:600;color:var(--text2)">calculated</span>` : colorChip(r.color);
+  return `<td data-tip="${esc(tipFor(ind, r, who))}">${chip}<span class="cell-sub">${statusText(ind, r.status)} · ${r.change===null?'—':signed(r.change)}</span></td>`;
+}
+
+function dashEntityTable(rowsCds, y, opts={}){
+  const inds = IND_ORDER.filter(ind => S.dash.some(r => r.ind === ind && r.y === y));
+  let h = `<div class="table-wrap"><table><thead><tr><th>${esc(opts.firstCol || 'LEA / school')}</th>${inds.map(i=>`<th>${esc(IND[i].short)}</th>`).join('')}</tr></thead><tbody>`;
+  for (const item of rowsCds){
+    const cls = item.cls || '';
+    h += `<tr class="${cls}${item.link?' clickable':''}" ${item.link?`data-go="${item.cds}"`:''}><td>${item.link?`<a class="ent-link">${esc(item.label)}</a>`:esc(item.label)}${item.note?`<span class="cell-sub">${esc(item.note)}</span>`:''}</td>`;
+    for (const ind of inds) h += dashCell(ind, item.get(ind), item.label);
+    h += '</tr>';
+  }
+  return h + '</tbody></table></div>';
+}
+
+function dashGroupTable(cds, y){
+  const groups = DASH_GROUP_ORDER.filter(g => IND_ORDER.some(ind => dashFor(cds, ind, g, y)));
+  if (!groups.length) return '';
+  return dashEntityTable(groups.map(g => ({cds, label: DASH_GROUPS[g] || g, get: ind => dashFor(cds, ind, g, y)})), y, {firstCol:'Student group'});
+}
+
+function dashSection(cds){
+  const years = dashYears();
+  if (!years.length) return `<section class="section"><div class="section-head"><h2>CA School Dashboard</h2></div>
+    <div class="empty">No Dashboard files loaded yet. <a href="#" data-open-data>Load Dashboard data</a> to see indicator colors, status, and change.</div></section>`;
+  const y = S.dashYear;
+  const lvl = levelOf(cds);
+  let h = `<section class="section"><div class="section-head"><h2>CA School Dashboard</h2>
+    <span class="meta">${uniq(S.dash.filter(r=>r.y===y).map(r=>r.ind)).length} indicator file(s) loaded for ${y}</span>
+    <div class="right no-print"><label class="ctl">Year <select data-year="dash">${years.map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('')}</select></label></div></div>`;
+  h += indicatorTiles(cds, y);
+
+  if (lvl === 'county' || lvl === 'district'){
+    const ents = entities().filter(d => lvl === 'county' || d.cds === cds);
+    const showSchools = lvl === 'district' || S.showSchools;
+    const items = [];
+    for (const d of ents){
+      if (lvl === 'county') items.push({cds:d.cds, label:entityName(d.cds), link:true, get: ind => dashRow(d.cds, ind, 'ALL', y)});
+      if (showSchools) for (const sc of d.schools) items.push({cds:sc, label:entityName(sc), cls:lvl==='county'?'lvl-school':'', link:true, note: lvl==='county'?entityName(d.cds):'', get: ind => dashRow(sc, ind, 'ALL', y)});
+    }
+    items.push({cds:STATE_KEY, label:'California (statewide)', cls:'state-row', get: ind => dashRow(STATE_KEY, ind, 'ALL', y)});
+    h += `<h3>${lvl==='county' ? 'Modoc LEAs — All Students' : 'Schools in this district — All Students'}
+      ${lvl==='county'?`<label class="note no-print" style="font-weight:400;margin-left:10px"><input type="checkbox" id="showSchools" ${S.showSchools?'checked':''}> show schools</label>`:''}</h3>`;
+    h += dashEntityTable(items, y);
+    h += `<div class="legend" style="margin-top:8px">${[1,2,3,4,5].map(c=>`<span>${colorChip(c)}</span>`).join('')}<span>Each cell: color · status · change. Hover for details. Click a row to open it.</span></div>`;
+  }
+  const grp = dashGroupTable(cds, y);
+  if (grp) h += `<h3>By student group${cds===COUNTY_KEY?' (calculated county roll-up)':''}</h3>` + grp;
+  if (cds !== COUNTY_KEY) h += `<div class="links no-print"><a href="https://www.caschooldashboard.org/reports/${cds}/${y}" target="_blank" rel="noopener">Open the official ${y} Dashboard report ↗</a></div>`;
+  return h + '</section>';
+}
+
+/* ---- CAASPP ---- */
+function stackRow(label, sub, r){
+  if (!r || (r.exc === null && r.met === null && r.near === null && r.notmet === null)){
+    return `<div class="stack-row"><div class="lbl">${esc(label)}<small>${esc(sub||'')}</small></div><div class="note" style="margin:0">Suppressed or not available</div><div class="tot">—</div></div>`;
+  }
+  const parts = [['notmet','Standard not met',r.notmet],['near','Standard nearly met',r.near],['met','Standard met',r.met],['exc','Standard exceeded',r.exc]];
+  const total = parts.reduce((s,p)=>s+(p[2]||0),0) || 100;
+  const tip = `${label}${sub?' · '+sub:''}\n` + parts.slice().reverse().map(p=>`${p[1]}: ${fmt(p[2])}%`).join('\n') + `\nMet or exceeded: ${fmt(metab(r))}%` + (r.tested!==null?`\nStudents tested: ${fmtInt(r.tested)}`:'') + (r.mss!==null?`\nMean scale score: ${fmt(r.mss)}`:'');
+  return `<div class="stack-row" data-tip="${esc(tip)}"><div class="lbl">${esc(label)}<small>${esc(sub||'')}</small></div>
+    <div class="stack" role="img" aria-label="${esc(tip)}">${parts.map(p => p[2] ? `<span class="s-${p[0]}${p[2]<9?' sm':p[2]<20?' mid':''}" style="width:${(p[2]/total*100).toFixed(2)}%">${Math.round(p[2])}%</span>` : '').join('')}</div>
+    <div class="tot">${fmt(metab(r))}%</div></div>`;
+}
+function caLegend(){
+  return `<div class="legend"><span><i style="background:var(--lvl-notmet)"></i>Not met</span><span><i style="background:var(--lvl-near)"></i>Nearly met</span><span><i style="background:var(--lvl-met)"></i>Met</span><span><i style="background:var(--lvl-exc)"></i>Exceeded</span><span>· right column = % met or exceeded</span></div>`;
+}
+function trendChart(cds, test){
+  const ys = caYears().slice().sort((a,b)=>a-b);
+  if (ys.length < 2) return '';
+  const series = [[cds, entityName(cds), 'var(--series-1)'], [STATE_KEY, 'California', 'var(--series-2)']];
+  const W=360, H=170, L=38, R=22, T=10, B=24;
+  const x = i => L + (ys.length===1?0:i*(W-L-R)/(ys.length-1));
+  const yv = v => T + (100 - v) * (H-T-B) / 100;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(CA_TESTS[test])} percent met or exceeded by year">`;
+  [0,25,50,75,100].forEach(g => { svg += `<line class="axis" x1="${L}" x2="${W-R}" y1="${yv(g)}" y2="${yv(g)}" stroke-width="1"/><text x="${L-6}" y="${yv(g)+4}" text-anchor="end">${g}%</text>`; });
+  ys.forEach((yr,i) => svg += `<text x="${x(i)}" y="${H-8}" text-anchor="middle">${yr}</text>`);
+  for (const [k, name, col] of series){
+    const pts = ys.map((yr,i) => { const v = metab(caRow(k, test, 1, 13, yr)); return v===null?null:[x(i), yv(v), v, yr]; });
+    const segs = pts.filter(Boolean);
+    if (segs.length >= 2) svg += `<polyline fill="none" stroke="${col}" stroke-width="2" points="${segs.map(p=>p[0]+','+p[1]).join(' ')}"/>`;
+    segs.forEach(p => svg += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${col}" stroke="var(--surface)" stroke-width="2"><title>${esc(name)} ${p[3]}: ${fmt(p[2])}%</title></circle><circle cx="${p[0]}" cy="${p[1]}" r="12" fill="transparent" data-tip="${esc(name+' · '+CA_TESTS[test]+' '+p[3]+'\nMet or exceeded: '+fmt(p[2])+'%')}"/>`);
+  }
+  svg += '</svg>';
+  return `<div class="trend"><h3>${CA_TESTS[test]} — % met or exceeded over time (all grades)</h3>
+    <div class="legend"><span><i style="background:var(--series-1)"></i>${esc(entityName(cds))}</span><span><i style="background:var(--series-2)"></i>California</span></div>${svg}</div>`;
+}
+
+function caSection(cds){
+  const years = caYears();
+  if (!years.length) return `<section class="section"><div class="section-head"><h2>CAASPP — Smarter Balanced ELA &amp; Math</h2></div>
+    <div class="empty">No CAASPP research files loaded yet. <a href="#" data-open-data>Load CAASPP data</a> to see achievement levels by grade and student group.</div></section>`;
+  const y = S.caYear;
+  const lvl = levelOf(cds);
+  const hasAny = S.caaspp.some(r => r.cds === cds && r.y === y);
+  let h = `<section class="section"><div class="section-head"><h2>CAASPP — Smarter Balanced ELA &amp; Math</h2>
+    <span class="meta">${y} results (school year ${y-1}–${String(y).slice(2)})</span>
+    <div class="right no-print"><label class="ctl">Year <select data-year="ca">${years.map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('')}</select></label></div></div>`;
+  if (!hasAny){
+    h += `<div class="empty">No CAASPP results for ${esc(entityName(cds))} in ${y}. ${lvl==='county'?'Make sure the file includes the county-level rows (the Modoc county file or the statewide file does).':''}</div>`;
+  } else {
+    h += caLegend();
+    h += `<div class="two-col">` + [1,2].map(test => `<div><h3>${CA_TESTS[test]}</h3>
+      ${stackRow(entityName(cds), 'All grades', caRow(cds, test, 1, 13, y))}
+      ${stackRow('California', 'All grades', caRow(STATE_KEY, test, 1, 13, y))}</div>`).join('') + `</div>`;
+
+    // By grade
+    const grades = uniq(S.caaspp.filter(r => r.cds===cds && r.y===y && r.group===1 && r.grade!==13).map(r=>r.grade)).sort((a,b)=>a-b);
+    if (grades.length){
+      h += `<div class="two-col">` + [1,2].map(test => `<div><h3>${CA_TESTS[test]} by grade</h3>` +
+        grades.map(g => { const r = caRow(cds, test, 1, g, y); return stackRow(CA_GRADE(g), r && r.tested!==null ? `${fmtInt(r.tested)} tested` : '', r); }).join('') + `</div>`).join('') + `</div>`;
+    }
+
+    // Comparison table of LEAs/schools
+    if (lvl === 'county' || lvl === 'district'){
+      const ents = entities().filter(d => lvl==='county' || d.cds===cds);
+      const rows = [];
+      for (const d of ents){
+        if (lvl==='county') rows.push({cds:d.cds, label:entityName(d.cds), cls:''});
+        if (lvl==='district' || S.showSchools) d.schools.forEach(s => rows.push({cds:s, label:entityName(s), cls: lvl==='county'?'lvl-school':'', note: lvl==='county'?entityName(d.cds):''}));
+      }
+      rows.push({cds, label:entityName(cds) + ' (total)', cls:'', nolink:true});
+      rows.push({cds:STATE_KEY, label:'California (statewide)', cls:'state-row', nolink:true});
+      h += `<h3>${lvl==='county'?'Modoc LEAs':'Schools in this district'} — All Students, all grades</h3><div class="table-wrap"><table><thead><tr>
+        <th>${lvl==='county'?'LEA / school':'School'}</th><th class="num">ELA % met/exc.</th><th class="num">ELA tested</th><th class="num">Math % met/exc.</th><th class="num">Math tested</th></tr></thead><tbody>`;
+      for (const it of rows){
+        const e = caRow(it.cds, 1, 1, 13, y), m = caRow(it.cds, 2, 1, 13, y);
+        if (!e && !m && it.cds !== cds) continue;
+        h += `<tr class="${it.cls}${it.nolink?'':' clickable'}" ${it.nolink?'':`data-go="${it.cds}"`}><td>${it.nolink?esc(it.label):`<a class="ent-link">${esc(it.label)}</a>`}${it.note?`<span class="cell-sub">${esc(it.note)}</span>`:''}</td>
+          <td class="num">${e?fmt(metab(e))+'%':'—'}</td><td class="num">${e?fmtInt(e.tested):'—'}</td><td class="num">${m?fmt(metab(m))+'%':'—'}</td><td class="num">${m?fmtInt(m.tested):'—'}</td></tr>`;
+      }
+      h += `</tbody></table></div>`;
+      if (lvl==='county' && !S.showSchools) h += `<p class="note">Tick “show schools” in the Dashboard section to list individual schools here too.</p>`;
+    }
+
+    // By student group
+    const groups = uniq(S.caaspp.filter(r => r.cds===cds && r.y===y && r.grade===13).map(r=>r.group)).filter(g => g!==null);
+    if (groups.length > 1){
+      groups.sort((a,b) => (a===1?-1:b===1?1:caGroupName(a).localeCompare(caGroupName(b))));
+      h += `<h3>By student group — all grades</h3><div class="table-wrap"><table><thead><tr><th>Student group</th><th class="num">ELA % met/exc.</th><th class="num">ELA tested</th><th class="num">Math % met/exc.</th><th class="num">Math tested</th></tr></thead><tbody>`;
+      for (const g of groups){
+        const e = caRow(cds,1,g,13,y), m = caRow(cds,2,g,13,y);
+        if (!e && !m) continue;
+        h += `<tr><td>${esc(caGroupName(g))}</td><td class="num">${e?fmt(metab(e))+(metab(e)!==null?'%':''):'—'}</td><td class="num">${e?fmtInt(e.tested):'—'}</td><td class="num">${m?fmt(metab(m))+(metab(m)!==null?'%':''):'—'}</td><td class="num">${m?fmtInt(m.tested):'—'}</td></tr>`;
+      }
+      h += `</tbody></table></div><p class="note">“—” means CAASPP suppressed the result (fewer than 11 students) or the group was not tested.${Object.keys(S.caGroups).length?'':' Group names use a built-in list; load CAASPP’s Student Groups file for official names of every ID.'}</p>`;
+    }
+    h += `<div class="two-col">${trendChart(cds,1)}${trendChart(cds,2)}</div>`;
+  }
+  const cc = cds.slice(0,2), dc = cds.slice(2,7), sc = cds.slice(7);
+  h += `<div class="links no-print"><a href="https://caaspp-elpac.ets.org/caaspp/DashViewReportSB?ps=true&lstTestYear=${y}&lstTestType=B&lstGroup=1&lstSubGroup=1&lstSchoolType=A&lstGrade=13&lstCounty=${cc}&lstDistrict=${dc}&lstSchool=${sc}" target="_blank" rel="noopener">Open the official CAASPP results page ↗</a></div>`;
+  return h + '</section>';
+}
+
+/* ---- Page ---- */
+function welcome(){
+  return `<div class="welcome">
+    <section class="section"><h2 style="margin-top:0">Welcome</h2>
+      <p>This hub brings Modoc County's <b>CA School Dashboard</b> indicators and <b>CAASPP</b> test results onto one page: the county first, then every district and school.</p>
+      <p>To get started, load the public data files from CDE and ETS. It takes about five minutes, and you only do it once per year. The data stays saved in this browser.</p>
+      <button class="btn primary" data-open-data>Load data files</button></section>
+    <section class="section"><h2 style="margin-top:0">What you'll see</h2>
+      <ul style="padding-left:18px;margin:0">
+        <li>County-wide summary of Dashboard indicators and CAASPP results, compared with the state</li>
+        <li>Every Modoc LEA and school side by side, with Dashboard colors</li>
+        <li>Student group results for each indicator</li>
+        <li>CAASPP achievement levels by grade, and trends when you load more than one year</li>
+        <li>Links to each official Dashboard and CAASPP report</li>
+      </ul></section></div>`;
+}
+
+function renderPage(){
+  const cds = S.view;
+  const lvl = levelOf(cds);
+  const hasData = S.dash.length || S.caaspp.length;
+  let crumbs = `<a data-go="${COUNTY_KEY}">Modoc County</a>`;
+  if (lvl === 'district') crumbs += ' › ' + esc(entityName(cds));
+  if (lvl === 'school') crumbs += ` › <a data-go="${distKey(cds)}">${esc(entityName(distKey(cds)))}</a> › ` + esc(entityName(cds));
+  const sub = lvl === 'county'
+    ? `Every LEA and school in Modoc County · ${entities().length} LEAs`
+    : lvl === 'district' ? `District / LEA · CDS ${cds}` : `School in ${esc(entityName(distKey(cds)))} · CDS ${cds}`;
+  let h = `${lvl!=='county'?`<div class="crumbs">${crumbs}</div>`:''}<h1>${esc(entityName(cds))}</h1><p class="sub">${sub}</p>`;
+  if (!hasData) h += welcome() + dashSection(cds) + caSection(cds);
+  else h += dashSection(cds) + caSection(cds);
+  h += `<p class="note">Sources: California Department of Education, CA School Dashboard downloadable data files; ETS/CDE, CAASPP research files. Data files loaded: ${S.files.length}. ${S.files.length?'Last load: '+new Date(Math.max(...S.files.map(f=>Date.parse(f.loaded)||0))).toLocaleDateString():''}</p>`;
+  $('#main').innerHTML = h;
+}
+
+function renderEntitySelect(){
+  const sel = $('#entitySel');
+  let h = `<option value="${COUNTY_KEY}">Modoc County (all LEAs)</option>`;
+  for (const d of entities()){
+    h += `<optgroup label="${esc(entityName(d.cds))}"><option value="${d.cds}">${esc(entityName(d.cds))} — district</option>`;
+    for (const s of d.schools) h += `<option value="${s}">  ${esc(entityName(s))}</option>`;
+    h += `</optgroup>`;
+  }
+  sel.innerHTML = h;
+  sel.value = S.view;
+  if (sel.value !== S.view){ S.view = COUNTY_KEY; sel.value = COUNTY_KEY; }
+}
+
+function renderFiles(){
+  const el = $('#fileList');
+  if (!S.files.length){ el.innerHTML = '<div class="note">Nothing loaded yet.</div>'; return; }
+  el.innerHTML = S.files.slice().sort((a,b)=>String(b.year).localeCompare(String(a.year))||a.label.localeCompare(b.label))
+    .map(f => `<div><span><b>${esc(f.label)}</b>${f.year?` · ${esc(f.year)}`:''}<span class="cell-sub">${esc(f.name)}</span></span><span class="pill ok">${fmtInt(f.rows)} rows</span></div>`).join('');
+}
+
+function renderAll(){ pickDefaultYears(false); renderEntitySelect(); renderFiles(); renderPage(); }
+
+function go(cds){
+  S.view = cds; $('#entitySel').value = cds; renderPage(); window.scrollTo({top:0});
+  try{ history.replaceState(null, '', '#' + cds); }catch(e){}
+}
+
+/* =========================================================================
+   Events
+   ========================================================================= */
+function openDrawer(open){ $('#drawer').classList.toggle('open', open); $('#drawerBg').classList.toggle('open', open); }
+$('#dataBtn').onclick = () => openDrawer(true);
+$('#closeDrawer').onclick = () => openDrawer(false);
+$('#drawerBg').onclick = () => openDrawer(false);
+$('#printBtn').onclick = () => window.print();
+$('#entitySel').onchange = e => go(e.target.value);
+const drop = $('#drop'), input = $('#fileInput');
+drop.onclick = () => input.click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); } };
+input.onchange = () => { if (input.files.length) ingest([...input.files]); input.value=''; };
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) ingest([...e.dataTransfer.files]); });
+// Allow dropping files anywhere on the page
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => { if (!drop.contains(e.target)){ e.preventDefault(); if (e.dataTransfer.files.length){ openDrawer(true); ingest([...e.dataTransfer.files]); } } });
+$('#clearBtn').onclick = async () => {
+  if (!confirm('Remove all loaded Dashboard and CAASPP data from this browser?')) return;
+  Object.assign(S, {dash:[], caaspp:[], names:{}, caGroups:{}, files:[], view:COUNTY_KEY});
+  await save(); setProgress('All data cleared.'); renderAll();
+};
+$('#themeBtn').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const next = dark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('mdh-theme', next); }catch(e){}
+};
+try{ const t = localStorage.getItem('mdh-theme'); if (t) document.documentElement.setAttribute('data-theme', t); }catch(e){}
+
+$('#main').addEventListener('click', e => {
+  const open = e.target.closest('[data-open-data]'); if (open){ e.preventDefault(); openDrawer(true); return; }
+  const g = e.target.closest('[data-go]'); if (g){ go(g.getAttribute('data-go')); }
+});
+document.querySelector('.drawer').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) go(g.getAttribute('data-go')); });
+$('#main').addEventListener('change', e => {
+  if (e.target.matches('[data-year="dash"]')){ S.dashYear = Number(e.target.value); renderPage(); }
+  if (e.target.matches('[data-year="ca"]')){ S.caYear = Number(e.target.value); renderPage(); }
+  if (e.target.id === 'showSchools'){ S.showSchools = e.target.checked; renderPage(); }
+});
+// Tooltip
+const tip = $('#tip');
+document.addEventListener('mousemove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (!t){ tip.style.display = 'none'; return; }
+  tip.textContent = t.getAttribute('data-tip'); tip.style.display = 'block';
+  const w = tip.offsetWidth, hgt = tip.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+  if (y + hgt > innerHeight - 8) y = e.clientY - hgt - 14;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+});
+
+(async function init(){
+  await restore();
+  const h = (location.hash || '').slice(1);
+  if (/^\d{14}$/.test(h)) S.view = h;
+  pickDefaultYears(true);
+  renderAll();
+})();
+</script>
+</body>
+</html>
