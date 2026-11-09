@@ -1,0 +1,330 @@
+{
+ "cds": "25735850000000",
+ "lea": "Modoc Joint Unified",
+ "lcapYear": "2026–27",
+ "source": "2026-27 LCAP Modoc Joint Unified.pdf",
+ "goals": [
+  {
+   "num": "1",
+   "description": "Prepare all students for career and/or college",
+   "type": "Maintenance of Progress Goal",
+   "priorities": [
+    2,
+    4,
+    5,
+    6,
+    8
+   ],
+   "metrics": [
+    {
+     "id": "1.1",
+     "metric": "Measure of Academic Progress ELA",
+     "baseline": "Grade 1: 21.4% Grade 2: 32.0% Grade 3: 45.3% Grade 4: 34.5% Grade 5: 47.0% Grade 6: 33.8% Grade 7: 47.8% Grade 8: 45.2% Grade 9: 50.0% Grade 10: 48.1% Grade 11: 25.0%",
+     "y1": "Grade 1: 24.0% Grade 2: 30.6% Grade 3: 48.9% Grade 4: 46.4% Grade 5: 33.9% Grade 6: 59.0% Grade 7: 38.7% Grade 8: 44.7% Grade 9: 32.0% Grade 10: 37.7% Grade 11: 55.1%",
+     "y2": "Grade 1: 24.0% Grade 2: 30.6% Grade 3: 48.9% Grade 4: 46.4% Grade 5: 33.9% Grade 6: 59.0% Grade 7: 38.7% Grade 8: 44.7% Grade 9: 32.0% Grade 10: 37.7% Grade 11: 55.1%",
+     "target": "The percentage of students performing at or above grade level in ELA will increase by 10 or more percentage points as measured at the spring MAP administration or be at or above 85%",
+     "diff": "Cohort tracking shows the following differences: Grade 3: Increase Grade 4: Increase Grade 5: Decrease Grade 6: Increase Grade 7: Decrease Grade 8: Increase Grade 9: Decrease Grade 10: Decrease Grade 11: Increase"
+    },
+    {
+     "id": "1.2",
+     "metric": "Measure of Academic Progress Math",
+     "baseline": "Grade 1: 23.2% Grade 2: 48.0% Grade 3: 29.7% Grade 4: 39.7% Grade 5: 49.0% Grade 6: 30.2% Grade 7: 27.9% Grade 8: 33.9% Grade 9: 48.8% Grade 10: 56.1% Grade 11: 40.0%",
+     "y1": "Grade 1: 29.4% Grade 2: 34.7% Grade 3: 57.4% Grade 4: 46.4% Grade 5: 60.7% Grade 6: 36.6% Grade 7: 32.8% Grade 8: 32.0% Grade 9: 45.8% Grade 10: 49.0% Grade 11: 50.0%",
+     "y2": "Grade 1: 29.4% Grade 2: 34.7% Grade 3: 57.4% Grade 4: 46.4% Grade 5: 60.7% Grade 6: 36.6% Grade 7: 32.8% Grade 8: 32.0% Grade 9: 45.8% Grade 10: 49.0% Grade 11: 50.0%",
+     "target": "The percentage of students performing at or above grade level in math will increase by 10 or more percentage points as measured at the spring MAP administration or be at or above 85%",
+     "diff": "Cohort tracking shows the following differences: Grade 3: Increase Grade 4: Decrease Grade 5: Increase Grade 6: Decrease Grade 7: Decrease Grade 8: Increase Grade 9: Increase Grade 10: Increase Grade 11: Increase"
+    },
+    {
+     "id": "1.3",
+     "metric": "% of seniors completing capstone CTE course",
+     "baseline": "40%",
+     "y1": "27%",
+     "y2": "24%",
+     "target": "70%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "1.4",
+     "metric": "College units earned",
+     "baseline": "473",
+     "y1": "359",
+     "y2": "256",
+     "target": "Maintain over 400",
+     "diff": "Decreased"
+    },
+    {
+     "id": "1.5",
+     "metric": "% of students completing UC/CSU A-G",
+     "baseline": "23.0%",
+     "y1": "38.5%",
+     "y2": "26.1%",
+     "target": "30%",
+     "diff": "Increased"
+    },
+    {
+     "id": "1.6",
+     "metric": "EL Reclassification Rate",
+     "baseline": "18%",
+     "y1": "8%",
+     "y2": "4.5%",
+     "target": "Maintain at least 15%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "1.7",
+     "metric": "College Persistence Rate",
+     "baseline": "75%",
+     "y1": "64%",
+     "y2": "38%",
+     "target": "100%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "1.8",
+     "metric": "EAP Scores",
+     "baseline": "39.65% for ELA and 14.03% for math",
+     "y1": "38.77% for ELA and 13.04% for math",
+     "y2": "41.38% for ELA and 20.69% for math",
+     "target": "50% or higher for ELA and 50% or higher for math.",
+     "diff": "Increased in both ELA and Math"
+    },
+    {
+     "id": "1.9",
+     "metric": "College and Career Indicator",
+     "baseline": "Low 19.5% prepared",
+     "y1": "Green 37.3% prepared",
+     "y2": "Green 46.2% prepared",
+     "target": "Want to be above the state average which is currently 43.9% prepared",
+     "diff": "Increased"
+    },
+    {
+     "id": "1.10",
+     "metric": "CAASPP Math",
+     "baseline": "55.9 points below standard",
+     "y1": "83.8 points below standard",
+     "y2": "74.9 points below standard",
+     "target": "Equal to or better than the state points below standard, which is 13.6%",
+     "diff": "Increased"
+    },
+    {
+     "id": "1.11",
+     "metric": "CAASPP ELA",
+     "baseline": "83.4 points below standard",
+     "y1": "48.4 points below standard",
+     "y2": "34.4 points below standard",
+     "target": "Equal to or better than the state points below standard, which is 49.1%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "1.12",
+     "metric": "CAST",
+     "baseline": "15.88% did not meet standard",
+     "y1": "69.3% did not meet standard",
+     "y2": "47.2% did not meet standard",
+     "target": "Decrease Standard Not Met by 10% each year",
+     "diff": "Increased"
+    },
+    {
+     "id": "1.13",
+     "metric": "AP Courses Taken",
+     "baseline": "Offer 1 AP course",
+     "y1": "Offered 1 AP course",
+     "y2": "Offered 1 AP course",
+     "target": "Offer 1 AP Course",
+     "diff": "No changes"
+    }
+   ]
+  },
+  {
+   "num": "2",
+   "description": "Continuous improvement in school culture and climate to maximize impact on student learning",
+   "type": "Maintenance of Progress Goal",
+   "priorities": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "metrics": [
+    {
+     "id": "2.1",
+     "metric": "Teachers: Fully Credentialed & Appropriately Assigned",
+     "baseline": "100%",
+     "y1": "100%",
+     "y2": "63.4% Teachers with preliminary or clear credentials",
+     "target": "100%",
+     "diff": "This data is now being provided through the California Dashboard and interns are not included, resulting in a decrease"
+    },
+    {
+     "id": "2.2",
+     "metric": "Standards-aligned Instructional Materials for every student",
+     "baseline": "Survey respondents are unsure of District curriculum implementation. Specifically, for ELA 37.5% were unsure, for Mathematic 37.5%, for Science, 52.5% for History/Social Science 50%, for Health 60%, for CTE 80%, for PE 52.5%, and for World Language 80%. The average survey respondents who have knowledge of curriculum implentation is 56.25%.",
+     "y1": "Survey respondents are unsure of District curriculum implementation. Specifically, for ELA 37.5% were unsure, for Mathematic 37.5%, for Science, 52.5% for History/Social Science 50%, for Health 60%, for CTE 80%, for PE 52.5%, and for World Language 80%.",
+     "y2": "Social Science was adopted for grades K-12 in 24/25 and was implementated at the beginning of the 25/26 school year. Science curriculim was adopted for grades K-8 in 24/25 and was implemented at the beginning of 25/26. Science for grades 9-12 is being reviewed during the 25/26 school year. Math for grades K-12 is being reviewed during the 25/26 school year. Based on Survey Data from October 2025, 79% of AES, 72% of MMS & 33% of MHS respondents have knowledge of curriculum implentation. The average survey respondents who have knowledge of curriculum implentation is 61%.",
+     "target": "A greater percent of respondents have knowledge of curriculum implementation. Specifically, for ELA 20% are unsure, for Mathematic 20%, for Science, 20% for History/Social Science 20%, for Health 20%, for CTE 20%, for PE 20%, and for World Language 20%.",
+     "diff": "Increase"
+    },
+    {
+     "id": "2.3",
+     "metric": "CA State standards are implemented, including access for ELs",
+     "baseline": "CA State standards are implemented, including access for ELs",
+     "y1": "CA State standards are implemented, including access for ELs",
+     "y2": "CA State standards are implemented, including access for ELs",
+     "target": "CA State standards are implemented, including access for ELs",
+     "diff": "No changes"
+    },
+    {
+     "id": "2.4",
+     "metric": "School Facilities in \"Good Repair\" per CDE's Facility Inspection Tool (FIT)",
+     "baseline": "All facilities in good repair",
+     "y1": "All facilities in good repair",
+     "y2": "All facilities in good repair",
+     "target": "All facilities in good repair",
+     "diff": "No changes"
+    },
+    {
+     "id": "2.5",
+     "metric": "Students will have access to and are enrolled in a broad course of study (Social Science, Health, PE, VAPA, World Language) including unduplicated pupils and students with exceptional needs",
+     "baseline": "Students have access to and are enrolled in a broad course of study (Social Science, Health, PE, VAPA, World Language) including pupil and students with exceptional needs",
+     "y1": "Students have access to and are enrolled in a broad course of study (Social Science, Health, PE, VAPA, World Language) including pupil and students with exceptional needs",
+     "y2": "Students have access to and are enrolled in a broad course of study (Social Science, Health, PE, VAPA, World Language) including pupil and students with exceptional needs",
+     "target": "Students have access to and are enrolled in a broad course of study (Social Science, Health, PE, VAPA, World Language) including pupil and students with exceptional needs",
+     "diff": "No changes"
+    },
+    {
+     "id": "2.6",
+     "metric": "Attendance rates",
+     "baseline": "92.1%",
+     "y1": "92.81%",
+     "y2": "92.38%",
+     "target": "95%",
+     "diff": "Increased"
+    },
+    {
+     "id": "2.7",
+     "metric": "Chronic absenteeism (CA) rates",
+     "baseline": "24.3%",
+     "y1": "14.9%",
+     "y2": "12.5%",
+     "target": "Below state average of 24.3%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "2.8",
+     "metric": "% of ELs who progress in English Proficiency (ELPAC)",
+     "baseline": "56.3% making progress",
+     "y1": "26.7% making progress",
+     "y2": "47.6% making progress",
+     "target": "Maintain or improve our current rate of 56.3% making progress",
+     "diff": "Decreased"
+    },
+    {
+     "id": "2.9",
+     "metric": "High school graduation rates",
+     "baseline": "86.2%",
+     "y1": "82.4%",
+     "y2": "92.5%",
+     "target": "Above state average of 86.4%",
+     "diff": "Increased"
+    },
+    {
+     "id": "2.10",
+     "metric": "Suspension rates",
+     "baseline": "13.7%",
+     "y1": "12.9%",
+     "y2": "2.9%",
+     "target": "Equal to or below state average of 3.5%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "2.11",
+     "metric": "Expulsion rates",
+     "baseline": "0.1%",
+     "y1": "0.1%",
+     "y2": "0%",
+     "target": "Maintain better than or equal to state average of 0.1%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "2.12",
+     "metric": "Parent Input in Decision Making",
+     "baseline": "20% of responses per the local performance indicator survey relating to parent input in decision making, score a level 5 - full implementation and sustainability",
+     "y1": "20% of responses per the local performance indicator survey relating to parent input in decision making, score a level 5 - full implementation and sustainability",
+     "y2": "15% of responses per the local performance indicator survey relating to parent input in decision making, score a level 5 - full implementation and sustainability",
+     "target": "50% or higher of responses per the local performance indicator survey relating to parent input in decision making, score a level 5 - full implementation and sustainability",
+     "diff": "Decrease"
+    },
+    {
+     "id": "2.13",
+     "metric": "Middle School Dropout Rate",
+     "baseline": "No dropouts",
+     "y1": "No dropouts",
+     "y2": "No dropouts",
+     "target": "Maintain no dropouts",
+     "diff": "No changes"
+    },
+    {
+     "id": "2.14",
+     "metric": "Search Institute Survey",
+     "baseline": "For elementary aged students, 36% of our surveyed students fall into the level of Adequate or Thriving in the Constructive Use of Time Category. 26% of our students reported that MMS provides \"a caring, encouraging environment.\" 27% of our students reported that MHS provides \"a caring, encouraging environment.\"",
+     "y1": "For elementary aged students, 55% of our surveyed students fall into the level of Adequate or Thriving in the Constructive Use of Time Category. 22% of our students reported that MMS provides \"a caring, encouraging environment.\" 26% of our students reported that MHS provides \"a caring, encouraging environment.\"",
+     "y2": "For elementary aged students, 55% of our surveyed students fall into the level of Adequate or Thriving in the Constructive Use of Time Category. 22% of our students reported that MMS provides \"a caring, encouraging environment.\" 26% of our students reported that MHS provides \"a caring, encouraging environment.\"",
+     "target": "For elementary aged students, by the next survey period, at least 75% of our surveyed students will fall into the level of Adequate or Thriving in the Constructive Use of Time Category. Middle School aged students will increase the percentage of students who reported \"a caring, encouraging environment\" to 75% High School aged students will increase the percentage of students who reported \"a caring, encouraging environment\" to 75%",
+     "diff": "AES Increase; MMS Decrease; MHS Decrease"
+    },
+    {
+     "id": "2.15",
+     "metric": "High School Dropout Rate",
+     "baseline": "12.28% Revised to total district rate",
+     "y1": "10.53% Revised to total district rate",
+     "y2": "1.92%",
+     "target": "Equal to or below state average of 9.3%",
+     "diff": "Decreased"
+    },
+    {
+     "id": "2.16",
+     "metric": "Promote parent participation for all students including unduplicated pupils and those with exceptional needs.",
+     "baseline": "20% of responses per the local performance indicator survey relating to parent participation for all students including unduplicated pupils and those with exception needs, score a level 5 - full implementation and sustainability",
+     "y1": "20% of responses per the local performance indicator survey relating to parent participation for all students including unduplicated pupils and those with exception needs, score a level 5 - full implementation and sustainability",
+     "y2": "22.5% of responses per the local performance indicator survey relating to parent participation for all students including unduplicated pupils and those with exception needs, score a level 5 - full implementation and sustainability",
+     "target": "50% of responses per the local performance indicator survey relating to parent participation for all students including unduplicated pupils and those with exception needs, score a level 5 - full implementation and sustainability",
+     "diff": "Increase"
+    }
+   ]
+  },
+  {
+   "num": "3",
+   "description": "Increase academic performance and reduce behavior incidents for students in schools that receive Equity Multiplier funds",
+   "type": "Equity Multiplier Focus Goal",
+   "priorities": [
+    4,
+    5,
+    6
+   ],
+   "metrics": [
+    {
+     "id": "3.1",
+     "metric": "Total number of suspension referrals for alternate education settings",
+     "baseline": "40",
+     "y1": "43",
+     "y2": "5",
+     "target": "20",
+     "diff": "Decreased"
+    },
+    {
+     "id": "3.2",
+     "metric": "Total number of dropouts for alternate education settings",
+     "baseline": "0",
+     "y1": "3",
+     "y2": "1",
+     "target": "0",
+     "diff": "Increased"
+    }
+   ]
+  }
+ ]
+}

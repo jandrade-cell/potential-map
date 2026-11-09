@@ -34,6 +34,10 @@ class NotPublicSource(Exception):
     pass
 
 
+class OffsiteRedirect(NotPublicSource):
+    """A public site tried to send us elsewhere (for example CDE's bot check). Never followed; retried later."""
+
+
 def check_url(url):
     """Refuse anything but HTTPS to an allowed public host."""
     u = urllib.parse.urlsplit(url)
@@ -44,7 +48,12 @@ def check_url(url):
 
 class _CheckedRedirects(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        check_url(urllib.parse.urljoin(req.full_url, newurl))
+        target = urllib.parse.urljoin(req.full_url, newurl)
+        try:
+            check_url(target)
+        except NotPublicSource:
+            host = urllib.parse.urlsplit(target).hostname
+            raise OffsiteRedirect(f'{req.full_url} redirected to {host}; not followed') from None
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
@@ -91,6 +100,8 @@ def fetch(url, tries=5, timeout=180):
     for i in range(tries):
         try:
             return _get(url, timeout=timeout)
+        except OffsiteRedirect as e:
+            last = e   # e.g. CDE's bot check: wait and try again, never follow it
         except NotPublicSource:
             raise
         except Exception as e:  # noqa: BLE001
@@ -334,44 +345,93 @@ def compact(rows, cols):
     return {'cols': cols, 'rows': [[r.get(c) for c in cols] for r in rows]}
 
 
+# ---- Local Indicators (CDE): one public file per LCAP priority per year ----
+LOCAL_PAGE = 'https://www.cde.ca.gov/ta/ac/cm/localindidatafiles.asp'
+LOCAL_PRIORITIES = (1, 2, 3, 6, 7)
+
+
+def load_local(want_years=2):
+    """Latest Local Indicator self-reflection for each Modoc LEA and priority (falls back one year if missing)."""
+    import csv
+    csv.field_size_limit(10 ** 9)
+    try:
+        html = fetch_text(LOCAL_PAGE)
+    except Exception as e:  # noqa: BLE001
+        log(f'  could not read the Local Indicators page ({e}); looking the files up by name')
+        html = ''
+    out, files = {}, []
+    this_year = dt.date.today().year
+    for pr in LOCAL_PRIORITIES:
+        names = {}
+        for name, year in re.findall(rf'cadashboard/(pr{pr}(20\d\d)\.txt)', html, re.I):
+            names[int(year)] = name
+        if not names:  # CDE names these Pr12024.txt or pr12025.txt, so try both spellings
+            for year in range(this_year + 1, this_year - 4, -1):
+                for name in (f'Pr{pr}{year}.txt', f'pr{pr}{year}.txt'):
+                    if exists(CDE_FILE.format(name=name)):
+                        names[year] = name
+                        break
+                if len(names) >= want_years:
+                    break
+        for year in sorted(names, reverse=True)[:want_years]:
+            url = CDE_FILE.format(name=names[year])
+            with fetch(url, timeout=600) as r:
+                text = decode(r.read())
+            head = text.split('\n', 1)[0]
+            delim = '\t' if head.count('\t') > head.count('|') else '|'
+            n = 0
+            for row in csv.DictReader(io.StringIO(text), delimiter=delim):
+                cds = pad(row.get('cdsCode'), 14)
+                if not cds.startswith(COUNTY):
+                    continue
+                rec = {k[0].lower() + k[1:]: v.strip() for k, v in row.items() if k and v and v.strip()
+                       and k not in ('cdsCode', 'lea', 'priorityNumber', 'year', 'Year')}
+                rec['year'] = year
+                slot = out.setdefault(cds, {})
+                if str(pr) not in slot or slot[str(pr)]['year'] < year:  # keep the most recent year
+                    slot[str(pr)] = rec
+                n += 1
+            files.append({'name': names[year], 'kind': 'local', 'label': f'Local Indicators · Priority {pr}',
+                          'rows': n, 'year': str(year), 'builtin': True, 'source': url,
+                          'loaded': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')})
+            log(f'  {names[year]}: {n} Modoc rows')
+    return out, files
+
+
+# ---- LCAP metrics: extracted from each district's LCAP by tools/extract_lcap.py ----
+LCAP_DIR = Path(__file__).resolve().parent.parent / 'data' / 'lcap'
+
+
+def load_lcap():
+    """Most recent LCAP's goals and metrics, keeping only the Year 2 Outcome (the latest reported result)."""
+    out = {}
+    for f in sorted(LCAP_DIR.glob('*.json')):
+        d = json.loads(f.read_text(encoding='utf-8'))
+        out[d['cds']] = {
+            'lea': d['lea'], 'lcapYear': d['lcapYear'], 'source': d['source'],
+            'goals': [{'num': g['num'], 'description': g['description'], 'type': g['type'],
+                       'priorities': g['priorities'],
+                       'metrics': [{'id': m['id'], 'metric': m['metric'], 'y2': m['y2']} for m in g['metrics']]}
+                      for g in d['goals']],
+        }
+        log(f'  {f.name}: {d["lea"]} {d["lcapYear"]}, {sum(len(g["metrics"]) for g in d["goals"])} metrics')
+    return out
+
+
+SECTIONS = ('dash', 'tests', 'local', 'lcap')
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--html', default=str(Path(__file__).resolve().parent.parent / 'Modoc County Data Hub.html'))
     ap.add_argument('--dash-years', type=int, default=3, help='how many recent Dashboard years to include')
     ap.add_argument('--test-years', type=int, default=4, help='how many recent CAASPP/ELPAC years to include')
+    ap.add_argument('--only', default=','.join(SECTIONS),
+                    help='rebuild only these parts and keep the rest from the page: ' + ', '.join(SECTIONS))
     a = ap.parse_args()
-
-    hub = Hub()
-    log('CA School Dashboard:')
-    for ind in DASH:
-        for year, url in sorted(dashboard_years(ind, a.dash_years)):
-            hub.load_dash(ind, year, url)
-
-    latest = latest_test_year()
-    years = list(range(latest - a.test_years + 1, latest + 1))
-    log(f'CAASPP / ELPAC research files {years[0]}-{years[-1]}:')
-    for year in years:
-        for fam, page, ttype, prefix in ASSESS:
-            urls = research_files(page, ttype, prefix, year)
-            if not urls:
-                log(f'  no {prefix}{year} files found')
-            for url in urls:  # county file first, then statewide (only adds state rows / identical Modoc rows)
-                hub.load_assess(url, year)
-
-    if not hub.dash and not hub.assess:
-        sys.exit('No data downloaded; leaving the page unchanged.')
-
-    built = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
-    dash_cols = ['y', 'ind', 'cds', 'rtype', 'group', 'denom', 'status', 'pdenom', 'pstatus', 'change', 'color', 'file']
-    assess_cols = ['y', 'cds', 'test', 'grade', 'group', 'enr', 'tested', 'scored', 'mss', 'l1', 'l2', 'l3', 'l4', 'top', 'file']
-    payload = {
-        'builtAt': built,
-        'dash': compact(hub.dash, dash_cols),
-        'assess': compact(list(hub.assess.values()), assess_cols),
-        'names': hub.names,
-        'files': hub.files,
-    }
-    blob = json.dumps(payload, separators=(',', ':'), ensure_ascii=False).replace('</', '<\\/')
+    only = {x.strip() for x in a.only.split(',') if x.strip()}
+    if only - set(SECTIONS):
+        sys.exit('Unknown --only part(s): ' + ', '.join(sorted(only - set(SECTIONS))))
 
     html_path = Path(a.html)
     html = html_path.read_text(encoding='utf-8')
@@ -379,18 +439,74 @@ def main():
     m = pat.search(html)
     if not m:
         sys.exit('Could not find the <script id="hub-data"> block in ' + str(html_path))
-    # Leave the page untouched when the published data has not changed (only timestamps would differ).
     try:
-        old = json.loads(m.group(2).replace('<\\/', '</'))
+        old = json.loads(m.group(2).replace('<\\/', '</')) or {}
     except ValueError:
-        old = None
+        old = {}
+
+    dash_cols = ['y', 'ind', 'cds', 'rtype', 'group', 'denom', 'status', 'pdenom', 'pstatus', 'change', 'color', 'file']
+    assess_cols = ['y', 'cds', 'test', 'grade', 'group', 'enr', 'tested', 'scored', 'mss', 'l1', 'l2', 'l3', 'l4', 'top', 'file']
+    old_files = old.get('files', [])
+    keep_kinds = set()
+    payload = {'builtAt': None, 'names': dict(old.get('names', {}))}
+
+    hub = Hub()
+    if 'dash' in only:
+        log('CA School Dashboard:')
+        for ind in DASH:
+            for year, url in sorted(dashboard_years(ind, a.dash_years)):
+                hub.load_dash(ind, year, url)
+        payload['dash'] = compact(hub.dash, dash_cols)
+    else:
+        payload['dash'] = old.get('dash', compact([], dash_cols))
+        keep_kinds.add('dash')
+
+    if 'tests' in only:
+        latest = latest_test_year()
+        years = list(range(latest - a.test_years + 1, latest + 1))
+        log(f'CAASPP / ELPAC research files {years[0]}-{years[-1]}:')
+        for year in years:
+            for fam, page, ttype, prefix in ASSESS:
+                urls = research_files(page, ttype, prefix, year)
+                if not urls:
+                    log(f'  no {prefix}{year} files found')
+                for url in urls:  # county file first, then statewide (adds state rows / identical Modoc rows)
+                    hub.load_assess(url, year)
+        payload['assess'] = compact(list(hub.assess.values()), assess_cols)
+    else:
+        payload['assess'] = old.get('assess', compact([], assess_cols))
+        keep_kinds |= {'caaspp', 'elpac'}
+
+    local_files = []
+    if 'local' in only:
+        log('Local Indicators:')
+        payload['local'], local_files = load_local()
+    else:
+        payload['local'] = old.get('local', {})
+        keep_kinds.add('local')
+
+    if 'lcap' in only:
+        log('LCAP metrics (data/lcap):')
+        payload['lcap'] = load_lcap()
+    else:
+        payload['lcap'] = old.get('lcap', {})
+
+    if only & {'dash', 'tests'} and not hub.dash and not hub.assess:
+        sys.exit('No data downloaded; leaving the page unchanged.')
+    payload['names'].update(hub.names)
+    payload['files'] = [f for f in old_files if f.get('kind') in keep_kinds] + hub.files + local_files
+
+    # Leave the page untouched when the published data has not changed (only timestamps would differ).
     if old and same_data(old, payload):
         log('Published data unchanged since ' + old.get('builtAt', '?') + '; page not modified.')
         return
-    html = pat.sub(lambda m: m.group(1) + blob + m.group(3), html, count=1)
+    payload['builtAt'] = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
+    blob = json.dumps(payload, separators=(',', ':'), ensure_ascii=False).replace('</', '<\\/')
+    html = pat.sub(lambda mm: mm.group(1) + blob + mm.group(3), html, count=1)
     html_path.write_text(html, encoding='utf-8')
-    log(f'Wrote {len(hub.dash)} Dashboard rows and {len(hub.assess)} test rows '
-        f'({len(blob) / 1e6:.1f} MB) into {html_path.name}; built {built}.')
+    log(f'Wrote {len(payload["dash"]["rows"])} Dashboard rows, {len(payload["assess"]["rows"])} test rows, '
+        f'{len(payload["local"])} LEAs of Local Indicators and {len(payload["lcap"])} LCAPs '
+        f'({len(blob) / 1e6:.1f} MB) into {html_path.name}; built {payload["builtAt"]}.')
 
 
 if __name__ == '__main__':
