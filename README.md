@@ -22,6 +22,15 @@ Every page has its own address that can be bookmarked or shared, for example
 `Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified/modoc-high`. The browser's Back button
 works, and the **View** menu jumps to any page.
 
+Each district page also has an **LCAP data** button (for example `…#modoc-joint-unified/lcap`). It opens a page
+with the district's most recent results for LCAP planning:
+
+- **State Indicators:** the latest Dashboard results for each indicator, with its LCAP priority and the student
+  groups in Red and Orange.
+- **Local Indicators:** Priorities 1, 2, 3, 6 and 7 from CDE's public Local Indicator files. Shows Met / Not Met,
+  the date presented to the board, the self-reflection ratings and the district's narratives.
+- **LCAP metrics:** each goal's metrics with the **Year 2 Outcome** from the district's adopted LCAP.
+
 Each page has:
 - **Dashboard:** indicator colors, status and change, by student group.
 - **CAASPP and ELPAC:** achievement levels against the state, by grade and student group, and trends.
@@ -56,6 +65,8 @@ The page opens with the data **already built in**. Nothing needs to be loaded by
 statewide rows, and writes them into `Modoc County Data Hub.html`:
 
 - **CA School Dashboard:** CDE's indicator data files (the data shown on caschooldashboard.org), for the latest 3 years.
+- **Local Indicators:** CDE's Local Indicator data files (Priorities 1, 2, 3, 6 and 7), the latest year each LEA reported.
+- **LCAP metrics:** read from the districts' adopted LCAPs in `data/lcap/`. These are public documents.
 - **CAASPP and ELPAC:** ETS research files for Smarter Balanced, CAST and Summative ELPAC (the same results
   DataQuest reports), for the latest 4 years. These are the Modoc "All Student Groups" files plus the statewide
   "All Students" files for the state comparison.
@@ -75,6 +86,20 @@ rebuild the page one of these ways:
 
 Then upload the new `Modoc County Data Hub.html` wherever the page is hosted. Copies people downloaded earlier keep
 showing the data they were built with.
+
+### Adding a new LCAP
+
+The LCAP metrics come from the districts' adopted LCAP PDFs in `data/lcap/`. When new LCAPs are adopted:
+
+1. Upload the new PDFs to the `data/lcap/` folder on GitHub. Older PDFs can stay; for each district the newest
+   LCAP year is used.
+2. Run **Refresh built-in data** from the Actions tab. It reads the LCAPs (`tools/extract_lcap.py`) and rebuilds the page.
+
+On a computer instead: `pip install pdfplumber`, then `python3 tools/extract_lcap.py data/lcap/*.pdf` and
+`python3 tools/build_data.py --only lcap`. With `--only`, the build rebuilds just the named parts (`dash`, `tests`,
+`local`, `lcap`) and keeps the rest of the page's data as it is.
+
+The reader works with CDE's 2024–27 LCAP template. Check the LCAP page after adding a new LCAP.
 
 ### Adding a file yourself (optional)
 

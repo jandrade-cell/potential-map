@@ -1,9 +1,9 @@
 name: Refresh built-in data
 
 # Runs only when started by hand: Actions tab -> "Refresh built-in data" -> "Run workflow".
-# Use it once a year after the new results are published (CAASPP/ELPAC in the fall, the Dashboard in December).
-# It downloads the official public CDE and ETS files and commits an updated "Modoc County Data Hub.html"
-# if anything changed.
+# Use it once a year after the new results are published (CAASPP/ELPAC in the fall, the Dashboard in December),
+# and after adding new LCAP PDFs to data/lcap/. It reads the LCAPs, downloads the official public CDE and ETS
+# files, and commits an updated "Modoc County Data Hub.html" if anything changed.
 on:
   workflow_dispatch:
 
@@ -25,17 +25,26 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Read the LCAPs in data/lcap
+        run: |
+          shopt -s nullglob
+          pdfs=(data/lcap/*.pdf)
+          if [ ${#pdfs[@]} -gt 0 ]; then
+            pip install pdfplumber==0.11.10
+            python3 tools/extract_lcap.py "${pdfs[@]}"
+          fi
+
       - name: Download and build data
         run: python3 tools/build_data.py
 
       - name: Commit if the data changed
         run: |
-          if git diff --quiet -- "Modoc County Data Hub.html"; then
+          if git diff --quiet -- "Modoc County Data Hub.html" && [ -z "$(git status --porcelain data/lcap)" ]; then
             echo "No new data published."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "Modoc County Data Hub.html"
+          git add "Modoc County Data Hub.html" data/lcap
           git commit -m "Refresh built-in data from CDE and ETS"
           git push

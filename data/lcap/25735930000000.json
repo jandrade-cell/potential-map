@@ -1,0 +1,290 @@
+{
+ "cds": "25735930000000",
+ "lea": "Tulelake Basin Joint Unified",
+ "lcapYear": "2026–27",
+ "source": "2026-27 LCAP Tulelake Basin Joint Unified.pdf",
+ "goals": [
+  {
+   "num": "1",
+   "description": "All students at Tulelake Basin Joint Unified School District will make progress toward proficiency of grade level standards.",
+   "type": "Broad Goal",
+   "priorities": [
+    1,
+    2,
+    4,
+    5,
+    6,
+    8
+   ],
+   "metrics": [
+    {
+     "id": "1.1",
+     "metric": "1a Percent of appropriately credentialed teachers",
+     "baseline": "92.3% of TBJUSD are credentialed for the classes they are teaching.",
+     "y1": "92.3% of TBJUSD are credentialed for the classes they are teaching.",
+     "y2": "92.3% of TBJUSD are credentialed for the classes they are teaching.",
+     "target": "100%",
+     "diff": "0%"
+    },
+    {
+     "id": "1.2",
+     "metric": "1b Access to standards-aligned instructional materials",
+     "baseline": "100% of students have access to standards-aligned instructional materials. \"Low\" and \"very low\" as identified by the LREBG needs assessment for the 2022-23 Dashboard data.",
+     "y1": "100% of students have access to standards-aligned instructional materials.",
+     "y2": "100% of students have access to standards-aligned instructional materials.",
+     "target": "100%",
+     "diff": "0%"
+    },
+    {
+     "id": "1.3",
+     "metric": "2a Implementation of state standards 2b ELL access to state and EL standards",
+     "baseline": "According to the Local Performance Indicators survey: English Language Arts (ELA) – Common Core State Standards for ELA: 3- Initial Development English Language Development (ELD) (Aligned to Common Core State Standards for ELA): 3 - Initial Development Mathematics – Common Core State Standards for Mathematics: 3 - Initial Development Next Generation Science Standards: 3 - Initial Development History-Social Science: 2 - Beginning Development Career Technical Education: 3 - Initial Development Health Education Content Standards: 3 - Initial Development Physical Education Model Content Standards: 3 - Initial Development World Language: 2 - Beginning Development",
+     "y1": "According to the Local Performance Indicators survey: English Language Arts (ELA) – Common Core State Standards for ELA: 3- Initial Development English Language Development (ELD) (Aligned to Common Core State Standards for ELA): 3 - Initial Development Mathematics – Common Core State Standards for Mathematics: 3 - Initial Development Next Generation Science Standards: 3 - Initial Development History-Social Science: 3 - Initial Development Career Technical Education: 3 - Initial Development Health Education Content Standards: 3 - Initial Development Physical Education Model Content Standards: 3 - Initial Development World Language: 3 - Initial Development",
+     "y2": "According to the Local Performance Indicators survey: English Language Arts (ELA) – Common Core State Standards for ELA: 3 - Initial Development English Language Development (ELD) (Aligned to Common Core State Standards for ELA): 3 - Initial Development Mathematics – Common Core State Standards for Mathematics: 3 - Initial Development Next Generation Science Standards: 2 - Beginning Development History-Social Science: 3 - Initial Development Career Technical Education: 3 - Initial Development Health Education Content Standards: 3 - Initial Development Physical Education Model Content Standards: 3 - Initial Development World Language: 3 - Initial Development",
+     "target": "Surveys: English Language Arts (ELA) – Common Core State Standards for ELA: 4 - Full Implementation English Language Development (ELD) (Aligned to Common Core State Standards for ELA): 4 - Full Implementation Mathematics – Common Core State Standards for Mathematics: 4 - Full Implementation Next Generation Science Standards: 4 - Full Implementation History-Social Science: 4 - Full Implementation Career Technical Education: 4 - Full Implementation Health Education Content Standards: 4 - Full Implementation Physical Education Model Content Standards: 4 - Full Implementation World Language: 4 - Full Implementation",
+     "diff": "Decrease in one area. No increase"
+    },
+    {
+     "id": "1.4",
+     "metric": "4a Statewide assessments ELA",
+     "baseline": "74.3 points below the standard: Declined 23.2 points (RED) Subgroups in RED: ELs: 96.3 points below standard, declined 33.5 points Hispanic: 79.6 points below standard, declined 23.4 points SED: 77.9 points below standard, declined 22.6 points SWD: 124.5 points below standard, declined 13 points \"Low\" and \"very low\" as identified by the LREBG needs assessment for the 2022-23 Dashboard data.",
+     "y1": "48.8 points below the standard: Increased 25.5 points (YELLOW) Subgroups in RED: LTELs: 132.9 points below standard Subgroups in ORANGE: ELs: 87.3 points below standard, increased 8.9 points Subgroups in YELLOW: Hispanic: 54.2 points below standard, increase 25.4 points SED: 55 points below standard, increased 22.9 points WHITE: 25.1 points below standard, increased 42.4 points",
+     "y2": "68.4 points below the standard: Declined 19.6 points (ORANGE) Subgroups in RED: EL: 98 Points below standard Hispanic: 71.3 points below standard LTEL: 144.5 Points below standard SED: 79.2 points below standard Subgroups in ORANGE: WHITE: 50.1 points below standard",
+     "target": "THS ELA increase to at least -70 points below standard",
+     "diff": "5.9 points"
+    },
+    {
+     "id": "1.5",
+     "metric": "4a Statewide assessments Math",
+     "baseline": "113.7 points below the standard: Declined 15.5 points (RED) Subgroups in RED: ELs: 136.6 points below standard, declined 24.3 points Hispanic: 120.3 points below standard, declined 15.1 points SED: 118.5 points below standard, declined 16.6 points SWD: 18.6 points below standard, declined 10.8 points \"Low\" and \"very low\" as identified by the LREBG needs assessment for the 2022-23 Dashboard data.",
+     "y1": "94.7 points below the standard: Increased 19 points (YELLOW) Subgroups in ORANGE: ELs: 114.5 points below standard, increased 22.2 points Hispanic: 95.3 points below standard, increased 25.1 points SED: 98 points below standard, increased 20.5 points LTELs: 148.1 points below standard, increased 61.4 points Subgroups in YELLOW: WHITE: 86 points below standards, increased 5.3 points",
+     "y2": "110.2 Points below standard: Declines 15.5 Points Subgroups in RED: ELs:143 points below standard, declined 28.6 Hispanic: 116.6 below standard, declined 21.3 points LTELS: 190.6 points below standard, declined 42.5 SED: 118.6 Below standard, Declined 20.6 points Subgroups in Orange: WHITE: 83.1 points, below standard, maintained 2.9",
+     "target": "THS Math increase to at least -95 below standard",
+     "diff": "3.5 points"
+    },
+    {
+     "id": "1.6",
+     "metric": "4e Rate of EL students making progress toward English proficiency",
+     "baseline": "29.8% - TBJ (Red) 32.6% - TBES 27.1% - THS \"Low\" and \"very low\" as identified by the LREBG needs assessment for the 2022-23 Dashboard data.",
+     "y1": "48.8% - TBJ (Green) 64.1% - TBES 34.1% - THS",
+     "y2": "39.3% - TBJ ( Orange) 45.3% - TBES 30.6% -THS",
+     "target": "35% - TBJ 40% - TBES 35% - THS",
+     "diff": "9.5% - TBJ 12.7% - TBES 3.5% - THS"
+    },
+    {
+     "id": "1.7",
+     "metric": "4f EL reclassification rate",
+     "baseline": "12.9% - TBJ 4.6% - TBES 24.1% - THS Long-term English Learners: 0-3 yrs = 20.7%; 4-5 yrs = 9.7%; 6+ yrs = 22.1% \"Low\" and \"very low\" as identified by the LREBG needs assessment for the 2022-23 Dashboard data.",
+     "y1": "51.9% - TBJ 41.9% - TBES 61.5% - THS Long-term English Learners: 0-3 yrs = 22.2%; 4-5 yrs = 8.4%; 6+ yrs = 17.6%",
+     "y2": "47.1% - TBJ 36.9% - TBES 59.3% - THS",
+     "target": "20% - TBJ 10% - TBES 30% - THS Long-term English Learners (reduce 6+ yrs to state levels): 11.6%",
+     "diff": "34.2% - TBJ 32.3% - TBES 35.2% - THS Long-term English Learners (reduce 6+ yrs to state levels): -4.5%"
+    },
+    {
+     "id": "1.8",
+     "metric": "4g AP passage rate",
+     "baseline": "TBJUSD Does not offer AP courses",
+     "y1": "TBJUSD Does not offer AP courses",
+     "y2": "TBJUSD Does not offer AP courses",
+     "target": "TBJUSD does not offer AP courses",
+     "diff": "0"
+    },
+    {
+     "id": "1.9",
+     "metric": "8a Other Pupil Outcomes",
+     "baseline": "2024 Winter NWEA (MAP) Math Achievement: 5% was at or above the 80th percentile 2024 Winter NWEA (MAP) ELA/Reading Achievement: 2% was at or above the 80th percentile",
+     "y1": "2024 Fall NWEA (MAP) Math Achievement: 19% was at or above the 80th percentile 2024 Fall NWEA (MAP) ELA/Reading Achievement: 19% was at or above the 80th percentile",
+     "y2": "2025 Fall NWEA (MAP) Math Achievement 29% was at or above the 80th percentile 2026 Winter NWEA (Map) was 33% was at or above the 80th percentile 2025 Fall NWEA (MAP) ELA/Reading Achievement: 25% was at or above the 80th percentile 2026 Winter NWEA (MAP) ELA/Reading Achievement: 35% was at or above the 80th percentile",
+     "target": "Winter NWEA (MAP) Math Achievement: 20% at or above the 80th percentile Winter NWEA (MAP) ELA/Reading Achievement: 20% at or above the 80th percentile",
+     "diff": "Winter NWEA (MAP) Math Achievement: 28% more at or above the 80th percentile Winter NWEA (MAP) ELA/Reading Achievement: 33% more at or above the 80th percentile"
+    },
+    {
+     "id": "1.10",
+     "metric": "2a El Standards",
+     "baseline": "2024 English Language Development Standards Priority 2: Providing professional learning for teaching: 3/5 making instructional materials available that are aligned to the recently adopted academic standards: 2/5 support staff in identifying areas where they can improve in delivering instruction: 2/5",
+     "y1": "2024 English Language Development Standards Priority 2: Providing professional learning for teaching: 3/5 making instructional materials available that are aligned to the recently adopted academic standards: 2/5 support staff in identifying areas where they can improve in delivering instruction: 3/5",
+     "y2": "2025 English Language Development Standards Priority 2: Providing professional learning for teaching: 3/5 making instructional materials available that are aligned to the recently adopted academic standards: 4/5 support staff in identifying areas where they can improve in delivering instruction: 3/5",
+     "target": "Providing professional learning for teaching: 4/5 making instructional materials available that are aligned to the recently adopted academic standards: 4/5 support staff in identifying areas where they can improve in delivering instruction: 4/5",
+     "diff": "Increase in one area. No decrease"
+    },
+    {
+     "id": "1.11",
+     "metric": "4a Statewide Assessments Science",
+     "baseline": "2022/23 T BES: 19.23% Met or Exceeded Standard THS: 9.09% Met or Exceeded Standard TBJUSD: 12.35% Met or Exceeded Standard",
+     "y1": "2023/24 TBES: 24.32% Met or Exceeded Standard THS:16.39% Met or Exceeded Standard TBJUSD: 19.39% Met or Exceeded Standard",
+     "y2": "2024/25 TBES:9.38% Met or Exceeded Standard THS:8.43 Met or Exceeded Standard TBJUSD:8.7% Met or Exceeded Standard",
+     "target": "TBES: 30% Met or Exceeded Standard THS: 20% Met or Exceeded Standard TBJUSD: 25% Met or Exceeded Standard",
+     "diff": "TBES: Decrease of 9.85% THS: Decrease of 0.66% TBJUSD: Decrease of 3.65%"
+    }
+   ]
+  },
+  {
+   "num": "2",
+   "description": "All students at Tulelake Basin Joint Unified School District will be prepared for college and/or careers.",
+   "type": "Broad Goal",
+   "priorities": [
+    4,
+    7,
+    8
+   ],
+   "metrics": [
+    {
+     "id": "2.1",
+     "metric": "4d A-G completion rate",
+     "baseline": "2023: 68.2%",
+     "y1": "2024: 33.3%",
+     "y2": "22.2%",
+     "target": "70%",
+     "diff": "-46%"
+    },
+    {
+     "id": "2.2",
+     "metric": "4c CTE pathway completion rate",
+     "baseline": "2023: 0%",
+     "y1": "2024: 0%",
+     "y2": "25%",
+     "target": "50%",
+     "diff": "25%"
+    },
+    {
+     "id": "2.3",
+     "metric": "4b A-G completion and CTE pathway completion rate",
+     "baseline": "2023: 0%",
+     "y1": "2024: 0%",
+     "y2": "8.3%",
+     "target": "50%",
+     "diff": "8.3%"
+    },
+    {
+     "id": "2.4",
+     "metric": "4h EAP ELA & EAP Math",
+     "baseline": "THS ELA: 88.9 points below standard (Red) THS Math: 163.9 points below standard (Red)",
+     "y1": "THS ELA: 50.3 points below standard (Orange) THS Math: 124.6 points below standard (Orange)",
+     "y2": "THS ELA: 69.9 points below standard (Red) THS Math: 147.9 points below standard (Red)",
+     "target": "THS ELA increase to at least -70 points below standard THS Math increase to at least -95 below standard",
+     "diff": "19 points - THS ELA 16 points - THS Math"
+    },
+    {
+     "id": "2.5",
+     "metric": "8a Other Pupil Outcomes",
+     "baseline": "2023 CCI Indicator is 26.1% prepared",
+     "y1": "2024 CCI Indicator is 12.9% prepared",
+     "y2": "2025 CCI is 20.6% prepared",
+     "target": "CCI Indicator: 50% prepared",
+     "diff": "-5.5%"
+    },
+    {
+     "id": "2.6",
+     "metric": "7a.b.c. Access to and enrollment in a Broad Course of Study for all students including unduplicated and students with exceptional needs.",
+     "baseline": "100% of students have access to a broad course of study including: Computer Science, Multimedia, English, Spanish, Health, Mathematics, Physical Education, Science, History/Social Science, Agriculture/CTE, and AVID.",
+     "y1": "100% of students have access to a broad course of study including: Computer Science, Multimedia, English, Spanish, Health, Mathematics, Physical Education, Science, History/Social Science, Agriculture/CTE, and AVID.",
+     "y2": "100% of students have access to a broad course of study including: Computer Science, Multimedia, Yearbook, English, World Language, Health, Mathematics, Physical Education, Science, History/Social Science, Agriculture/CTE, AVID, Work Study, and Fine Arts.",
+     "target": "100%",
+     "diff": "0%"
+    }
+   ]
+  },
+  {
+   "num": "3",
+   "description": "All students at Tulelake Basin Joint Unified School District will actively engage in school programs that foster their social and emotional needs and promote pride in school and community.",
+   "type": "Broad Goal",
+   "priorities": [
+    3,
+    5,
+    6
+   ],
+   "metrics": [
+    {
+     "id": "3.1",
+     "metric": "3a.b.c. Parental involvement and input for all, including unduplicated and those with exeptional needs",
+     "baseline": "Parental Surveys School Site Council Parent Advisory IEP Meeting Attendance: 46 IEP meetings (Exceptional needs met) Rate the LEA’s progress in developing the capacity of staff (i.e., administrators, teachers, and classified staff) to build trusting and respectful relationships with families: 3 - Initial Implementation Rate the LEA’s progress in creating welcoming environments for all families in the community:4 - Full Implementation Rate the LEA’s progress in supporting staff to learn about each family’s strengths, cultures, languages, and goals for their children:3 - Initial Implementation Rate the LEA’s progress in developing multiple opportunities for the LEA and school sites to engage in 2-way communication between families and educators using language that is understandable and accessible to families:4 - Full Implementation Rate the LEA’s progress in providing professional learning and support to teachers and principals to improve a school’s capacity to partner with families: 2 - Beginning Development Rate the LEA’s progress in providing families with information and resources to support student learning and development in the home: 2 - Beginning Development Rate the LEA’s progress in implementing policies or programs for teachers to meet with families and students to discuss student progress and ways to work together to support improved student outcomes: 3 - Initial Implementation Rate the LEA’s progress in supporting families to understand and exercise their legal rights and advocate for their own students and all students:3 - Initial Implementation Rate the LEA’s progress in building the capacity of and supporting principals and staff to effectively engage families in advisory groups and with decision-making: 3 - Initial Implementation Rate the LEA’s progress in building the capacity of and supporting family members to effectively engage in advisory groups and decision-making: 3 - Initial Implementation Rate the LEA’s progress in providing all families with opportunities to provide input on policies and programs, and implementing strategies to reach and seek input from any underrepresented groups in the school community: 2 - Beginning Development Rate the LEA’s progress in providing opportunities to have families, teachers, principals, and district administrators work together to plan, design, implement and evaluate family engagement activities at school and district levels: 2 - Beginning Development",
+     "y1": "Parental Surveys School Site Council Parent Advisory IEP Meeting Attendance: 56 IEP meetings (Exceptional needs met) Rate the LEA’s progress in developing the capacity of staff (i.e., administrators, teachers, and classified staff) to build trusting and respectful relationships with families: 3 - Initial Implementation Rate the LEA’s progress in creating welcoming environments for all families in the community:4 - Full Implementation Rate the LEA’s progress in supporting staff to learn about each family’s strengths, cultures, languages, and goals for their children:3 - Initial Implementation Rate the LEA’s progress in developing multiple opportunities for the LEA and school sites to engage in 2-way communication between families and educators using language that is understandable and accessible to families:3 - Initial Implementation Rate the LEA’s progress in providing professional learning and support to teachers and principals to improve a school’s capacity to partner with families: 2 - Beginning Development Rate the LEA’s progress in providing families with information and resources to support student learning and development in the home: 2 - Beginning Development Rate the LEA’s progress in implementing policies or programs for teachers to meet with families and students to discuss student progress and ways to work together to support improved student outcomes: 3 - Initial Implementation Rate the LEA’s progress in supporting families to understand and exercise their legal rights and advocate for their own students and all students:3 - Initial Implementation Rate the LEA’s progress in building the capacity of and supporting principals and staff to effectively engage families in advisory groups and with decision-making: 3 - Initial Implementation Rate the LEA’s progress in building the capacity of and supporting family members to effectively engage in advisory groups and decision-making: 3 - Initial Implementation Rate the LEA’s progress in providing all families with opportunities to provide input on policies and programs, and implementing strategies to reach and seek input from any underrepresented groups in the school community: 2 - Beginning Development Rate the LEA’s progress in providing opportunities to have families, teachers, principals, and district administrators work together to plan, design, implement and evaluate family engagement activities at school and district levels: 3 - Initial Implementation",
+     "y2": "Parental Surveys School Site Council Parent Advisory IEP Meeting Attendance: 54 IEP meetings (Exceptional needs met) Rate the LEA’s progress in developing the capacity of staff (i.e., administrators, teachers, and classified staff) to build trusting and respectful relationships with families: 3 - Initial Implementation Rate the LEA’s progress in creating welcoming environments for all families in the community:3 - Initial Implementation Rate the LEA’s progress in supporting staff to learn about each family’s strengths, cultures, languages, and goals for their children: 3 - Initial Implementation Rate the LEA’s progress in developing multiple opportunities for the LEA and school sites to engage in 2-way communication between families and educators using language that is understandable and accessible to families: 4 - Full Implementation Rate the LEA’s progress in providing professional learning and support to teachers and principals to improve a school’s capacity to partner with families: 3 - Initial Implementation Rate the LEA’s progress in providing families with information and resources to support student learning and development in the home: 3 - Initial Implementation Rate the LEA’s progress in implementing policies or programs for teachers to meet with families and students to discuss student progress and ways to work together to support improved student outcomes: 3 - Initial Implementation Rate the LEA’s progress in supporting families to understand and exercise their legal rights and advocate for their own students and all students: 3 - Initial Implementation Rate the LEA’s progress in building the capacity of and supporting principals and staff to effectively engage families in advisory groups and with decision-making: 3 - Initial Implementation Rate the LEA’s progress in building the capacity of and supporting family members to effectively engage in advisory groups and decision-making: 3 - Initial Implementation Rate the LEA’s progress in providing all families with opportunities to provide input on policies and programs, and implementing strategies to reach and seek input from any underrepresented groups in the school community: 3 - Initial Implementation Rate the LEA’s progress in providing opportunities to have families, teachers, principals, and district administrators work together to plan, design, implement and evaluate family engagement activities at school and district levels: 3 - Initial Implementation",
+     "target": "Parental Surveys: School Site Council: Parent Advisory: IEP Meeting Attendance: Maintain meeting IEP dates for parental involvement Rate the LEA’s progress in developing the capacity of staff (i.e., administrators, teachers, and classified staff) to build trusting and respectful relationships with families:4 - Full Implementation Rate the LEA’s progress in creating welcoming environments for all families in the community:4 - Full Implementation Rate the LEA’s progress in supporting staff to learn about each family’s strengths, cultures, languages, and goals for their children:4 - Full Implementation Rate the LEA’s progress in developing multiple opportunities for the LEA and school sites to engage in 2-way communication between families and educators using language that is understandable and accessible to families:4 - Full Implementation Rate the LEA’s progress in providing professional learning and support to teachers and principals to improve a school’s capacity to partner with families: 4 - Full Implementation Rate the LEA’s progress in providing families with information and resources to support student learning and development in the home: 4 - Full Implementation Rate the LEA’s progress in implementing policies or programs for teachers to meet with families and students to discuss student progress and ways to work together to support improved student outcomes: 4 - Full Implementation Rate the LEA’s progress in supporting families to understand and exercise their legal rights and advocate for their own students and all students:4 - Full Implementation Rate the LEA’s progress in building the capacity of and supporting principals and staff to effectively engage families in advisory groups and with decision- making: 4 - Full Implementation Rate the LEA’s progress in building the capacity of and supporting family members to effectively engage in advisory groups and decision-making: 4 - Full Implementation Rate the LEA’s progress in providing all families with opportunities to provide input on policies and programs, and implementing strategies to reach and seek input from any underrepresented groups in the school community: 4 - Full Implementation Rate the LEA’s progress in providing opportunities to have families, teachers, principals, and district administrators work together to plan, design, implement and evaluate family engagement activities at school and district levels: 4 - Full Implementation",
+     "diff": "Maintained"
+    },
+    {
+     "id": "3.2",
+     "metric": "5c Middle school dropout rates",
+     "baseline": "2023 dropout rate 0%",
+     "y1": "2024 dropout rate: 0%",
+     "y2": "2025 dropout rate: 0%",
+     "target": "Maintain 0%",
+     "diff": "0%"
+    },
+    {
+     "id": "3.3",
+     "metric": "5d High school dropout rates",
+     "baseline": "2023 dropout rate 0%",
+     "y1": "2024 dropout rate 9.7%",
+     "y2": "2025 dropout rate: 0%",
+     "target": "Maintain 0%",
+     "diff": "0%"
+    },
+    {
+     "id": "3.4",
+     "metric": "5e High school graduation rates",
+     "baseline": "2023 Graduation rate was 95.6%",
+     "y1": "2024 Graduation rate was 87.1%",
+     "y2": "2025 Graduation rate was 97.2%",
+     "target": "100%",
+     "diff": "1.6%"
+    },
+    {
+     "id": "3.5",
+     "metric": "6a Pupil suspension rates",
+     "baseline": "2023 4% all students; increase of 0.5%",
+     "y1": "2024 1.5% all students; decrease of 2.6%",
+     "y2": "2025: 1.4% all students, decrease of .1%",
+     "target": "3%",
+     "diff": "-2.6%"
+    },
+    {
+     "id": "3.6",
+     "metric": "6b Expulsion rates",
+     "baseline": "2023 Expulsion rate 0%",
+     "y1": "2024 Expulsion rate 0%",
+     "y2": "2025 Expulsion rate 0%",
+     "target": "Maintain 0%",
+     "diff": "0%"
+    },
+    {
+     "id": "3.7",
+     "metric": "6c Pupils, parents, and teachers on the sense of safety and school connectedness",
+     "baseline": "Pupils: Kelvin Pulses: 4-6: 66% favorable 7-8: 60% favorable 9-12: 64% favorable",
+     "y1": "Pupils: Kelvin Pulses: 4-6: 74% favorable 7-8: 63% favorable 9-12: 68% favorable",
+     "y2": "Pupils: Kelvin Pulses: 4-6: 94% favorable 7-8: 77% favorable 9-12: 82% favorable",
+     "target": "Pupils: Kelvin Pulses: 4-6: 75% favorable 7-8: 75% favorable 9-12: 75% favorable",
+     "diff": "4-6: +28% favorable 7-8: +17% favorable 9-12: +18% favorable"
+    },
+    {
+     "id": "3.8",
+     "metric": "1c Facilities in good repair",
+     "baseline": "In Good Repair",
+     "y1": "In Good Repair",
+     "y2": "In Good Repair",
+     "target": "Maintain Status of Good Repair",
+     "diff": "Maintained"
+    },
+    {
+     "id": "3.9",
+     "metric": "5a School Attendance",
+     "baseline": "2023-24 92.53%",
+     "y1": "24-25 THS: 93.96% 24-25 TBES: 91.78%",
+     "y2": "25-26 THS: 93.94% 25-26 TBES: 93.90%",
+     "target": "94%",
+     "diff": "THS: 1.41% TBES: 1.37%"
+    },
+    {
+     "id": "3.10",
+     "metric": "5b Chronic Absenteeism",
+     "baseline": "2023 43.2% chronically absent",
+     "y1": "2024 25.4% chronically absent",
+     "y2": "2025: 20.4% chronically absent",
+     "target": "20%",
+     "diff": "-22.8%"
+    }
+   ]
+  }
+ ]
+}

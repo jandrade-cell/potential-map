@@ -1,0 +1,300 @@
+{
+ "cds": "25658960000000",
+ "lea": "Surprise Valley Joint Unified",
+ "lcapYear": "2026–27",
+ "source": "2026-27 LCAP Surprise Valley Joint Unified.pdf",
+ "goals": [
+  {
+   "num": "1",
+   "description": "Students at Surprise Valley Joint Unfied School Dsitrict will demonstrate academic and proficiencies needed to ensure they leave the TK-12 system college and career ready.",
+   "type": "Maintenance of Progress Goal",
+   "priorities": [
+    1,
+    2,
+    4,
+    7,
+    8
+   ],
+   "metrics": [
+    {
+     "id": "1.1",
+     "metric": "1A 90% of teachers are appropriately assigned.",
+     "baseline": "88%",
+     "y1": "78% are appropriately assigned",
+     "y2": "77.8% are appropriately assigned",
+     "target": "Maintain 85% or higher",
+     "diff": "Currently 10.2% under goal, due to teacher turnover and earning credentials"
+    },
+    {
+     "id": "1.2",
+     "metric": "1B Every student in the district has sufficient access to standards-aligned instructional materials.",
+     "baseline": "100%",
+     "y1": "100% has access to instructional materials",
+     "y2": "100% has access to instructional materials",
+     "target": "Maintain 100%",
+     "diff": "None"
+    },
+    {
+     "id": "1.3",
+     "metric": "8 Measure of Academic Progress in ELA",
+     "baseline": "Star Early Literacy Kinder- 1 below, 1 intervention, 2 on watch, 1 at/above 1st grade- 2 below, 1 intervention, 0 on watch, 3 at/above Star Reading 2nd grade- 1 below, 1 intervention, 0 on watch, 6 at/above 3rd grade- 4 below, 1 intervention, 0 on watch, 4 at/above 4th grade- 0 below, 1 intervention, 2 on watch, 3 at/above 5th grade- 2 below, 0 intervention, 0 on watch, 2 at/above 6th grade- 2 below, 1 intervention, 1 on watch, 3 at/above 7th grade- 1 below, 1 intervention, 0 on watch, 1 at/above 8th grade- 8 below, 1 intervention, 1 on watch, 3 at/above 9th grade- 3 below, 2 intervention, 2 on watch, 4 at/above 10th grade- 2 below, 0 intervention, 3 on watch, 0 at/above 11th grade- 2 below, 1 intervention, 2 on watch, 1 at/above 12th- 8 below, 2 intervention, 0 on watch, 0 at/above (This information for this class does not give an accurate picture) 93 students assessed 38.7% of students are in Red (below) 14% of students are in Yellow (intervention) 47.3% of SVJUSD are on track or exceeding with ELA.",
+     "y1": "Star Early Literacy Kinder- 0 below, 2 intervention, 2 on watch, 5 at/above 1st grade- 0 below, 1 intervention, 2 on watch, 0 at/above Star Reading 2nd grade- 1 below, 1 intervention, 0 on watch, 4 at/above 3rd grade- 2 below, 0 intervention, 2 on watch, 6 at/above 4th grade- 2 below, 2 intervention, 0 on watch, 5 at/above 5th grade- 0 below, 0 intervention, 2 on watch, 2 at/above 6th grade- 2 below, 1 intervention, 0 on watch, 2 at/above 7th grade- 0 below, 1 intervention, 1 on watch, 3 at/above 8th grade- 0 below, 2 intervention, 0 on watch, 2 at/above 9th grade- 1 below, 1 intervention, 3 on watch, 3 at/above 10th grade- 1 below, 2 intervention, 0 on watch, 7 at/above 11th grade- 1 below, 3 intervention, 0 on watch, 3 at/above 12th- 0 below, 0 intervention, 1 on watch, 4 at/above",
+     "y2": "Star Early Literacy Kinder- 0 below, 1 intervention, 1 on watch, 5 at/above 1st grade- 0 below, 0 intervention, 0 on watch, 6 at/above Star Reading 2nd grade- 0 below, 0 intervention, 1 on watch, 2 at/above 3rd grade- 2 below, 0 intervention, 0 on watch, 6 at/above 4th grade- 3 below, 1 intervention, 2 on watch, 6 at/above 5th grade- 1 below, 4 intervention, 0 on watch, 5 at/above 6th grade- 0 below, 2 intervention, 0 on watch, 3 at/above 7th grade- 0 below, 2 intervention, 0 on watch, 1 at/above 8th grade- 0 below, 2 intervention, 0 on watch, 2 at/above 9th grade- 0 below, 1 intervention, 1 on watch, 2 at/above 10th grade- 2 below, 4 intervention, 2 on watch, 2 at/above 11th grade- 0 below, 3 intervention, 2 on watch, 6 at/above 12th- 2 below, 0 intervention, 0 on watch, 4 at/above",
+     "target": "80% of students in grades 1-12 will increase to the next level by the end of the year. Less than 10% in below (Red) Less than 20% in intervention (yellow) All other students in the levels on watch and at/above (blue green)",
+     "diff": "90 Students assessed 13.3% of students are in Red 18.8% of student are in Yellow 67.9% of SVJUDS students are on track or exceeding with ELA"
+    },
+    {
+     "id": "1.4",
+     "metric": "8 Measure of Academic Progress in Math",
+     "baseline": "1st grade- 0 below, 2 intervention, 2 on watch, 3 at/above 2nd grade- 2 below, 2 intervention, 0 on watch, 4 at or above 3rd grade- 3 below, 2 intervention, 0 on watch, 4 at/above 4th grade- 2 below, 0 intervention, 0 on watch, 4 at/above 5th grade- 1 below, 1 intervention, 0 on watch, 2 at/above 6th grade- 2 below, 1 intervention, 0 on watch, 4 at/above 7th grade- 1 below, 2 intervention, 0 on watch, 0 at/above 8th grade- 3 below, 2 intervention, 1 on watch, 4 at/above 9th grade- 3 below, 1 intervention, 1 on watch, 6 at/above 10th grade- 1 below, 0 intervention, 0 on watch, 3 at/above 11th grade- 0 below, 3 intervention, 0 on watch, 3 at/above 12th grade - 3 below, 3 intervention, 0 on watch, 3 at/above 82 assessed 25.6% of students in Red (below) 23.2% of students in Yellow (intervention 51.2 % of students are on track or exceeding",
+     "y1": "1st grade- 1 below, 0 intervention, 1 on watch, 1 at/above 2nd grade- 2 below, 0 intervention, 1 on watch, 3 at or above 3rd grade- 3 below, 1 intervention, 0 on watch, 6 at/above 4th grade- 3 below, 2 intervention, 1 on watch, 3 at/above 5th grade- 1 below, 0 intervention, 1 on watch, 4 at/above 6th grade- 2 below, 1 intervention, 1 on watch, 1 at/above 7th grade- 0 below, 0 intervention, 0 on watch, 5 at/above 8th grade- 1 below, 2 intervention, 0 on watch, 1 at/above 9th grade- 0 below, 2 intervention, 3 on watch, 3 at/above 10th grade- 1 below, 2 intervention, 2 on watch, 6 at/above 11th grade- 0 below, 1 intervention, 1 on watch, 3 at/above 12th grade - 0 below, 0 intervention, 0 on watch, 3 at/above",
+     "y2": "1st grade- 0 below, 3 intervention, 0 on watch, 3 at/above 2nd grade- 1 below, 0 intervention, 2 on watch, 0 at or above 3rd grade- 2 below, 1 intervention, 0 on watch, 5 at/above 4th grade- 2 below, 4 intervention, 2 on watch, 4 at/above 5th grade- 2 below, 4 intervention, 1 on watch, 4 at/above 6th grade- 0 below, 0 intervention, 2 on watch, 3 at/above 7th grade- 0 below, 2 intervention, 0 on watch, 1 at/above 8th grade- 0 below, 1 intervention, 0 on watch, 4 at/above 9th grade- 1 below, 1 intervention, 1 on watch, 1 at/above 10th grade- 2 below, 3 intervention, 0 on watch, 4 at/above 11th grade- 3 below, 0 intervention, 1 on watch, 7 at/above 12th grade - 1 below, 0 intervention, 0 on watch, 4 at/above",
+     "target": "80% of students in grades 1-12 will increase to the next level by the end of the year. Less than 10%% in below (Red) Less than 20% in intervention (yellow) All other students in the levels on watch and at/above (blue green)",
+     "diff": "83 students assessed 14.5% of students in Red (below) 19.3% of students are in Yellow (intervention) 66.2% of SVJUSD students are on track or excedding in math"
+    },
+    {
+     "id": "1.5",
+     "metric": "4C % of seniors completing CTE pathway.",
+     "baseline": "90%. 9 out of 10 students have completed a pathway.",
+     "y1": "80% 4 out 5 students have completed at least one pathway.",
+     "y2": "29% 2 out of 7 students have completed at least one pathway.",
+     "target": "Maintain 80% or higher of graduating seniors will complete a CTE pathway.",
+     "diff": "Below baseline by 61%"
+    },
+    {
+     "id": "1.6",
+     "metric": "4B % of students completing UC/CSU, A-G requirements.",
+     "baseline": "50% of students will be A-G at graduation.",
+     "y1": "60% 3 out 5 have met A-G requirements.",
+     "y2": "29% 2 out of 7 met A-G requirements",
+     "target": "75% of seniors are A-G by graduation.",
+     "diff": "Below baseline by 21%"
+    },
+    {
+     "id": "1.7",
+     "metric": "4G College units earned/AP courses-college preparation",
+     "baseline": "Currently there have been 6 classes taken throughout the year.",
+     "y1": "There were 5 college classes completed and passed this year.",
+     "y2": "9 students took and passed at least one college class for fall semester. 7 students passed at least one college class in the spring semester.",
+     "target": "Maintain having students complete and pass at least 5 college classes per year.",
+     "diff": "10 classes above baseline"
+    },
+    {
+     "id": "1.8",
+     "metric": "4E EL students will show progress towrds English progiciency based on the California English Language Development Test",
+     "baseline": "Currently in low level 3.",
+     "y1": "Maintained a level 3. Increased by 30 points",
+     "y2": "EL students will show progress towards English proficiency based on the California English Language Development Test. 1 student who has gone from 1492 to 1520 but is still level 3 so is not being RFEP because of CAASPP scores.",
+     "target": "Continue to make progress toward California English Language Development Test by increasing score by at least 15 points each year.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "1.9",
+     "metric": "4A CAASPP- ELA",
+     "baseline": "9.7 points below standard.",
+     "y1": "14.7 points below standard. Declined 4.7 points",
+     "y2": "44.8 points standard Declined 30.4 points",
+     "target": "Equal to or better than the state points below standard, which is 49.1 points",
+     "diff": "Decreased ELA scores by 35.1 points"
+    },
+    {
+     "id": "1.10",
+     "metric": "4A CAASPP-Math",
+     "baseline": "51.3 point below standard.",
+     "y1": "76.6 point below standard. Declined 25.2 points",
+     "y2": "66.3 points below standard points Increase 10.3 points",
+     "target": "Maintain to staying equal to or better than the state points below standard, which is 13.6 point",
+     "diff": "15 points below baseline"
+    },
+    {
+     "id": "1.11",
+     "metric": "4A CAST- Science",
+     "baseline": "22% of students met or exceded standard",
+     "y1": "22% of students met or exceded standard Currently based on 2023 numbers",
+     "y2": "47.3 Science Points. Declined 3.5 points. 17.6 points below standard",
+     "target": "Increase Standard Met or exceeded by 10% each year",
+     "diff": "Declined by 3.5 points"
+    },
+    {
+     "id": "1.12",
+     "metric": "4F Reclassification rate",
+     "baseline": "0% reclassification, but student has increased test score by 10 points.",
+     "y1": "0% reclassification, but student has increased test score by 10 points.",
+     "y2": "0% reclassification, but student has increased test score by 10 points.",
+     "target": "Continue to increase scores by at least 20 each year towards reclassification.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "1.13",
+     "metric": "4D % of students completed both A-G and CTE courses.",
+     "baseline": "50% of seniors completed both types of courses.",
+     "y1": "60% 3 out of 5 seniors completed both A-G and CTE courses.",
+     "y2": "29% 2 out of 7 seniors completed both A-G and CTE courses.",
+     "target": "75% students to complete both A-G and CTE pathway by the time of graduation",
+     "diff": "Decreased by 21%"
+    },
+    {
+     "id": "1.14",
+     "metric": "4H % of students demonstrate college preparedness",
+     "baseline": "1 student has met College Readiness in ELA 5 students have met Conditioanlly Ready in ELA, No student has met in math",
+     "y1": "3 out 5 students have met College Readiness in ELA 0 students have met Conditioanlly Ready in ELA, No student has met in math",
+     "y2": "4/12 students have met College Readiness in ELA 4/12 students have met Conditioanlly Ready in ELA, 1/12 student has met College Readiness in math. 1/12 student has meet Conditionally Ready in math.",
+     "target": "50% of seniors meet college readiness",
+     "diff": "Increased my 7 students in College Readiness in ELA. Increased by 2 students in math."
+    },
+    {
+     "id": "1.15",
+     "metric": "2A Implement state board adopted materials and performance standards for all students.",
+     "baseline": "ELA, Math, Next Gen Science, History/Social Studies-- 4-Full Implenmentation ELD-- 2-Beginning Development CTE, Health, PE, Visual/Performing Arts-- 4- Full implementation",
+     "y1": "ELA, Math, Next Gen Science, History/Social Studies-- 4-Full Implenmentation ELD-- 2-Beginning Development CTE, Health, PE, Visual/Performing Arts-- 4- Full implementation",
+     "y2": "ELA, Math, Next Gen Science, History/Social Studies-- 4-Full Implementation ELD-- 2-Beginning Development CTE, Health, PE, Visual/Performing Arts-- 4- Full implementation",
+     "target": "Maintain full implementation for ELA,Math, Next Gen Science, History/Social Studies. Maintain or increase to Initial Development for ELD. Maintain or increase to full implementation and Sustainability for CTE, Health, PE, Visual/Performing Arts.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "1.16",
+     "metric": "2B Programs enable EL students access to CCSS and ELD standards.",
+     "baseline": "Currently 100% have access",
+     "y1": "Currently 100% have access",
+     "y2": "Currently 100% have access",
+     "target": "Maintain 100% access.",
+     "diff": "Maintained"
+    }
+   ]
+  },
+  {
+   "num": "2",
+   "description": "Continuous improvement of school culture, climate and safety to maximize student learning.",
+   "type": "Maintenance of Progress Goal",
+   "priorities": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "metrics": [
+    {
+     "id": "2.1",
+     "metric": "1C School facilities in good repair per CDE's Facility Inspection Tool (FIT)",
+     "baseline": "Facilities in poor condition",
+     "y1": "Per the FIT report, the facilities remain in poor condition, with improvement being made as funds become available.",
+     "y2": "Facilities in poor condition",
+     "target": "Increase facilities to Fair condidtion.",
+     "diff": "Maintained in poor condition."
+    },
+    {
+     "id": "2.2",
+     "metric": "3A Seek parent input in making decisions",
+     "baseline": "District has a site council (2) and parent/community advisory committees, Ag Advisory (5)",
+     "y1": "District has a site council (2) and parent/community advisory committees, Ag Advisory (5)",
+     "y2": "District has a site council (3) and parent/community advisory committees, Ag Advisory (5)",
+     "target": "Increase parent/community involvement by 5 people on our district committees.",
+     "diff": "Slowly building out district committees. Ag Advisory had close to 10. Site council struggles, but has roughly 3 community members at each meeting."
+    },
+    {
+     "id": "2.3",
+     "metric": "3B Promote parent participation for all students including unduplicated pupils and those with exceptional needs.",
+     "baseline": "District provides 3 family nights (Reading Night, Math or Science Night) for elementary students and a College and Career Night for high school students.",
+     "y1": "District provides 3 family nights (Reading Night, Math or Science Night) for elementary students and a College and Career Night for high school students.",
+     "y2": "District provided 1 Literacy Night District provided 1 Stem Night District provided 1 College &Career Night",
+     "target": "Maintain at least 2 elementary family nights and the high school college and career night.",
+     "diff": "Maintained these 3 family events."
+    },
+    {
+     "id": "2.4",
+     "metric": "5A Attendance rates",
+     "baseline": "High School: 91.5% Elementary: 92.25%",
+     "y1": "High School: 92.3% Elementary: 94.3%",
+     "y2": "High School: 93% Elementary:93%",
+     "target": "Increase attendance rates. High School: 95% Elementary School: 95%",
+     "diff": "Both schools have increased their attendance rates. Elementary increased by .75%. High school increased by 1.5%."
+    },
+    {
+     "id": "2.5",
+     "metric": "5B Chronic absenteeism rates",
+     "baseline": "High School: 23.91% Elementary: 20.83%",
+     "y1": "High School: 18.9% Elementary: 10.4% District: 6.3% Maintained 0.4%",
+     "y2": "High School: 22/% Elementary:19% District: 20%",
+     "target": "Decrease chronic absenteeism at both the elementary and the high school. High School: 10% Elementary School: 10%",
+     "diff": "Both schools have decreased chronic absenteeism rates. Highschool has improved by 1.91%.Elementary has improved 1.83%."
+    },
+    {
+     "id": "2.6",
+     "metric": "5C Middle school dropout rates",
+     "baseline": "0%",
+     "y1": "0%",
+     "y2": "0%",
+     "target": "Maintain 0% middle school dropouts.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "2.7",
+     "metric": "5D High school dropout rates",
+     "baseline": "2.12%",
+     "y1": "0%",
+     "y2": "0%",
+     "target": "Decreases to 0% high school dropouts.",
+     "diff": "Improved by 2.12%"
+    },
+    {
+     "id": "2.8",
+     "metric": "5E High school graduation rates",
+     "baseline": "100%",
+     "y1": "100%",
+     "y2": "100%",
+     "target": "Maintain 100% high school graduation ratte.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "2.9",
+     "metric": "6A Student suspension rate",
+     "baseline": "High School: 15.21% Elementary: 6.25%",
+     "y1": "High School: 28.9% Elementary: 3.8%",
+     "y2": "High School: 14% Elementary: 1.7%",
+     "target": "Decrease supspension rates. High School: less than 10% Elementary school: less than 5%",
+     "diff": "High school suspension rate has decreased by 1.21%, Elementary school has decreased by 4.55%."
+    },
+    {
+     "id": "2.10",
+     "metric": "6B Student expulsion rate",
+     "baseline": "0%",
+     "y1": "0%",
+     "y2": "0%",
+     "target": "Maintain 0% explusion rate.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "2.11",
+     "metric": "6C Surveys of students, parents, and teachers on the sense of safety and school connectedness.",
+     "baseline": "One survey was completed in the fall, that was completed by 1 2 families.",
+     "y1": "One survey was completed in the fall, that was completed by 12 families.",
+     "y2": "One survey was completed in the Fall and One Survey was completed in the Spring.",
+     "target": "More input from parents, students, and staff, with at least 50% of group completing surveys at each given period. Parents: 2- fall and spring Students: 2- fall and spring Staff: 2- fall and spring",
+     "diff": "Need to increase the number of families that participate in the annual surveys."
+    },
+    {
+     "id": "2.12",
+     "metric": "7A-C All students will have access to and are enrolled in a board course of study (Social Science, Health, PE, VAPA, World Language) including unduplicated students and students with expectional needs.",
+     "baseline": "All students will have access to and are enrolled in a board course of study (Social Science, Health, PE, VAPA, World Language) including students with e x pectional needs.",
+     "y1": "All students will have access to and are enrolled in a board course of study (Social Science, Health, PE, VAPA, World Language) including students with expectional needs.",
+     "y2": "All students will have access to and are enrolled in a board course of study (Social Science, Health, PE, VAPA, World Language) including students with expectational needs.",
+     "target": "Maintain full access to all students.",
+     "diff": "Maintained"
+    },
+    {
+     "id": "2.13",
+     "metric": "3C Promote parental participation for programs for students with disabilities.",
+     "baseline": "75% of families attended specific meetings and other programs provided by the district",
+     "y1": "85% of families attended specific meetings and other programs provided by the district",
+     "y2": "Currently 100%",
+     "target": "Maintain 75% of attendance to all of our meetings and familly nights. Continue to encourage and invite parents to participate in all the available programs.",
+     "diff": "Increased by 25%"
+    }
+   ]
+  }
+ ]
+}
