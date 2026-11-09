@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Public data only, and nothing leaves this computer: the page may not load or send anything over the network.
+     (Links to the official CDE/ETS report pages still open normally in a new tab.) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <title>Modoc County Data Hub</title>
 <script>/* PapaParse 5 - embedded for offline use */
 /* @license
@@ -192,7 +195,7 @@ ol.steps{padding-left:18px;margin:6px 0 10px} ol.steps li{margin:4px 0}
 <aside class="drawer" id="drawer" aria-label="Data files">
   <div class="section-head"><h2>Data files</h2><div class="right"><button class="btn" id="closeDrawer">Close</button></div></div>
   <div class="callout" id="builtinNote" hidden></div>
-  <p class="note" style="margin-top:0">Everything stays in this browser. Files are read on your computer; only Modoc County rows (plus statewide rows, for comparison) are kept. Nothing is uploaded anywhere.</p>
+  <p class="note" style="margin-top:0"><b>Public data only.</b> The built-in data comes only from CDE's and ETS's public sites, and it's group-level results with small groups already suppressed by CDE and ETS, never individual students. This page cannot send anything over the network. Files you add are read on your computer, only Modoc County and statewide rows are kept, and they stay in this browser.</p>
   <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose data files">
     <b>Drop files here</b> or click to choose<br>
     <span class="note">.zip, .txt, or .csv · Dashboard download files, CAASPP and ELPAC research files</span>

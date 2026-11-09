@@ -24,6 +24,17 @@ Notes:
   so 2025 and 2026 results line up in the trend charts.
 - ELPAC results show the four overall performance levels. Level 4 (Well developed) is the reclassification criterion.
 
+## Public data only
+
+- **Only public sources.** `tools/build_data.py` will only contact three public sites, over HTTPS, with no
+  login, password, key or cookies: `www.cde.ca.gov`, `www3.cde.ca.gov` and `caaspp-elpac.ets.org`. Any other
+  address, including a redirect to one, stops the build with an error. The list is `ALLOWED_HOSTS` at the top of the script.
+- **Only group-level results.** The files hold school, district, county and state results, never individual
+  students. CDE and ETS suppress small groups before publishing.
+- **The page can't send anything.** A Content-Security-Policy in the page blocks every network request, so it
+  can't load or send data anywhere. Links to the official report pages still open normally. Files you add by hand
+  are read on your computer and kept only in that browser.
+
 ## Where the data comes from
 
 The page opens with the data **already built in**. Nothing needs to be loaded by hand.

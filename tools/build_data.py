@@ -10,8 +10,9 @@ Usage:
     python3 tools/build_data.py                 # latest 3 Dashboard years, latest 4 test years
     python3 tools/build_data.py --dash-years 3 --test-years 4 --html "Modoc County Data Hub.html"
 
-Standard library only. Needs network access to www.cde.ca.gov, www3.cde.ca.gov
-and caaspp-elpac.ets.org.
+Public data only: the script will only contact the three public sites in
+ALLOWED_HOSTS, over HTTPS, without credentials or cookies. Any other address,
+including a redirect to one, stops the build. Standard library only.
 """
 import argparse
 import datetime as dt
@@ -20,9 +21,40 @@ import json
 import re
 import sys
 import time
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
+
+# The only sites this script may contact: CDE's public pages and data files, and ETS's public research files.
+ALLOWED_HOSTS = frozenset({'www.cde.ca.gov', 'www3.cde.ca.gov', 'caaspp-elpac.ets.org'})
+
+
+class NotPublicSource(Exception):
+    pass
+
+
+def check_url(url):
+    """Refuse anything but HTTPS to an allowed public host."""
+    u = urllib.parse.urlsplit(url)
+    if u.scheme != 'https' or (u.hostname or '').lower() not in ALLOWED_HOSTS or u.username or u.password:
+        raise NotPublicSource(f'Refusing {url!r}: only public CDE/ETS sites are allowed ({", ".join(sorted(ALLOWED_HOSTS))}).')
+    return url
+
+
+class _CheckedRedirects(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        check_url(urllib.parse.urljoin(req.full_url, newurl))
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+# No cookie handler, no auth handler, no proxy credentials: plain anonymous HTTPS GETs only.
+_OPENER = urllib.request.build_opener(_CheckedRedirects)
+
+
+def _get(url, headers=None, timeout=180):
+    req = urllib.request.Request(check_url(url), headers={'User-Agent': 'modoc-data-hub-builder', **(headers or {})})
+    return _OPENER.open(req, timeout=timeout)
 
 COUNTY = '25'
 STATE = '0' * 14
@@ -58,8 +90,9 @@ def fetch(url, tries=5, timeout=180):
     last = None
     for i in range(tries):
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'modoc-data-hub-builder'})
-            return urllib.request.urlopen(req, timeout=timeout)
+            return _get(url, timeout=timeout)
+        except NotPublicSource:
+            raise
         except Exception as e:  # noqa: BLE001
             last = e
             if getattr(e, 'code', None) == 404:
@@ -75,9 +108,10 @@ def fetch_text(url):
 
 def exists(url):
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'modoc-data-hub-builder', 'Range': 'bytes=0-0'})
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with _get(url, headers={'Range': 'bytes=0-0'}, timeout=60) as r:
             return r.status in (200, 206)
+    except NotPublicSource:
+        raise
     except Exception:  # noqa: BLE001
         return False
 
