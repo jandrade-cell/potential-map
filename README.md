@@ -63,17 +63,21 @@ statewide rows, and writes them into `Modoc County Data Hub.html`:
 The page can't fetch these files live, because CDE and ETS don't allow web pages to download from their servers.
 That's why the data is built in ahead of time.
 
-### Keeping it current
+### Updating once a year
 
-- **Automatically:** the `Refresh built-in data` GitHub Action runs on the 3rd of each month. It commits a new
-  version of the page only when CDE or ETS has published something new. Scheduled runs happen on the repository's
-  default branch, and you can also start one from the **Actions** tab ("Run workflow").
-- **By hand:** run `python3 tools/build_data.py` (Python 3.9+, no packages needed). It takes about 8 minutes,
+The results come out once a year: CAASPP and ELPAC in the fall, the Dashboard in December. After both are out,
+rebuild the page one of these ways:
+
+- **From GitHub:** go to the **Actions** tab, choose **Refresh built-in data**, and click **Run workflow**. It
+  downloads the new files and commits an updated page. Nothing runs on a schedule.
+- **On a computer:** run `python3 tools/build_data.py` (Python 3.9+, no packages needed). It takes about 8 minutes,
   mostly downloading the statewide Dashboard files. Options: `--dash-years 3 --test-years 4`.
 
-After a refresh, download the new copy of the page. Anyone using an older copy keeps seeing the data it was built with.
+Then upload the new `Modoc County Data Hub.html` wherever the page is hosted. Copies people downloaded earlier keep
+showing the data they were built with.
 
 ### Adding a file yourself (optional)
 
-If a file comes out before the next refresh, open **Data sources** in the page and drop it in. It's kept in that
-browser on top of the built-in data. **Clear** goes back to the built-in data.
+If you want to preview a new file before rebuilding, open **Data sources** in the page and drop it in. It's kept only in that
+browser, on top of the built-in data, so it doesn't change the page for anyone else. **Clear** goes back to the
+built-in data.
