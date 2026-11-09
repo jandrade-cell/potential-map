@@ -1,0 +1,42 @@
+name: Refresh built-in data
+
+# Re-downloads the official CDE (CA School Dashboard) and ETS (CAASPP / ELPAC) files once a month
+# and commits an updated "Modoc County Data Hub.html" when anything new has been published.
+# Scheduled runs happen on the repository's default branch; "Run workflow" on the Actions tab runs it any time.
+on:
+  schedule:
+    - cron: '41 13 3 * *'   # 3rd of each month, 13:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download and build data
+        run: python3 tools/build_data.py
+
+      - name: Commit if the data changed
+        run: |
+          if git diff --quiet -- "Modoc County Data Hub.html"; then
+            echo "No new data published."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "Modoc County Data Hub.html"
+          git commit -m "Refresh built-in data from CDE and ETS"
+          git push
