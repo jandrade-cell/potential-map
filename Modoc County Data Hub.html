@@ -28,6 +28,8 @@ License: MIT
   --c1:#c8302e; --c2:#e8762b; --c3:#f2c230; --c4:#2f8f3a; --c5:#1f5fb4; --c0:#b9bbb4;
   /* CAASPP achievement levels: diverging red <-> blue */
   --lvl-notmet:#b8302f; --lvl-near:#e98b8a; --lvl-met:#6da7ec; --lvl-exc:#1c5cab;
+  /* ELPAC levels: one ordinal hue (teal), light -> dark */
+  --el1:#a8dccd; --el2:#62bba5; --el3:#2a8f78; --el4:#12604f; --el-ink:#0b3a30;
   --series-1:#2a78d6; --series-2:#eb6834;
   --warn-bg:#fff6e0; --warn-border:#eebd4c;
 }
@@ -39,6 +41,7 @@ License: MIT
     --accent:#43c0a0; --accent-soft:#18322c; --link:#79aef0;
     --c0:#4a4e57;
     --lvl-notmet:#d64a49; --lvl-near:#9e4c4b; --lvl-met:#3e6fa8; --lvl-exc:#6da7ec;
+    --el1:#1f5247; --el2:#2c7a69; --el3:#4fae96; --el4:#9fe0cd; --el-ink:#08231d;
     --series-1:#3987e5; --series-2:#d95926;
     --warn-bg:#2d2615; --warn-border:#8a6a1f;
   }
@@ -50,6 +53,7 @@ License: MIT
   --accent:#43c0a0; --accent-soft:#18322c; --link:#79aef0;
   --c0:#4a4e57;
   --lvl-notmet:#d64a49; --lvl-near:#9e4c4b; --lvl-met:#3e6fa8; --lvl-exc:#6da7ec;
+  --el1:#1f5247; --el2:#2c7a69; --el3:#4fae96; --el4:#9fe0cd; --el-ink:#08231d;
   --series-1:#3987e5; --series-2:#d95926;
   --warn-bg:#2d2615; --warn-border:#8a6a1f;
 }
@@ -120,8 +124,18 @@ tr.state-row td{color:var(--muted);font-style:italic}
 .stack span{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;min-width:0;overflow:hidden}
 .stack span:first-child{border-radius:4px 0 0 4px}
 .stack span:last-child{border-radius:0 4px 4px 0}
-.stack .s-notmet{background:var(--lvl-notmet)} .stack .s-near{background:var(--lvl-near)}
-.stack .s-met{background:var(--lvl-met)} .stack .s-exc{background:var(--lvl-exc)}
+.stack .c-1{background:var(--lvl-notmet)} .stack .c-2{background:var(--lvl-near)}
+.stack .c-3{background:var(--lvl-met)} .stack .c-4{background:var(--lvl-exc)}
+.stack .e-1{background:var(--el1);color:var(--el-ink)} .stack .e-2{background:var(--el2);color:var(--el-ink)}
+.stack .e-3{background:var(--el3)} .stack .e-4{background:var(--el4)}
+:root[data-theme="dark"] .stack .e-3,:root[data-theme="dark"] .stack .e-4{color:var(--el-ink)}
+:root[data-theme="dark"] .stack .e-1,:root[data-theme="dark"] .stack .e-2{color:#eef8f5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stack .e-3,:root:not([data-theme="light"]) .stack .e-4{color:var(--el-ink)}
+  :root:not([data-theme="light"]) .stack .e-1,:root:not([data-theme="light"]) .stack .e-2{color:#eef8f5}}
+.cols3{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.cols3 .stack-row{grid-template-columns:112px 1fr 56px}
+.cols3 > div:only-child{max-width:780px}
+details.more{margin-top:8px} details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--link);padding:4px 0}
 .stack span.sm{font-size:0}
 @media (max-width:640px){.stack span.mid{font-size:0}}
 .stack-row .tot{font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
@@ -163,7 +177,7 @@ ol.steps{padding-left:18px;margin:6px 0 10px} ol.steps li{margin:4px 0}
 <body>
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><b>Modoc County Data Hub</b><span>CA School Dashboard + CAASPP, in one place</span></div>
+    <div class="brand"><b>Modoc County Data Hub</b><span>CA School Dashboard, CAASPP &amp; ELPAC, in one place</span></div>
     <label class="ctl">View
       <select id="entitySel" aria-label="Choose county, district, or school"></select>
     </label>
@@ -180,24 +194,25 @@ ol.steps{padding-left:18px;margin:6px 0 10px} ol.steps li{margin:4px 0}
   <p class="note" style="margin-top:0">Everything stays in this browser. Files are read on your computer; only Modoc County rows (plus statewide rows, for comparison) are kept. Nothing is uploaded anywhere.</p>
   <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose data files">
     <b>Drop files here</b> or click to choose<br>
-    <span class="note">.zip, .txt, or .csv · Dashboard download files, CAASPP research files, CAASPP entities file</span>
+    <span class="note">.zip, .txt, or .csv · Dashboard download files, CAASPP and ELPAC research files</span>
     <input type="file" id="fileInput" multiple accept=".txt,.csv,.zip,.tab" hidden>
   </div>
   <div class="progress" id="progress" aria-live="polite"></div>
 
   <h3>1 · CA School Dashboard files</h3>
   <ol class="steps">
-    <li>Go to the CDE <a href="https://www.cde.ca.gov/ta/ac/cm/" target="_blank" rel="noopener">CA School Dashboard and System of Support</a> page and open <b>Downloadable Data Files</b>.</li>
-    <li>Download the indicator files you want for the year (ELA, Math, Chronic Absenteeism, Suspension, Graduation, English Learner Progress, College/Career).</li>
-    <li>Drop them here. Keep CDE's file names (e.g. <code>eladownload2025.txt</code>); the name tells the hub which indicator it is.</li>
+    <li>Go to CDE's <a href="https://www.cde.ca.gov/ds/ad/accdf.asp" target="_blank" rel="noopener">Accountability Downloadable Files</a> page.</li>
+    <li>Open each indicator you want (ELA, Mathematics, Science, Chronic Absenteeism, Suspension, Graduation, English Learner Progress, College/Career) and download the year's <b>.txt</b> file, e.g. <code>eladownload2026.txt</code>.</li>
+    <li>Drop them here. These are statewide files (15–30 MB each); the hub keeps only Modoc and state rows.</li>
   </ol>
-  <h3>2 · CAASPP research files</h3>
+  <h3>2 · CAASPP and ELPAC research files</h3>
+  <p class="note" style="margin-top:0">Same steps on each page: <a href="https://caaspp-elpac.ets.org/caaspp/ResearchFileListSB" target="_blank" rel="noopener">Smarter Balanced (ELA/Math)</a> · <a href="https://caaspp-elpac.ets.org/caaspp/ResearchFileListCAST" target="_blank" rel="noopener">CAST (Science)</a> · <a href="https://caaspp-elpac.ets.org/elpac/ResearchFilesSA" target="_blank" rel="noopener">Summative ELPAC</a></p>
   <ol class="steps">
-    <li>Go to <a href="https://caaspp-elpac.ets.org/caaspp/ResearchFileListSB" target="_blank" rel="noopener">CAASPP Research Files (Smarter Balanced)</a>.</li>
-    <li>Pick the year, choose <b>Modoc</b> county (the small county file), and download the <b>All Student Groups</b> file. A statewide file also works, but it's large and slower to read.</li>
-    <li>Also download the <b>Entities</b> file for the same year (it has school and district names). Then drop both here.</li>
+    <li>Choose the year and set County to <b>Modoc</b>. Download the caret-delimited (“csv”) <b>All Student Groups</b> file for Modoc. It is small, and it includes school and district names.</li>
+    <li>For a statewide comparison, switch County back to <b>Statewide</b> and download the <b>All Students</b> file (2–8 MB).</li>
+    <li>Drop the .zip files here as they are. You don't need the separate Entities or Student Groups files.</li>
   </ol>
-  <p class="note">Load several years of either source to see trends. Loading the same file again replaces it instead of adding a duplicate.</p>
+  <p class="note">Load several years of any source to see trends. Loading a file again replaces its rows instead of adding duplicates.</p>
 
   <h3>Loaded</h3>
   <div class="filelist" id="fileList"></div>
@@ -220,13 +235,14 @@ const STATE_KEY   = '00000000000000';
 const IND = {
   ela:     {name:'English Language Arts', short:'ELA',            unit:'pts', better:'high', kind:'dfs'},
   math:    {name:'Mathematics',           short:'Math',           unit:'pts', better:'high', kind:'dfs'},
+  sci:     {name:'Science',               short:'Science',        unit:'pts', better:'high', kind:'pts'},
   chronic: {name:'Chronic Absenteeism',   short:'Chronic Abs.',   unit:'%',   better:'low',  kind:'pct'},
   susp:    {name:'Suspension Rate',       short:'Suspension',     unit:'%',   better:'low',  kind:'pct'},
   grad:    {name:'Graduation Rate',       short:'Graduation',     unit:'%',   better:'high', kind:'pct'},
   elpi:    {name:'English Learner Progress', short:'EL Progress', unit:'%',   better:'high', kind:'pct'},
   cci:     {name:'College/Career',        short:'College/Career', unit:'%',   better:'high', kind:'pct'},
 };
-const IND_ORDER = ['ela','math','chronic','susp','grad','elpi','cci'];
+const IND_ORDER = ['ela','math','sci','chronic','susp','grad','elpi','cci'];
 const COLOR_NAME = {0:'No color',1:'Red',2:'Orange',3:'Yellow',4:'Green',5:'Blue'};
 
 const DASH_GROUPS = {
@@ -238,27 +254,51 @@ const DASH_GROUPS = {
 };
 const DASH_GROUP_ORDER = ['ALL','EL','LTEL','FOS','HOM','SED','SWD','AA','AI','AS','FI','HI','PI','MR','WH','ELO','RFP','EO'];
 
-/* CAASPP student group IDs. Loading CAASPP's Student Groups file overrides these labels. */
-const CA_GROUPS_BUILTIN = {
-  1:'All Students', 3:'Male', 4:'Female', 31:'Economically disadvantaged', 111:'Not economically disadvantaged',
-  128:'Reported disabilities', 99:'No reported disabilities', 160:'English learners', 180:'English only',
-  74:'Black or African American', 75:'American Indian or Alaska Native', 76:'Asian', 77:'Filipino',
-  78:'Hispanic or Latino', 79:'Native Hawaiian or Pacific Islander', 80:'White', 144:'Two or more races',
+/* Official CAASPP and ELPAC student group lists (from ETS StudentGroups files, 2026). */
+const CA_GROUPS = {"1": "All Students", "128": "Reported disabilities", "99": "No reported disabilities", "31": "Socioeconomically disadvantaged", "111": "Not socioeconomically disadvantaged", "6": "IFEP, RFEP, and EO (Fluent English proficient and English only)", "7": "IFEP (Initial fluent English proficient)", "8": "RFEP (Reclassified fluent English proficient)", "120": "ELs enrolled less than 12 months", "142": "ELs enrolled 12 months or more", "160": "EL (English learner, excluding RFEP)", "243": "ADEL (Adult English learner)", "180": "EO (English only)", "170": "Ever-EL", "250": "LTEL (Long-Term English learner)", "251": "AR-LTEL (At-Risk of becoming LTEL)", "252": "Never-EL", "190": "TBD (To be determined)", "75": "American Indian or Alaska Native", "76": "Asian", "74": "Black or African American", "77": "Filipino", "78": "Hispanic or Latino", "79": "Native Hawaiian or Pacific Islander", "80": "White", "144": "Two or more races", "201": "American Indian or Alaska Native (socioeconomically disadvantaged)", "202": "Asian (socioeconomically disadvantaged)", "200": "Black or African American (socioeconomically disadvantaged)", "203": "Filipino (socioeconomically disadvantaged)", "204": "Hispanic or Latino (socioeconomically disadvantaged)", "205": "Native Hawaiian or Pacific Islander (socioeconomically disadvantaged)", "206": "White (socioeconomically disadvantaged)", "207": "Two or more races (socioeconomically disadvantaged)", "221": "American Indian or Alaska Native (not socioeconomically disadvantaged)", "222": "Asian (not socioeconomically disadvantaged)", "220": "Black or African American (not socioeconomically disadvantaged)", "223": "Filipino (not socioeconomically disadvantaged)", "224": "Hispanic or Latino (not socioeconomically disadvantaged)", "225": "Native Hawaiian or Pacific Islander (not socioeconomically disadvantaged)", "226": "White (not socioeconomically disadvantaged)", "227": "Two or more races (not socioeconomically disadvantaged)", "4": "Female", "3": "Male", "28": "Migrant education", "29": "Not migrant education", "90": "Not a high school graduate", "91": "High school graduate", "92": "Some college (includes AA degree)", "93": "College graduate", "94": "Graduate school/Post graduate", "121": "Declined to state", "50": "Armed forces family member", "51": "Not armed forces family member", "52": "Homeless", "53": "Not homeless", "240": "Foster youth", "241": "Not foster youth"};
+const EL_GROUPS = {"1": "All Students", "4": "Female", "3": "Male", "228": "Primary Language - Spanish", "229": "Primary Language - Vietnamese", "230": "Primary Language - Mandarin (Putonghua)", "231": "Primary Language - Arabic", "232": "Primary Language - Filipino (Pilipino or Tagalog)", "233": "Primary Language - Cantonese", "234": "Primary Language - Korean", "235": "Primary Language - Hmong", "236": "Primary Language - Punjabi", "237": "Primary Language - Russian", "238": "Primary Language - All remaining languages", "28": "Migrant education", "29": "Not migrant education", "99": "No reported disabilities", "128": "Reported disabilities", "239": "Tested w/ alternate assessment", "31": "Socioeconomically disadvantaged", "111": "Not socioeconomically disadvantaged", "75": "American Indian or Alaska Native", "76": "Asian", "74": "Black or African American", "77": "Filipino", "78": "Hispanic or Latino", "80": "White", "79": "Native Hawaiian or Pacific Islander", "144": "Two or more races", "160": "All English learners (All ELs)", "120": "ELs enrolled less than 12 months", "142": "ELs enrolled 12 months or more", "250": "LTEL (Long-Term English learner)", "251": "AR-LTEL (At-Risk of becoming LTEL)", "50": "Armed forces family member", "51": "Not armed forces family member", "52": "Homeless", "53": "Not homeless", "240": "Foster youth", "241": "Not foster youth", "248": "EL - less than 1 year in program", "242": "EL - 1 year in program", "243": "EL - 2 years in program", "244": "EL - 3 years in program", "245": "EL - 4 years in program", "246": "EL - 5 years in program", "247": "EL - 6+ years in program"};
+
+const TESTS = {
+  ela:   {name:'ELA',     long:'English Language Arts/Literacy (Smarter Balanced)', fam:'caaspp', report:'DashViewReportSB', type:'B'},
+  math:  {name:'Math',    long:'Mathematics (Smarter Balanced)',                    fam:'caaspp', report:'DashViewReportSB', type:'B'},
+  sci:   {name:'Science', long:'Science (CAST)',                                    fam:'caaspp', report:'DashViewReportCAST', type:'X'},
+  elpac: {name:'ELPAC',   long:'Summative ELPAC',                                   fam:'elpac',  report:'DashViewReportSA', type:'SA'},
 };
-const CA_TESTS = {1:'ELA', 2:'Math'};
-const CA_GRADE = g => g === 13 ? 'All grades' : (g === 11 ? 'Grade 11' : 'Grade ' + g);
+const CAASPP_TEST_IDS = {1:'ela', 2:'math', 17:'sci'};
+const ELPAC_TEST_IDS  = {2:'elpac', 21:'elpac'};   // Summative ELPAC (ID 21 in current files)
+function gradeName(g){
+  if (g === 0) return 'Kindergarten';
+  if (g === 13) return 'All grades';
+  if (g === 14) return 'High school (10–12)';
+  return 'Grade ' + g;
+}
+/* Achievement levels, lowest to highest. In 2026 CAASPP renamed the levels; their meaning did not change. */
+function levelNames(test, y){
+  if (TESTS[test].fam === 'elpac') return ['Level 1 · Minimally developed','Level 2 · Somewhat developed','Level 3 · Moderately developed','Level 4 · Well developed'];
+  return y >= 2026 ? ['Minimal (standard not met)','Developing (nearly met)','Proficient (met)','Advanced (exceeded)']
+                   : ['Standard not met','Standard nearly met','Standard met','Standard exceeded'];
+}
+function shortLevels(fam, y){
+  if (fam === 'elpac') return ['Level 1','Level 2','Level 3','Level 4 (well developed)'];
+  return y >= 2026 ? ['Minimal','Developing','Proficient','Advanced'] : ['Not met','Nearly met','Met','Exceeded'];
+}
+function topLabel(fam, y){
+  if (fam === 'elpac') return '% Level 4';
+  if (y === undefined) return '% met/exceeded (proficient or above)';
+  return y >= 2026 ? '% proficient or above' : '% met or exceeded';
+}
 
 /* =========================================================================
    State and storage (IndexedDB; falls back to memory only)
    ========================================================================= */
 const S = {
   dash: [],      // {y, ind, cds, rtype, sname, dname, group, denom, status, pdenom, pstatus, change, color, file}
-  caaspp: [],    // {y, cds, type, group, grade, test, enr, tested, scored, mss, exc, met, metab, near, notmet, file}
+  assess: [],    // {y, cds, test:'ela'|'math'|'sci'|'elpac', group, grade, enr, tested, scored, mss, l1..l4 (lowest..highest level %), top, file}
   names: {},     // cds14 -> {name, type:'county'|'district'|'school', district}
-  caGroups: {},  // id -> label (from file)
+  caGroups: {}, elGroups: {},  // student group id -> label (from a loaded StudentGroups file)
   files: [],     // {name, kind, label, rows, year, loaded}
   view: COUNTY_KEY,
-  dashYear: null, caYear: null,
+  dashYear: null, caYear: null, elYear: null,
 };
 
 const DB = (() => {
@@ -287,11 +327,19 @@ const DB = (() => {
 })();
 
 async function save(){
-  await DB.set('data', {dash:S.dash, caaspp:S.caaspp, names:S.names, caGroups:S.caGroups, files:S.files, v:1});
+  aIndex = null;
+  await DB.set('data', {dash:S.dash, assess:S.assess, names:S.names, caGroups:S.caGroups, elGroups:S.elGroups, files:S.files, v:2});
 }
 async function restore(){
   const d = await DB.get('data');
-  if (d && d.v === 1){ Object.assign(S, {dash:d.dash||[], caaspp:d.caaspp||[], names:d.names||{}, caGroups:d.caGroups||{}, files:d.files||[]}); }
+  if (!d) return;
+  Object.assign(S, {dash:d.dash||[], names:d.names||{}, caGroups:d.caGroups||{}, elGroups:d.elGroups||{}, files:d.files||[]});
+  if (d.v === 2) S.assess = d.assess || [];
+  if (d.v === 1){ // first release stored Smarter Balanced rows in a different shape
+    S.assess = (d.caaspp||[]).map(r => ({y:r.y, cds:r.cds, test:r.test===1?'ela':'math', group:r.group, grade:r.grade, enr:r.enr, tested:r.tested,
+      scored:r.scored, mss:r.mss, l1:r.notmet, l2:r.near, l3:r.met, l4:r.exc, top:r.metab, file:r.file}));
+  }
+  aIndex = null;
 }
 
 /* =========================================================================
@@ -369,19 +417,27 @@ async function unzip(file){
 }
 
 async function sniff(file){
-  const head = await file.slice(0, 8192).text();
-  const line = head.split(/\r?\n/)[0] || '';
+  // ETS files are sometimes Windows-1252 rather than UTF-8; check before parsing so names decode correctly.
+  const bytes = new Uint8Array(await file.slice(0, 2 * 1024 * 1024).arrayBuffer());
+  let enc = 'utf-8';
+  try{ new TextDecoder('utf-8', {fatal:true}).decode(bytes, {stream:true}); }catch(e){ enc = 'windows-1252'; }
+  const head = new TextDecoder(enc).decode(bytes.subarray(0, 16384)).replace(/^\uFEFF/, '');
+  const lines = head.split(/\r?\n/);
+  const line = lines[0] || '';
   const counts = {'^':0,'\t':0,',':0,'|':0};
   for (const c of line) if (c in counts) counts[c]++;
   const delim = Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
   const headers = line.split(delim).map(h => h.replace(/^"|"$/g,'').trim());
-  return {delim, headers, keys: headers.map(norm)};
+  const keys = headers.map(norm);
+  const firstVals = (lines[1] || '').split(delim);
+  const first = {}; keys.forEach((k, i) => first[k] = (firstVals[i] || '').replace(/^"|"$/g,'').trim());
+  return {delim, enc, headers, keys, first};
 }
 
 function classify(name, keys){
   const has = k => keys.includes(k);
   if (has('cds') && has('studentgroup') && has('currstatus')) return 'dash';
-  if (has('testid') && has('grade') && (has('countycode') || has('districtcode'))) return 'caaspp';
+  if (has('testid') && has('grade') && (has('countycode') || has('districtcode'))) return 'assess';
   if (has('countyname') && has('typeid') && has('schoolcode') && !has('testid')) return 'entities';
   if (keys.some(k => /demographic|studentgroup/.test(k)) && keys.some(k => /name/.test(k)) && keys.length <= 8) return 'groups';
   return null;
@@ -390,20 +446,21 @@ function classify(name, keys){
 function dashIndicatorFromName(name){
   const n = name.toLowerCase();
   if (/elpi|elprogress/.test(n)) return 'elpi';
+  if (/scien/.test(n)) return 'sci';
   if (/ela/.test(n)) return 'ela';
   if (/math/.test(n)) return 'math';
-  if (/chronic|chrabs|absent/.test(n)) return 'chronic';
+  if (/chronic|chrabs|absent|chron/.test(n)) return 'chronic';
   if (/susp/.test(n)) return 'susp';
   if (/grad/.test(n)) return 'grad';
   if (/cci|college|career/.test(n)) return 'cci';
   return null;
 }
 
-function parseStream(file, delim, onRows){
+function parseStream(file, s, onRows){
   return new Promise((resolve, reject) => {
     let seen = 0;
     Papa.parse(file, {
-      delimiter: delim, header: true, skipEmptyLines: true, chunkSize: 1024 * 1024 * 4,
+      delimiter: s.delim, encoding: s.enc, header: true, skipEmptyLines: true, chunkSize: 1024 * 1024 * 4,
       transformHeader: h => norm(h),
       chunk: (res) => { seen += res.data.length; onRows(res.data); setProgress(`Reading ${file.name}… ${seen.toLocaleString()} rows`); },
       complete: () => resolve(seen),
@@ -423,16 +480,16 @@ async function ingest(fileList){
   // Entities and group lists first so names resolve.
   const sniffed = [];
   for (const f of files){ const s = await sniff(f); sniffed.push({f, s, kind: classify(f.name, s.keys)}); }
-  const order = {entities:0, groups:1, dash:2, caaspp:3};
+  const order = {entities:0, groups:1, dash:2, assess:3};
   sniffed.sort((a,b) => (order[a.kind] ?? 9) - (order[b.kind] ?? 9));
   const report = [];
   for (const {f, s, kind} of sniffed){
     try{
       if (kind === 'dash') report.push(await loadDash(f, s));
-      else if (kind === 'caaspp') report.push(await loadCaaspp(f, s));
+      else if (kind === 'assess') report.push(await loadAssess(f, s));
       else if (kind === 'entities') report.push(await loadEntities(f, s));
       else if (kind === 'groups') report.push(await loadGroups(f, s));
-      else report.push(`${f.name}: not recognized as a Dashboard, CAASPP, or entities file — skipped.`);
+      else report.push(`${f.name}: not a Dashboard, CAASPP, ELPAC, or entities file — skipped.`);
     }catch(e){ console.error(e); report.push(`${f.name}: could not be read (${e.message}).`); }
   }
   setProgress('Saving…');
@@ -448,7 +505,7 @@ function recordFile(entry){
 }
 
 async function loadDash(f, s){
-  let ind = dashIndicatorFromName(f.name);
+  let ind = dashIndicatorFromName(f.name) || (s.first.indicator ? dashIndicatorFromName(s.first.indicator) : null);
   if (!ind){
     const ans = prompt(`Which Dashboard indicator is "${f.name}"?\nType one of: ${IND_ORDER.join(', ')}`, '');
     ind = ans && IND[ans.trim().toLowerCase()] ? ans.trim().toLowerCase() : null;
@@ -456,7 +513,7 @@ async function loadDash(f, s){
   }
   const fileYear = yearFromName(f.name);
   const rows = [];
-  await parseStream(f, s.delim, data => {
+  await parseStream(f, s, data => {
     for (const r of data){
       const cds = pad(r.cds, 14);
       const rtype = String(r.rtype || '').trim().toUpperCase();
@@ -484,44 +541,76 @@ async function loadDash(f, s){
   return `${f.name}: Dashboard ${IND[ind].name} ${years.join(', ')} — ${rows.length.toLocaleString()} Modoc/state rows kept.`;
 }
 
-async function loadCaaspp(f, s){
-  const rows = [];
+function pick(r, keys){ for (const k of keys){ if (r[k] !== undefined) return num(r[k]); } return null; }
+const aKey = (y, test, cds, group, grade) => y + '|' + test + '|' + cds + '|' + group + '|' + grade;
+let aIndex = null;
+
+/* CAASPP (Smarter Balanced ELA/Math, CAST science) and Summative ELPAC research files.
+   Handles the 2026 layout (Advanced/Proficient/Developing/Minimal) and the earlier one (Exceeded/Met/Nearly Met/Not Met). */
+async function loadAssess(f, s){
+  const fam = s.keys.includes('overallperflvl1pcnt') ? 'elpac' : 'caaspp';
+  const ids = fam === 'elpac' ? ELPAC_TEST_IDS : CAASPP_TEST_IDS;
   const fileYear = yearFromName(f.name);
-  await parseStream(f, s.delim, data => {
+  const rows = [];
+  await parseStream(f, s, data => {
     for (const r of data){
       const cc = pad(r.countycode, 2), dc = pad(r.districtcode, 5), sc = pad(r.schoolcode, 7);
       const cds = cc + dc + sc;
-      const isState = cds === STATE_KEY;
-      if (!(cc === COUNTY_CODE || isState)) continue;
-      const test = num(r.testid);
-      if (!CA_TESTS[test]) continue;
-      if (r.testtype && String(r.testtype).trim() && String(r.testtype).trim().toUpperCase() !== 'B') continue;
-      rows.push({
-        y: num(r.testyear) || fileYear, cds, type: num(r.typeid),
-        group: num(r.studentgroupid ?? r.subgroupid ?? r.demographicid), grade: num(r.grade), test,
-        enr: num(r.studentsenrolled), tested: num(r.studentstested), scored: num(r.studentswithscores),
-        mss: num(r.meanscalescore),
-        exc: num(r.percentagestandardexceeded), met: num(r.percentagestandardmet),
-        metab: num(r.percentagestandardmetandabove), near: num(r.percentagestandardnearlymet),
-        notmet: num(r.percentagestandardnotmet), file: f.name,
-      });
+      if (!(cc === COUNTY_CODE || cds === STATE_KEY)) continue;
+      const test = ids[num(r.testid)];
+      if (!test) continue;                         // CAA, CSA, Initial ELPAC, etc. are not shown
+      const gs = String(r.grade ?? '').trim().toUpperCase();
+      const grade = (gs === 'KN' || gs === 'K') ? 0 : num(gs);
+      if (grade === null || grade === 99) continue; // 99 = CAST cohort/graduating class
+      const row = {
+        y: num(r.testyear) || fileYear, cds, test, grade,
+        group: num(r.studentgroupid ?? r.subgroupid ?? r.demographicid),
+        enr: pick(r, ['totalstudentsenrolled','studentsenrolled']),
+        tested: pick(r, ['totalstudentstested','studentstested']),
+        scored: pick(r, ['totalstudentstestedwithscores','studentswithscores']),
+        file: f.name,
+      };
+      if (fam === 'elpac'){
+        row.mss = pick(r, ['overallmeansclscr']);
+        for (let i = 1; i <= 4; i++) row['l' + i] = pick(r, ['overallperflvl' + i + 'pcnt']);
+        row.top = row.l4;
+      } else {
+        row.mss = pick(r, ['meanscalescore']);
+        row.l4 = pick(r, ['percentagestandardexceeded','percentageadvanced']);
+        row.l3 = pick(r, ['percentagestandardmet','percentageproficient']);
+        row.l2 = pick(r, ['percentagestandardnearlymet','percentagedeveloping']);
+        row.l1 = pick(r, ['percentagestandardnotmet','percentageminimal']);
+        row.top = pick(r, ['percentagestandardmetandabove','percentageproficientandabove']);
+        if (row.top === null && row.l3 !== null && row.l4 !== null) row.top = row.l3 + row.l4;
+      }
+      rows.push(row);
+      // Current research files carry district and school names on every row.
+      if (cc === COUNTY_CODE){
+        const lvl = levelOf(cds), dn = (r.districtname || '').trim(), sn = (r.schoolname || '').trim();
+        if (lvl === 'district' && dn) S.names[cds] = {name:dn, type:'district'};
+        if (lvl === 'school' && sn) S.names[cds] = {name:sn, type:'school'};
+        if (lvl === 'school' && dn && !S.names[distKey(cds)]) S.names[distKey(cds)] = {name:dn, type:'district'};
+      }
     }
   });
-  const years = uniq(rows.map(r=>r.y));
-  S.caaspp = S.caaspp.filter(r => !years.includes(r.y) || !rowsOverlap(r, rows)).filter(r => r.file !== f.name).concat(rows);
-  recordFile({name:f.name, kind:'caaspp', label:'CAASPP Smarter Balanced (ELA/Math)', rows:rows.length, year:years.join(', ')});
-  if (!rows.length) return `${f.name}: no Modoc County rows found in this CAASPP file.`;
-  return `${f.name}: CAASPP ${years.join(', ')} — ${rows.length.toLocaleString()} Modoc/state rows kept.`;
-}
-// A new CAASPP file replaces existing rows for the same year+entity scope (county file vs statewide file overlap).
-function rowsOverlap(old, rows){
-  if (!rowsOverlap._set || rowsOverlap._rows !== rows){ rowsOverlap._rows = rows; rowsOverlap._set = new Set(rows.map(r => r.y + '|' + r.cds)); }
-  return rowsOverlap._set.has(old.y + '|' + old.cds);
+  // Upsert: a new row replaces an existing one for the same year, test, entity, student group and grade,
+  // so a county file and a statewide file for the same year can both be loaded.
+  const m = new Map(S.assess.map(r => [aKey(r.y, r.test, r.cds, r.group, r.grade), r]));
+  rows.forEach(r => m.set(aKey(r.y, r.test, r.cds, r.group, r.grade), r));
+  S.assess = [...m.values()];
+  aIndex = null;
+  const years = uniq(rows.map(r => r.y));
+  const tests = uniq(rows.map(r => TESTS[r.test].name));
+  const label = fam === 'elpac' ? 'Summative ELPAC' : 'CAASPP · ' + tests.join(', ');
+  const scope = rows.some(r => r.cds === STATE_KEY) ? (rows.some(r => r.cds !== STATE_KEY) ? 'Modoc + state rows' : 'state rows') : 'Modoc rows';
+  recordFile({name:f.name, kind:fam, label, rows:rows.length, year:years.join(', ')});
+  if (!rows.length) return `${f.name}: no Modoc County or statewide rows found.`;
+  return `${f.name}: ${label} ${years.join(', ')} — ${rows.length.toLocaleString()} ${scope} kept.`;
 }
 
 async function loadEntities(f, s){
   let n = 0;
-  await parseStream(f, s.delim, data => {
+  await parseStream(f, s, data => {
     for (const r of data){
       const cc = pad(r.countycode, 2); if (cc !== COUNTY_CODE) continue;
       const cds = cc + pad(r.districtcode,5) + pad(r.schoolcode,7);
@@ -537,26 +626,33 @@ async function loadEntities(f, s){
 
 async function loadGroups(f, s){
   let n = 0;
+  const isElpac = !s.keys.includes('demographicname');  // CAASPP lists use "Demographic ..." headers
+  const target = isElpac ? S.elGroups : S.caGroups;
   const idKey = s.keys.find(k => /^(demographicid|studentgroupid|demographicidnum)$/.test(k)) || s.keys.find(k => /id/.test(k));
   const nameKey = s.keys.find(k => /name/.test(k));
-  await parseStream(f, s.delim, data => {
-    for (const r of data){ const id = num(r[idKey]); if (id !== null && r[nameKey]){ S.caGroups[id] = r[nameKey].trim(); n++; } }
+  await parseStream(f, s, data => {
+    for (const r of data){ const id = num(r[idKey]); if (id !== null && r[nameKey]){ target[id] = r[nameKey].trim(); n++; } }
   });
-  recordFile({name:f.name, kind:'groups', label:'CAASPP student group names', rows:n, year:''});
-  return `${f.name}: ${n} CAASPP student group names loaded.`;
+  const which = isElpac ? 'ELPAC' : 'CAASPP';
+  recordFile({name:which + ' ' + f.name, kind:'groups', label:which + ' student group names', rows:n, year:''});
+  return `${f.name}: ${n} ${which} student group names loaded.`;
 }
 
 /* =========================================================================
    Data access
    ========================================================================= */
 const dashYears = () => uniq(S.dash.map(r=>r.y)).filter(Boolean).sort((a,b)=>b-a);
-const caYears   = () => uniq(S.caaspp.map(r=>r.y)).filter(Boolean).sort((a,b)=>b-a);
+const famYears = fam => uniq(S.assess.filter(r => TESTS[r.test].fam === fam).map(r=>r.y)).filter(Boolean).sort((a,b)=>b-a);
 function pickDefaultYears(force){
-  const dy = dashYears(), cy = caYears();
+  const dy = dashYears(), cy = famYears('caaspp'), ey = famYears('elpac');
   if (force || !dy.includes(S.dashYear)) S.dashYear = dy[0] || null;
   if (force || !cy.includes(S.caYear)) S.caYear = cy[0] || null;
+  if (force || !ey.includes(S.elYear)) S.elYear = ey[0] || null;
 }
-function caGroupName(id){ return S.caGroups[id] || CA_GROUPS_BUILTIN[id] || ('Student group ID ' + id); }
+function groupName(id, fam){
+  return fam === 'elpac' ? (S.elGroups[id] || EL_GROUPS[id] || 'Student group ID ' + id)
+                         : (S.caGroups[id] || CA_GROUPS[id] || 'Student group ID ' + id);
+}
 
 function dashRow(cds, ind, group, y){
   return S.dash.find(r => r.cds === cds && r.ind === ind && r.group === group && r.y === y) || null;
@@ -576,16 +672,16 @@ function dashCounty(ind, group, y){
 }
 function dashFor(cds, ind, group, y){ return cds === COUNTY_KEY ? dashCounty(ind, group, y) : dashRow(cds, ind, group, y); }
 
-function caRow(cds, test, group, grade, y){
-  return S.caaspp.find(r => r.cds === cds && r.test === test && r.group === group && r.grade === grade && r.y === y) || null;
+function aRow(cds, test, group, grade, y){
+  if (!aIndex) aIndex = new Map(S.assess.map(r => [aKey(r.y, r.test, r.cds, r.group, r.grade), r]));
+  return aIndex.get(aKey(y, test, cds, group, grade)) || null;
 }
-function metab(r){ if (!r) return null; if (r.metab !== null) return r.metab; if (r.met !== null && r.exc !== null) return r.met + r.exc; return null; }
 
 /* Entities known in Modoc, from any source */
 function entities(){
   const keys = new Set(Object.keys(S.names));
   S.dash.forEach(r => { if (r.cds !== STATE_KEY && r.cds !== COUNTY_KEY) keys.add(r.cds); });
-  S.caaspp.forEach(r => { if (r.cds !== STATE_KEY && r.cds !== COUNTY_KEY) keys.add(r.cds); });
+  S.assess.forEach(r => { if (r.cds !== STATE_KEY && r.cds !== COUNTY_KEY) keys.add(r.cds); });
   const all = [...keys].filter(k => k.startsWith(COUNTY_CODE) && k.length === 14);
   const districts = all.filter(k => levelOf(k) === 'district');
   all.filter(k => levelOf(k) === 'school').forEach(k => { if (!districts.includes(distKey(k))) districts.push(distKey(k)); });
@@ -605,19 +701,19 @@ function gauge(color){
   for (let i=1;i<=5;i++) h += `<i class="${color===i?'on':''}" style="${color===i?`background:var(--c${i})`:''}"></i>`;
   return h + '</div>';
 }
-function statusText(ind, v){ if (v === null || v === undefined) return '—'; const m = IND[ind]; return m.kind === 'dfs' ? signed(v) : fmt(v) + '%'; }
-function unitWord(ind){ return IND[ind].kind === 'dfs' ? 'points from standard' : 'percent'; }
+function statusText(ind, v){ if (v === null || v === undefined) return '—'; const m = IND[ind]; return m.kind === 'dfs' ? signed(v) : m.kind === 'pts' ? fmt(v) : fmt(v) + '%'; }
+const statusUnit = ind => ({dfs:'(points from standard)', pts:'(average science points)', pct:''})[IND[ind].kind];
 function changeText(ind, r){
   if (!r || r.change === null || r.change === undefined) return 'No prior-year comparison';
   const m = IND[ind];
   if (Math.abs(r.change) < 0.05) return 'Maintained (±0.0)';
   const dir = r.change > 0 ? 'Increased' : 'Declined';
   const good = (r.change > 0) === (m.better === 'high');
-  return `${dir} ${Math.abs(r.change).toFixed(1)}${m.kind==='dfs'?' pts':' pct pts'}${good ? '' : ''}`;
+  return `${dir} ${Math.abs(r.change).toFixed(1)}${m.kind==='pct'?' pct pts':' pts'}`;
 }
 function tipFor(ind, r, who){
   if (!r) return `${who}\n${IND[ind].name}: no data`;
-  const lines = [`${who} · ${IND[ind].name}`, `Status: ${statusText(ind, r.status)} ${IND[ind].kind==='dfs'?'(points from standard)':''}`.trim(), changeText(ind, r)];
+  const lines = [`${who} · ${IND[ind].name}`, `Status: ${statusText(ind, r.status)} ${statusUnit(ind)}`.trim(), changeText(ind, r)];
   if (r.denom !== null) lines.push(`Students counted: ${fmtInt(r.denom)}`);
   if (r.calculated) lines.push('Calculated roll-up of district records — not an official Dashboard color');
   else lines.push(`Performance color: ${COLOR_NAME[r.color||0]}`);
@@ -633,7 +729,7 @@ function indicatorTiles(cds, y){
     const st = dashRow(STATE_KEY, ind, 'ALL', y);
     return `<div class="tile" data-tip="${esc(tipFor(ind, r, entityName(cds)))}">
       <div class="t-label">${esc(IND[ind].name)}</div>
-      <div class="t-value">${statusText(ind, r.status)} <span class="t-unit">${IND[ind].kind==='dfs'?'pts':''}</span></div>
+      <div class="t-value">${statusText(ind, r.status)} <span class="t-unit">${IND[ind].kind==='pct'?'':'pts'}</span></div>
       ${r.calculated ? '<div class="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="t-foot">Calculated · no color</div>'
                      : gauge(r.color) + `<div class="t-foot">${colorChip(r.color)}</div>`}
       <div class="t-foot">${esc(changeText(ind, r))}</div>
@@ -646,7 +742,7 @@ function indicatorTiles(cds, y){
 }
 
 function dashCell(ind, r, who){
-  if (!r) return `<td class="num"><span class="cell-sub">—</span></td>`;
+  if (!r || (r.status === null && !r.color)) return `<td><span class="cell-sub">—</span></td>`;
   const chip = r.calculated ? `<span class="cell-sub" style="font-weight:600;color:var(--text2)">calculated</span>` : colorChip(r.color);
   return `<td data-tip="${esc(tipFor(ind, r, who))}">${chip}<span class="cell-sub">${statusText(ind, r.status)} · ${r.change===null?'—':signed(r.change)}</span></td>`;
 }
@@ -664,9 +760,11 @@ function dashEntityTable(rowsCds, y, opts={}){
 }
 
 function dashGroupTable(cds, y){
-  const groups = DASH_GROUP_ORDER.filter(g => IND_ORDER.some(ind => dashFor(cds, ind, g, y)));
+  // Groups too small to have a status for any indicator are left out.
+  const groups = DASH_GROUP_ORDER.filter(g => IND_ORDER.some(ind => { const r = dashFor(cds, ind, g, y); return r && r.status !== null; }));
   if (!groups.length) return '';
-  return dashEntityTable(groups.map(g => ({cds, label: DASH_GROUPS[g] || g, get: ind => dashFor(cds, ind, g, y)})), y, {firstCol:'Student group'});
+  return dashEntityTable(groups.map(g => ({cds, label: DASH_GROUPS[g] || g, get: ind => dashFor(cds, ind, g, y)})), y, {firstCol:'Student group'})
+    + `<p class="note">Student groups with no reportable status for any indicator (too few students) are not listed.</p>`;
 }
 
 function dashSection(cds){
@@ -700,105 +798,152 @@ function dashSection(cds){
   return h + '</section>';
 }
 
-/* ---- CAASPP ---- */
-function stackRow(label, sub, r){
-  if (!r || (r.exc === null && r.met === null && r.near === null && r.notmet === null)){
+/* ---- CAASPP and ELPAC ---- */
+function stackRow(label, sub, r, test, y){
+  const fam = TESTS[test].fam;
+  if (!r || [r.l1, r.l2, r.l3, r.l4].every(v => v === null)){
     return `<div class="stack-row"><div class="lbl">${esc(label)}<small>${esc(sub||'')}</small></div><div class="note" style="margin:0">Suppressed or not available</div><div class="tot">—</div></div>`;
   }
-  const parts = [['notmet','Standard not met',r.notmet],['near','Standard nearly met',r.near],['met','Standard met',r.met],['exc','Standard exceeded',r.exc]];
-  const total = parts.reduce((s,p)=>s+(p[2]||0),0) || 100;
-  const tip = `${label}${sub?' · '+sub:''}\n` + parts.slice().reverse().map(p=>`${p[1]}: ${fmt(p[2])}%`).join('\n') + `\nMet or exceeded: ${fmt(metab(r))}%` + (r.tested!==null?`\nStudents tested: ${fmtInt(r.tested)}`:'') + (r.mss!==null?`\nMean scale score: ${fmt(r.mss)}`:'');
+  const names = levelNames(test, y);
+  const parts = [1,2,3,4].map(i => [i, names[i-1], r['l'+i]]);
+  const total = parts.reduce((a,p) => a + (p[2]||0), 0) || 100;
+  const tip = `${label}${sub?' · '+sub:''} · ${TESTS[test].name} ${y}\n` + parts.slice().reverse().map(p => `${p[1]}: ${fmt(p[2])}%`).join('\n')
+    + `\n${topLabel(fam, y)}: ${fmt(r.top)}%` + (r.tested!==null ? `\nStudents tested: ${fmtInt(r.tested)}` : '') + (r.mss!==null ? `\nMean scale score: ${fmt(r.mss)}` : '');
+  const pre = fam === 'elpac' ? 'e' : 'c';
   return `<div class="stack-row" data-tip="${esc(tip)}"><div class="lbl">${esc(label)}<small>${esc(sub||'')}</small></div>
-    <div class="stack" role="img" aria-label="${esc(tip)}">${parts.map(p => p[2] ? `<span class="s-${p[0]}${p[2]<9?' sm':p[2]<20?' mid':''}" style="width:${(p[2]/total*100).toFixed(2)}%">${Math.round(p[2])}%</span>` : '').join('')}</div>
-    <div class="tot">${fmt(metab(r))}%</div></div>`;
+    <div class="stack" role="img" aria-label="${esc(tip)}">${parts.map(p => p[2] ? `<span class="${pre}-${p[0]}${p[2]<9?' sm':p[2]<20?' mid':''}" style="width:${(p[2]/total*100).toFixed(2)}%">${Math.round(p[2])}%</span>` : '').join('')}</div>
+    <div class="tot">${fmt(r.top)}%</div></div>`;
 }
-function caLegend(){
-  return `<div class="legend"><span><i style="background:var(--lvl-notmet)"></i>Not met</span><span><i style="background:var(--lvl-near)"></i>Nearly met</span><span><i style="background:var(--lvl-met)"></i>Met</span><span><i style="background:var(--lvl-exc)"></i>Exceeded</span><span>· right column = % met or exceeded</span></div>`;
+function levelLegend(fam, y){
+  const names = shortLevels(fam, y), pre = fam === 'elpac' ? 'el' : 'lvl';
+  const vars = fam === 'elpac' ? ['--el1','--el2','--el3','--el4'] : ['--lvl-notmet','--lvl-near','--lvl-met','--lvl-exc'];
+  return `<div class="legend">${names.map((n,i) => `<span><i style="background:var(${vars[i]})"></i>${esc(n)}</span>`).join('')}<span>· right column = ${esc(topLabel(fam, y))}</span></div>`;
 }
 function trendChart(cds, test){
-  const ys = caYears().slice().sort((a,b)=>a-b);
+  const fam = TESTS[test].fam;
+  const ys = uniq(S.assess.filter(r => r.test === test && r.grade === 13 && r.group === 1 && (r.cds === cds || r.cds === STATE_KEY)).map(r => r.y)).sort((a,b)=>a-b);
   if (ys.length < 2) return '';
-  const series = [[cds, entityName(cds), 'var(--series-1)'], [STATE_KEY, 'California', 'var(--series-2)']];
+  const series = [[cds, entityName(cds), 'var(--series-1)'], [STATE_KEY, 'California', 'var(--series-2)']]
+    .filter(([k]) => ys.some(yr => aRow(k, test, 1, 13, yr)));
   const W=360, H=170, L=38, R=22, T=10, B=24;
-  const x = i => L + (ys.length===1?0:i*(W-L-R)/(ys.length-1));
+  const x = i => L + i*(W-L-R)/(ys.length-1);
   const yv = v => T + (100 - v) * (H-T-B) / 100;
-  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(CA_TESTS[test])} percent met or exceeded by year">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(TESTS[test].name + ' ' + topLabel(fam) + ' by year')}">`;
   [0,25,50,75,100].forEach(g => { svg += `<line class="axis" x1="${L}" x2="${W-R}" y1="${yv(g)}" y2="${yv(g)}" stroke-width="1"/><text x="${L-6}" y="${yv(g)+4}" text-anchor="end">${g}%</text>`; });
   ys.forEach((yr,i) => svg += `<text x="${x(i)}" y="${H-8}" text-anchor="middle">${yr}</text>`);
   for (const [k, name, col] of series){
-    const pts = ys.map((yr,i) => { const v = metab(caRow(k, test, 1, 13, yr)); return v===null?null:[x(i), yv(v), v, yr]; });
-    const segs = pts.filter(Boolean);
-    if (segs.length >= 2) svg += `<polyline fill="none" stroke="${col}" stroke-width="2" points="${segs.map(p=>p[0]+','+p[1]).join(' ')}"/>`;
-    segs.forEach(p => svg += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${col}" stroke="var(--surface)" stroke-width="2"><title>${esc(name)} ${p[3]}: ${fmt(p[2])}%</title></circle><circle cx="${p[0]}" cy="${p[1]}" r="12" fill="transparent" data-tip="${esc(name+' · '+CA_TESTS[test]+' '+p[3]+'\nMet or exceeded: '+fmt(p[2])+'%')}"/>`);
+    const pts = ys.map((yr,i) => { const r = aRow(k, test, 1, 13, yr); return r && r.top !== null ? [x(i), yv(r.top), r.top, yr] : null; }).filter(Boolean);
+    if (pts.length >= 2) svg += `<polyline fill="none" stroke="${col}" stroke-width="2" points="${pts.map(p=>p[0]+','+p[1]).join(' ')}"/>`;
+    pts.forEach(p => svg += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${col}" stroke="var(--surface)" stroke-width="2"/><circle cx="${p[0]}" cy="${p[1]}" r="12" fill="transparent" data-tip="${esc(name+' · '+TESTS[test].name+' '+p[3]+'\n'+topLabel(fam, p[3])+': '+fmt(p[2])+'%')}"/>`);
   }
   svg += '</svg>';
-  return `<div class="trend"><h3>${CA_TESTS[test]} — % met or exceeded over time (all grades)</h3>
-    <div class="legend"><span><i style="background:var(--series-1)"></i>${esc(entityName(cds))}</span><span><i style="background:var(--series-2)"></i>California</span></div>${svg}</div>`;
+  return `<div class="trend"><h3>${esc(TESTS[test].name)} — ${esc(topLabel(fam))} over time (all grades)</h3>
+    <div class="legend">${series.map(([,name,col]) => `<span><i style="background:${col}"></i>${esc(name)}</span>`).join('')}</div>${svg}</div>`;
 }
+/* Student groups listed first; the rest go under "More student groups". */
+const KEY_GROUPS = {
+  caaspp: [1, 31, 128, 160, 250, 240, 52, 28, 75, 76, 74, 77, 78, 79, 80, 144, 4, 3],
+  elpac:  [1, 31, 128, 250, 251, 240, 52, 28, 228, 75, 76, 74, 77, 78, 79, 80, 144, 4, 3],
+};
+const pctCell = r => `<td class="num">${r && r.top !== null ? fmt(r.top) + '%' : '—'}</td>`;
+const nCell = r => `<td class="num">${r ? fmtInt(r.tested) : '—'}</td>`;
+const l34 = r => r && r.l3 !== null && r.l4 !== null ? r.l3 + r.l4 : null;
 
-function caSection(cds){
-  const years = caYears();
-  if (!years.length) return `<section class="section"><div class="section-head"><h2>CAASPP — Smarter Balanced ELA &amp; Math</h2></div>
-    <div class="empty">No CAASPP research files loaded yet. <a href="#" data-open-data>Load CAASPP data</a> to see achievement levels by grade and student group.</div></section>`;
-  const y = S.caYear;
+function assessSection(cds, fam){
+  const cfg = fam === 'elpac'
+    ? {title:'ELPAC — English Language Proficiency (Summative)', all:['elpac'], yk:'elYear', sel:'el', what:'ELPAC research files'}
+    : {title:'CAASPP — ELA, Math &amp; Science', all:['ela','math','sci'], yk:'caYear', sel:'ca', what:'CAASPP research files (Smarter Balanced and CAST)'};
+  const years = famYears(fam);
+  if (!years.length) return `<section class="section"><div class="section-head"><h2>${cfg.title}</h2></div>
+    <div class="empty">No ${cfg.what} loaded yet. <a href="#" data-open-data>Load ${fam === 'elpac' ? 'ELPAC' : 'CAASPP'} data</a> to see results by grade and student group.</div></section>`;
+  const y = S[cfg.yk];
   const lvl = levelOf(cds);
-  const hasAny = S.caaspp.some(r => r.cds === cds && r.y === y);
-  let h = `<section class="section"><div class="section-head"><h2>CAASPP — Smarter Balanced ELA &amp; Math</h2>
-    <span class="meta">${y} results (school year ${y-1}–${String(y).slice(2)})</span>
-    <div class="right no-print"><label class="ctl">Year <select data-year="ca">${years.map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('')}</select></label></div></div>`;
+  const tests = cfg.all.filter(t => S.assess.some(r => r.test === t && r.y === y));
+  const hasAny = S.assess.some(r => r.cds === cds && r.y === y && TESTS[r.test].fam === fam);
+  const hasState = S.assess.some(r => r.cds === STATE_KEY && r.y === y && TESTS[r.test].fam === fam);
+  let h = `<section class="section"><div class="section-head"><h2>${cfg.title}</h2>
+    <span class="meta">${y} results (school year ${y-1}–${String(y).slice(2)})${fam==='caaspp' ? ' · ' + tests.map(t => TESTS[t].name).join(', ') : ''}</span>
+    <div class="right no-print"><label class="ctl">Year <select data-year="${cfg.sel}">${years.map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('')}</select></label></div></div>`;
+  if (fam === 'elpac') h += `<p class="note" style="margin:0 0 10px">The Summative ELPAC is taken each spring by English learners in grades K–12. Level 4 (Well developed) is the English proficiency criterion used for reclassification.</p>`;
+  if (fam === 'caaspp' && y >= 2026) h += `<p class="note" style="margin:0 0 10px">Starting in 2026, CAASPP renamed its achievement levels: Advanced (was Standard Exceeded), Proficient (Met), Developing (Nearly Met), Minimal (Not Met). The meanings did not change, so results are comparable with earlier years.</p>`;
   if (!hasAny){
-    h += `<div class="empty">No CAASPP results for ${esc(entityName(cds))} in ${y}. ${lvl==='county'?'Make sure the file includes the county-level rows (the Modoc county file or the statewide file does).':''}</div>`;
-  } else {
-    h += caLegend();
-    h += `<div class="two-col">` + [1,2].map(test => `<div><h3>${CA_TESTS[test]}</h3>
-      ${stackRow(entityName(cds), 'All grades', caRow(cds, test, 1, 13, y))}
-      ${stackRow('California', 'All grades', caRow(STATE_KEY, test, 1, 13, y))}</div>`).join('') + `</div>`;
-
-    // By grade
-    const grades = uniq(S.caaspp.filter(r => r.cds===cds && r.y===y && r.group===1 && r.grade!==13).map(r=>r.grade)).sort((a,b)=>a-b);
-    if (grades.length){
-      h += `<div class="two-col">` + [1,2].map(test => `<div><h3>${CA_TESTS[test]} by grade</h3>` +
-        grades.map(g => { const r = caRow(cds, test, 1, g, y); return stackRow(CA_GRADE(g), r && r.tested!==null ? `${fmtInt(r.tested)} tested` : '', r); }).join('') + `</div>`).join('') + `</div>`;
-    }
-
-    // Comparison table of LEAs/schools
-    if (lvl === 'county' || lvl === 'district'){
-      const ents = entities().filter(d => lvl==='county' || d.cds===cds);
-      const rows = [];
-      for (const d of ents){
-        if (lvl==='county') rows.push({cds:d.cds, label:entityName(d.cds), cls:''});
-        if (lvl==='district' || S.showSchools) d.schools.forEach(s => rows.push({cds:s, label:entityName(s), cls: lvl==='county'?'lvl-school':'', note: lvl==='county'?entityName(d.cds):''}));
-      }
-      rows.push({cds, label:entityName(cds) + ' (total)', cls:'', nolink:true});
-      rows.push({cds:STATE_KEY, label:'California (statewide)', cls:'state-row', nolink:true});
-      h += `<h3>${lvl==='county'?'Modoc LEAs':'Schools in this district'} — All Students, all grades</h3><div class="table-wrap"><table><thead><tr>
-        <th>${lvl==='county'?'LEA / school':'School'}</th><th class="num">ELA % met/exc.</th><th class="num">ELA tested</th><th class="num">Math % met/exc.</th><th class="num">Math tested</th></tr></thead><tbody>`;
-      for (const it of rows){
-        const e = caRow(it.cds, 1, 1, 13, y), m = caRow(it.cds, 2, 1, 13, y);
-        if (!e && !m && it.cds !== cds) continue;
-        h += `<tr class="${it.cls}${it.nolink?'':' clickable'}" ${it.nolink?'':`data-go="${it.cds}"`}><td>${it.nolink?esc(it.label):`<a class="ent-link">${esc(it.label)}</a>`}${it.note?`<span class="cell-sub">${esc(it.note)}</span>`:''}</td>
-          <td class="num">${e?fmt(metab(e))+'%':'—'}</td><td class="num">${e?fmtInt(e.tested):'—'}</td><td class="num">${m?fmt(metab(m))+'%':'—'}</td><td class="num">${m?fmtInt(m.tested):'—'}</td></tr>`;
-      }
-      h += `</tbody></table></div>`;
-      if (lvl==='county' && !S.showSchools) h += `<p class="note">Tick “show schools” in the Dashboard section to list individual schools here too.</p>`;
-    }
-
-    // By student group
-    const groups = uniq(S.caaspp.filter(r => r.cds===cds && r.y===y && r.grade===13).map(r=>r.group)).filter(g => g!==null);
-    if (groups.length > 1){
-      groups.sort((a,b) => (a===1?-1:b===1?1:caGroupName(a).localeCompare(caGroupName(b))));
-      h += `<h3>By student group — all grades</h3><div class="table-wrap"><table><thead><tr><th>Student group</th><th class="num">ELA % met/exc.</th><th class="num">ELA tested</th><th class="num">Math % met/exc.</th><th class="num">Math tested</th></tr></thead><tbody>`;
-      for (const g of groups){
-        const e = caRow(cds,1,g,13,y), m = caRow(cds,2,g,13,y);
-        if (!e && !m) continue;
-        h += `<tr><td>${esc(caGroupName(g))}</td><td class="num">${e?fmt(metab(e))+(metab(e)!==null?'%':''):'—'}</td><td class="num">${e?fmtInt(e.tested):'—'}</td><td class="num">${m?fmt(metab(m))+(metab(m)!==null?'%':''):'—'}</td><td class="num">${m?fmtInt(m.tested):'—'}</td></tr>`;
-      }
-      h += `</tbody></table></div><p class="note">“—” means CAASPP suppressed the result (fewer than 11 students) or the group was not tested.${Object.keys(S.caGroups).length?'':' Group names use a built-in list; load CAASPP’s Student Groups file for official names of every ID.'}</p>`;
-    }
-    h += `<div class="two-col">${trendChart(cds,1)}${trendChart(cds,2)}</div>`;
+    h += `<div class="empty">No ${fam === 'elpac' ? 'ELPAC' : 'CAASPP'} results for ${esc(entityName(cds))} in ${y}.${lvl==='county' ? ' Load the Modoc county “All Student Groups” file for this year.' : ''}</div>`;
+    return h + '</section>';
   }
+  h += levelLegend(fam, y);
+  h += `<div class="cols3">` + tests.map(t => `<div><h3>${esc(TESTS[t].long)}</h3>
+    ${stackRow(entityName(cds), 'All grades', aRow(cds, t, 1, 13, y), t, y)}
+    ${hasState ? stackRow('California', 'All grades', aRow(STATE_KEY, t, 1, 13, y), t, y) : ''}</div>`).join('') + `</div>`;
+  if (!hasState) h += `<p class="note">For a statewide comparison, also load the statewide “All Students” file for ${y}.</p>`;
+
+  // By grade
+  h += `<div class="cols3">` + tests.map(t => {
+    const grades = uniq(S.assess.filter(r => r.cds===cds && r.y===y && r.test===t && r.group===1 && r.grade!==13).map(r=>r.grade)).sort((a,b)=>a-b);
+    if (!grades.length) return '';
+    const shown = grades.filter(g => { const r = aRow(cds, t, 1, g, y); return r && r.top !== null; });
+    const hidden = grades.filter(g => !shown.includes(g));
+    return `<div><h3>${esc(TESTS[t].name)} by grade</h3>` + shown.map(g => { const r = aRow(cds, t, 1, g, y); return stackRow(gradeName(g), r.tested !== null ? `${fmtInt(r.tested)} tested` : '', r, t, y); }).join('')
+      + (hidden.length ? `<p class="note">Suppressed (too few students): ${hidden.map(gradeName).join(', ')}</p>` : '') + `</div>`;
+  }).join('') + `</div>`;
+
+  // LEA / school comparison
+  if (lvl === 'county' || lvl === 'district'){
+    const ents = entities().filter(d => lvl === 'county' || d.cds === cds);
+    const rows = [];
+    for (const d of ents){
+      if (lvl === 'county') rows.push({cds:d.cds, label:entityName(d.cds), cls:''});
+      if (lvl === 'district' || S.showSchools) d.schools.forEach(sc => rows.push({cds:sc, label:entityName(sc), cls: lvl==='county'?'lvl-school':'', note: lvl==='county'?entityName(d.cds):''}));
+    }
+    rows.push({cds, label:entityName(cds) + ' (total)', nolink:true, cls:''});
+    if (hasState) rows.push({cds:STATE_KEY, label:'California (statewide)', cls:'state-row', nolink:true});
+    const top = topLabel(fam, y);
+    const head = fam === 'elpac'
+      ? `<th class="num">% Level 4</th><th class="num">% Level 3 or 4</th><th class="num">Tested</th>`
+      : tests.map(t => `<th class="num">${esc(TESTS[t].name)} ${esc(top)}</th><th class="num">${esc(TESTS[t].name)} tested</th>`).join('');
+    h += `<h3>${lvl==='county'?'Modoc LEAs':'Schools in this district'} — All Students, all grades</h3><div class="table-wrap"><table><thead><tr>
+      <th>${lvl==='county'?'LEA / school':'School'}</th>${head}</tr></thead><tbody>`;
+    for (const it of rows){
+      const rs = tests.map(t => aRow(it.cds, t, 1, 13, y));
+      if (rs.every(r => !r) && it.cds !== cds) continue;
+      const cells = fam === 'elpac'
+        ? pctCell(rs[0]) + `<td class="num">${l34(rs[0]) !== null ? fmt(l34(rs[0])) + '%' : '—'}</td>` + nCell(rs[0])
+        : rs.map(r => pctCell(r) + nCell(r)).join('');
+      h += `<tr class="${it.cls}${it.nolink?'':' clickable'}" ${it.nolink?'':`data-go="${it.cds}"`}><td>${it.nolink?esc(it.label):`<a class="ent-link">${esc(it.label)}</a>`}${it.note?`<span class="cell-sub">${esc(it.note)}</span>`:''}</td>${cells}</tr>`;
+    }
+    h += `</tbody></table></div>`;
+    if (lvl === 'county' && !S.showSchools) h += `<p class="note">Tick “show schools” in the Dashboard section to list individual schools here too.</p>`;
+  }
+
+  // By student group
+  const groups = uniq(S.assess.filter(r => r.cds===cds && r.y===y && r.grade===13 && TESTS[r.test].fam===fam).map(r=>r.group)).filter(g => g !== null);
+  if (groups.length > 1){
+    groups.sort((a,b) => (a===1?-1:b===1?1:groupName(a,fam).localeCompare(groupName(b,fam))));
+    const top = topLabel(fam, y);
+    const head = fam === 'elpac'
+      ? `<th class="num">% Level 4</th><th class="num">% Level 3 or 4</th><th class="num">Tested</th>`
+      : tests.map(t => `<th class="num">${esc(TESTS[t].name)} ${esc(top)}</th><th class="num">${esc(TESTS[t].name)} tested</th>`).join('');
+    const key = KEY_GROUPS[fam];
+    const rowsFor = list => list.map(g => {
+      const rs = tests.map(t => aRow(cds, t, g, 13, y));
+      if (rs.every(r => !r || r.top === null)) return '';   // fully suppressed or not tested
+      const cells = fam === 'elpac'
+        ? pctCell(rs[0]) + `<td class="num">${l34(rs[0]) !== null ? fmt(l34(rs[0])) + '%' : '—'}</td>` + nCell(rs[0])
+        : rs.map(r => pctCell(r) + nCell(r)).join('');
+      return `<tr><td>${esc(groupName(g, fam))}</td>${cells}</tr>`;
+    }).filter(Boolean);
+    const main = rowsFor(groups.filter(g => key.includes(g)).sort((a,b) => key.indexOf(a) - key.indexOf(b)));
+    const more = rowsFor(groups.filter(g => !key.includes(g)));
+    const table = rows => `<div class="table-wrap"><table><thead><tr><th>Student group</th>${head}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+    h += `<h3>By student group — all grades</h3>` + table(main);
+    if (more.length) h += `<details class="more"><summary>More student groups (${more.length})</summary>${table(more)}</details>`;
+    h += `<p class="note">Groups whose results are all suppressed are not listed. CAASPP and ELPAC hide results for groups of 10 or fewer students to protect privacy; “—” marks a single suppressed result.</p>`;
+  }
+  h += `<div class="cols3">${tests.map(t => trendChart(cds, t)).join('')}</div>`;
   const cc = cds.slice(0,2), dc = cds.slice(2,7), sc = cds.slice(7);
-  h += `<div class="links no-print"><a href="https://caaspp-elpac.ets.org/caaspp/DashViewReportSB?ps=true&lstTestYear=${y}&lstTestType=B&lstGroup=1&lstSubGroup=1&lstSchoolType=A&lstGrade=13&lstCounty=${cc}&lstDistrict=${dc}&lstSchool=${sc}" target="_blank" rel="noopener">Open the official CAASPP results page ↗</a></div>`;
+  const link = t => { const T = TESTS[t], base = T.fam === 'elpac' ? 'elpac' : 'caaspp';
+    return `https://caaspp-elpac.ets.org/${base}/${T.report}?ps=true&lstTestYear=${y}&lstTestType=${T.type}&lstGroup=1&lstSubGroup=${T.fam==='elpac'?'001':'1'}&lstSchoolType=A&lstGrade=13&lstCounty=${cc}&lstDistrict=${dc}&lstSchool=${sc}`; };
+  const linkTests = fam === 'elpac' ? ['elpac'] : uniq(tests.map(t => t === 'math' ? 'ela' : t));
+  h += `<div class="links no-print">${linkTests.map(t => `<a href="${esc(link(t))}" target="_blank" rel="noopener">Official ${t==='elpac'?'ELPAC':t==='sci'?'CAST':'Smarter Balanced'} results page ↗</a>`).join('')}</div>`;
   return h + '</section>';
 }
 
@@ -806,7 +951,7 @@ function caSection(cds){
 function welcome(){
   return `<div class="welcome">
     <section class="section"><h2 style="margin-top:0">Welcome</h2>
-      <p>This hub brings Modoc County's <b>CA School Dashboard</b> indicators and <b>CAASPP</b> test results onto one page: the county first, then every district and school.</p>
+      <p>This hub brings Modoc County's <b>CA School Dashboard</b> indicators, <b>CAASPP</b> results (ELA, Math, and CAST Science), and <b>ELPAC</b> results onto one page: the county first, then every district and school.</p>
       <p>To get started, load the public data files from CDE and ETS. It takes about five minutes, and you only do it once per year. The data stays saved in this browser.</p>
       <button class="btn primary" data-open-data>Load data files</button></section>
     <section class="section"><h2 style="margin-top:0">What you'll see</h2>
@@ -814,7 +959,7 @@ function welcome(){
         <li>County-wide summary of Dashboard indicators and CAASPP results, compared with the state</li>
         <li>Every Modoc LEA and school side by side, with Dashboard colors</li>
         <li>Student group results for each indicator</li>
-        <li>CAASPP achievement levels by grade, and trends when you load more than one year</li>
+        <li>CAASPP and ELPAC achievement levels by grade, and trends when you load more than one year</li>
         <li>Links to each official Dashboard and CAASPP report</li>
       </ul></section></div>`;
 }
@@ -822,7 +967,7 @@ function welcome(){
 function renderPage(){
   const cds = S.view;
   const lvl = levelOf(cds);
-  const hasData = S.dash.length || S.caaspp.length;
+  const hasData = S.dash.length || S.assess.length;
   let crumbs = `<a data-go="${COUNTY_KEY}">Modoc County</a>`;
   if (lvl === 'district') crumbs += ' › ' + esc(entityName(cds));
   if (lvl === 'school') crumbs += ` › <a data-go="${distKey(cds)}">${esc(entityName(distKey(cds)))}</a> › ` + esc(entityName(cds));
@@ -830,9 +975,9 @@ function renderPage(){
     ? `Every LEA and school in Modoc County · ${entities().length} LEAs`
     : lvl === 'district' ? `District / LEA · CDS ${cds}` : `School in ${esc(entityName(distKey(cds)))} · CDS ${cds}`;
   let h = `${lvl!=='county'?`<div class="crumbs">${crumbs}</div>`:''}<h1>${esc(entityName(cds))}</h1><p class="sub">${sub}</p>`;
-  if (!hasData) h += welcome() + dashSection(cds) + caSection(cds);
-  else h += dashSection(cds) + caSection(cds);
-  h += `<p class="note">Sources: California Department of Education, CA School Dashboard downloadable data files; ETS/CDE, CAASPP research files. Data files loaded: ${S.files.length}. ${S.files.length?'Last load: '+new Date(Math.max(...S.files.map(f=>Date.parse(f.loaded)||0))).toLocaleDateString():''}</p>`;
+  if (!hasData) h += welcome();
+  h += dashSection(cds) + assessSection(cds, 'caaspp') + assessSection(cds, 'elpac');
+  h += `<p class="note">Sources: California Department of Education, CA School Dashboard downloadable data files; CDE/ETS, CAASPP and ELPAC research files. Data files loaded: ${S.files.length}. ${S.files.length?'Last load: '+new Date(Math.max(...S.files.map(f=>Date.parse(f.loaded)||0))).toLocaleDateString():''}</p>`;
   $('#main').innerHTML = h;
 }
 
@@ -883,8 +1028,8 @@ drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) ingest([..
 document.addEventListener('dragover', e => e.preventDefault());
 document.addEventListener('drop', e => { if (!drop.contains(e.target)){ e.preventDefault(); if (e.dataTransfer.files.length){ openDrawer(true); ingest([...e.dataTransfer.files]); } } });
 $('#clearBtn').onclick = async () => {
-  if (!confirm('Remove all loaded Dashboard and CAASPP data from this browser?')) return;
-  Object.assign(S, {dash:[], caaspp:[], names:{}, caGroups:{}, files:[], view:COUNTY_KEY});
+  if (!confirm('Remove all loaded Dashboard, CAASPP, and ELPAC data from this browser?')) return;
+  Object.assign(S, {dash:[], assess:[], names:{}, caGroups:{}, elGroups:{}, files:[], view:COUNTY_KEY});
   await save(); setProgress('All data cleared.'); renderAll();
 };
 $('#themeBtn').onclick = () => {
@@ -904,6 +1049,7 @@ document.querySelector('.drawer').addEventListener('click', e => { const g = e.t
 $('#main').addEventListener('change', e => {
   if (e.target.matches('[data-year="dash"]')){ S.dashYear = Number(e.target.value); renderPage(); }
   if (e.target.matches('[data-year="ca"]')){ S.caYear = Number(e.target.value); renderPage(); }
+  if (e.target.matches('[data-year="el"]')){ S.elYear = Number(e.target.value); renderPage(); }
   if (e.target.id === 'showSchools'){ S.showSchools = e.target.checked; renderPage(); }
 });
 // Tooltip
