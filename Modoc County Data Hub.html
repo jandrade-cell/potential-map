@@ -93,6 +93,18 @@ h3{font-size:14px;margin:18px 0 8px}
 .callout{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:8px;padding:8px 12px;font-size:12.5px;margin:0 0 12px}
 .empty{border:1px dashed var(--border);border-radius:8px;padding:18px;color:var(--text2);text-align:center}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.navgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+a.navcard{display:block;text-decoration:none;color:inherit;border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface);transition:border-color .15s,box-shadow .15s}
+a.navcard:hover,a.navcard:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+a.navcard.current{border-color:var(--accent);background:var(--accent-soft)}
+.navcard .nc-name{font-weight:700;font-size:15px;color:var(--link)}
+.navcard .nc-sub{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.navcard .nc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.navcard .nc-stats div{font-size:11px;color:var(--muted);line-height:1.3}
+.navcard .nc-stats b{display:block;font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
+.sibs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.sibs a{font-size:12.5px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;text-decoration:none;color:var(--link);background:var(--surface)}
+.sibs a.current{background:var(--accent-soft);border-color:var(--accent);color:var(--text);font-weight:600}
 .tile{border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface);cursor:default}
 .tile .t-label{font-size:12px;font-weight:600;color:var(--text2)}
 .tile .t-value{font-size:26px;font-weight:700;line-height:1.2;margin-top:4px;font-variant-numeric:tabular-nums}
@@ -778,7 +790,7 @@ function dashEntityTable(rowsCds, y, opts={}){
   let h = `<div class="table-wrap"><table><thead><tr><th>${esc(opts.firstCol || 'LEA / school')}</th>${inds.map(i=>`<th>${esc(IND[i].short)}</th>`).join('')}</tr></thead><tbody>`;
   for (const item of rowsCds){
     const cls = item.cls || '';
-    h += `<tr class="${cls}${item.link?' clickable':''}" ${item.link?`data-go="${item.cds}"`:''}><td>${item.link?`<a class="ent-link">${esc(item.label)}</a>`:esc(item.label)}${item.note?`<span class="cell-sub">${esc(item.note)}</span>`:''}</td>`;
+    h += `<tr class="${cls}${item.link?' clickable':''}" ${item.link?`data-go="${item.cds}"`:''}><td>${item.link?`<a class="ent-link" href="${hrefOf(item.cds)}">${esc(item.label)}</a>`:esc(item.label)}${item.note?`<span class="cell-sub">${esc(item.note)}</span>`:''}</td>`;
     for (const ind of inds) h += dashCell(ind, item.get(ind), item.label);
     h += '</tr>';
   }
@@ -934,7 +946,7 @@ function assessSection(cds, fam){
       const cells = fam === 'elpac'
         ? pctCell(rs[0]) + `<td class="num">${l34(rs[0]) !== null ? fmt(l34(rs[0])) + '%' : '—'}</td>` + nCell(rs[0])
         : rs.map(r => pctCell(r) + nCell(r)).join('');
-      h += `<tr class="${it.cls}${it.nolink?'':' clickable'}" ${it.nolink?'':`data-go="${it.cds}"`}><td>${it.nolink?esc(it.label):`<a class="ent-link">${esc(it.label)}</a>`}${it.note?`<span class="cell-sub">${esc(it.note)}</span>`:''}</td>${cells}</tr>`;
+      h += `<tr class="${it.cls}${it.nolink?'':' clickable'}" ${it.nolink?'':`data-go="${it.cds}"`}><td>${it.nolink?esc(it.label):`<a class="ent-link" href="${hrefOf(it.cds)}">${esc(it.label)}</a>`}${it.note?`<span class="cell-sub">${esc(it.note)}</span>`:''}</td>${cells}</tr>`;
     }
     h += `</tbody></table></div>`;
     if (lvl === 'county' && !S.showSchools) h += `<p class="note">Tick “show schools” in the Dashboard section to list individual schools here too.</p>`;
@@ -990,21 +1002,79 @@ function welcome(){
       </ul></section></div>`;
 }
 
+/* ---- Navigation: county -> district -> school, with readable, bookmarkable addresses ---- */
+const slugify = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function slugOf(cds){
+  const lvl = levelOf(cds);
+  if (lvl === 'county' || lvl === 'state') return '';
+  const own = slugify(entityName(cds)) || cds;
+  // Keep slugs unique among siblings (two schools could share a name).
+  const sibs = lvl === 'district' ? entities().map(d => d.cds) : ((entities().find(d => d.cds === distKey(cds)) || {schools:[]}).schools);
+  const dup = sibs.filter(k => k !== cds && slugify(entityName(k)) === own).length;
+  const mine = dup ? own + '-' + cds.slice(-7) : own;
+  return lvl === 'district' ? mine : slugOf(distKey(cds)) + '/' + mine;
+}
+const hrefOf = cds => '#' + (slugOf(cds) || '');
+function cdsFromHash(hash){
+  const h = decodeURIComponent((hash || '').replace(/^#\/?/, '')).trim().toLowerCase();
+  if (!h) return COUNTY_KEY;
+  if (/^\d{14}$/.test(h)) return h;
+  for (const d of entities()){
+    if (slugOf(d.cds) === h) return d.cds;
+    for (const sc of d.schools) if (slugOf(sc) === h) return sc;
+  }
+  return null;
+}
+function navCard(cds, sub, current){
+  const ely = S.caYear, dy = S.dashYear;
+  const e = ely ? aRow(cds, 'ela', 1, 13, ely) : null, m = ely ? aRow(cds, 'math', 1, 13, ely) : null;
+  const ca = dy ? dashRow(cds, 'chronic', 'ALL', dy) : null;
+  const pct = r => r && r.top !== null ? fmt(r.top, 0) + '%' : '—';
+  return `<a class="navcard${current ? ' current' : ''}" href="${hrefOf(cds)}">
+    <div class="nc-name">${esc(entityName(cds))}</div><div class="nc-sub">${esc(sub)}</div>
+    <div class="nc-stats"><div><b>${pct(e)}</b>ELA proficient</div><div><b>${pct(m)}</b>Math proficient</div>
+    <div><b>${ca && ca.status !== null ? fmt(ca.status) + '%' : '—'}</b>Chronic absence</div></div></a>`;
+}
+function navSection(cds){
+  const lvl = levelOf(cds), ents = entities();
+  const yrs = [S.caYear ? `CAASPP ${S.caYear}` : '', S.dashYear ? `Dashboard ${S.dashYear}` : ''].filter(Boolean).join(', ');
+  const foot = `<p class="note">${yrs ? `Figures: ${yrs}. ` : ''}“Proficient” = met or exceeded the standard (All Students). Chronic absence is a K–8 Dashboard measure, so high schools show “—”. Small groups are suppressed.</p>`;
+  if (lvl === 'county'){
+    if (!ents.length) return '';
+    return `<section class="section"><div class="section-head"><h2>Districts</h2><span class="meta">Choose a district to see its results and its schools</span></div>
+      <div class="navgrid">${ents.map(d => navCard(d.cds, `${d.schools.length} school${d.schools.length===1?'':'s'}`)).join('')}</div>${foot}</section>`;
+  }
+  if (lvl === 'district'){
+    const d = ents.find(x => x.cds === cds);
+    if (!d || !d.schools.length) return '';
+    return `<section class="section"><div class="section-head"><h2>Schools in ${esc(entityName(cds))}</h2><span class="meta">Choose a school to see its results</span></div>
+      <div class="navgrid">${d.schools.map(sc => navCard(sc, 'School')).join('')}</div>${foot}</section>`;
+  }
+  const d = ents.find(x => x.cds === distKey(cds));
+  if (!d || d.schools.length < 2) return '';
+  return `<nav class="sibs no-print" aria-label="Schools in ${esc(entityName(d.cds))}">${d.schools.map(sc =>
+    `<a href="${hrefOf(sc)}" class="${sc===cds?'current':''}" ${sc===cds?'aria-current="page"':''}>${esc(entityName(sc))}</a>`).join('')}</nav>`;
+}
+
 function renderPage(){
   const cds = S.view;
   const lvl = levelOf(cds);
   const hasData = S.dash.length || S.assess.length;
-  let crumbs = `<a data-go="${COUNTY_KEY}">Modoc County</a>`;
+  let crumbs = `<a href="#">Modoc County</a>`;
   if (lvl === 'district') crumbs += ' › ' + esc(entityName(cds));
-  if (lvl === 'school') crumbs += ` › <a data-go="${distKey(cds)}">${esc(entityName(distKey(cds)))}</a> › ` + esc(entityName(cds));
+  if (lvl === 'school') crumbs += ` › <a href="${hrefOf(distKey(cds))}">${esc(entityName(distKey(cds)))}</a> › ` + esc(entityName(cds));
+  const ents = entities();
+  const nSchools = ents.reduce((a, d) => a + d.schools.length, 0);
   const sub = lvl === 'county'
-    ? `Every LEA and school in Modoc County · ${entities().length} LEAs`
-    : lvl === 'district' ? `District / LEA · CDS ${cds}` : `School in ${esc(entityName(distKey(cds)))} · CDS ${cds}`;
+    ? `All county results · ${ents.length} districts · ${nSchools} schools`
+    : lvl === 'district' ? `District · ${(ents.find(d => d.cds === cds) || {schools:[]}).schools.length} schools · CDS ${cds}` : `School in ${esc(entityName(distKey(cds)))} · CDS ${cds}`;
   let h = `${lvl!=='county'?`<div class="crumbs">${crumbs}</div>`:''}<h1>${esc(entityName(cds))}</h1><p class="sub">${sub}</p>`;
   if (!hasData) h += welcome();
+  h += navSection(cds);
   h += dashSection(cds) + assessSection(cds, 'caaspp') + assessSection(cds, 'elpac');
   h += `<p class="note">Sources: California Department of Education, CA School Dashboard downloadable data files; CDE/ETS, CAASPP and ELPAC research files (the data behind DataQuest's test results).${EMBED ? ` Built-in data downloaded ${esc(dataDate())}.` : ''}${S.files.some(f => !f.builtin) ? ` Files added in this browser: ${S.files.filter(f => !f.builtin).length}.` : ''}</p>`;
   $('#main').innerHTML = h;
+  document.title = (lvl === 'county' ? '' : entityName(cds) + ' · ') + 'Modoc County Data Hub';
 }
 
 function renderEntitySelect(){
@@ -1041,10 +1111,18 @@ function renderAll(){
   }
   pickDefaultYears(false); renderEntitySelect(); renderFiles(); renderPage(); }
 
-function go(cds){
+function show(cds){
   S.view = cds; $('#entitySel').value = cds; renderPage(); window.scrollTo({top:0});
-  try{ history.replaceState(null, '', '#' + cds); }catch(e){}
 }
+function go(cds){
+  const target = hrefOf(cds);
+  if (location.hash === target || (target === '#' && !location.hash)) show(cds);
+  else location.hash = target;            // adds a history entry; the hashchange handler renders it
+}
+window.addEventListener('hashchange', () => {
+  const cds = cdsFromHash(location.hash);
+  show(cds || COUNTY_KEY);
+});
 
 /* =========================================================================
    Events
@@ -1082,6 +1160,7 @@ try{ const t = localStorage.getItem('mdh-theme'); if (t) document.documentElemen
 
 $('#main').addEventListener('click', e => {
   const open = e.target.closest('[data-open-data]'); if (open){ e.preventDefault(); openDrawer(true); return; }
+  if (e.target.closest('a[href]')) return;          // real links navigate themselves
   const g = e.target.closest('[data-go]'); if (g){ go(g.getAttribute('data-go')); }
 });
 document.querySelector('.drawer').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) go(g.getAttribute('data-go')); });
@@ -1106,10 +1185,11 @@ document.addEventListener('mousemove', e => {
 
 (async function init(){
   await restore();
-  const h = (location.hash || '').slice(1);
-  if (/^\d{14}$/.test(h)) S.view = h;
   pickDefaultYears(true);
+  S.view = cdsFromHash(location.hash) || COUNTY_KEY;
   renderAll();
+  // Old-style #<CDS code> links are rewritten to the readable form.
+  if (/^#\d{14}$/.test(location.hash) && S.view !== COUNTY_KEY){ try{ history.replaceState(null, '', hrefOf(S.view)); }catch(e){} }
 })();
 </script>
 </body>

@@ -8,12 +8,25 @@ Download the file and double-click it to open it in Chrome, Edge, Firefox, or Sa
 
 ## What it shows
 
-- **Landing page: Modoc County.**
-  - **Dashboard:** a county-wide summary, and every LEA (optionally every school) side by side with Dashboard colors.
-  - **CAASPP and ELPAC:** achievement levels for the county vs. the state, results by grade and student group,
-    an LEA/school comparison table, and trends when you load more than one year.
-- **District and school pages.** Pick one from the **View** menu or click a row. Each page has the same sections,
-  plus links to the official Dashboard, Smarter Balanced, CAST, and ELPAC reports.
+The hub has three levels of pages:
+
+1. **Modoc County (the landing page).** Shows all county results, with a card for each district: Modoc Joint Unified,
+   Surprise Valley Joint Unified and Tulelake Basin Joint Unified. Each card shows its headline numbers and opens
+   that district's page.
+2. **District pages.** Each shows the district's own Dashboard, CAASPP and ELPAC results, with a card for each of
+   its schools.
+3. **School pages.** Each shows that school's results, with links to the other schools in its district and back
+   up to the district and county.
+
+Every page has its own address that can be bookmarked or shared, for example
+`Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified/modoc-high`. The browser's Back button
+works, and the **View** menu jumps to any page.
+
+Each page has:
+- **Dashboard:** indicator colors, status and change, by student group.
+- **CAASPP and ELPAC:** achievement levels against the state, by grade and student group, and trends.
+- **Comparison tables:** district and county pages compare their districts or schools side by side.
+- **Links** to the official Dashboard, Smarter Balanced, CAST and ELPAC reports.
 
 Notes:
 - The CA School Dashboard does not publish county-wide results. On the county page, Dashboard figures are
