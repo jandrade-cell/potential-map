@@ -19,10 +19,10 @@ The hub has three levels of pages:
    up to the district and county.
 
 Every page has its own address that can be bookmarked or shared, for example
-`Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified/modoc-high`. The browser's Back button
+`Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified--modoc-high`. The browser's Back button
 works, and the **View** menu jumps to any page.
 
-Each district page also has an **LCAP data** button (for example `…#modoc-joint-unified/lcap`). It opens a page
+Each district page also has an **LCAP data** button (for example `…#modoc-joint-unified--lcap`). It opens a page
 with the district's most recent results for LCAP planning:
 
 - **State Indicators:** the latest Dashboard results for each indicator, with its LCAP priority and the student
@@ -45,6 +45,19 @@ Notes:
   Developing (Nearly Met), Minimal (Not Met). The meanings did not change. The hub reads both file layouts,
   so 2025 and 2026 results line up in the trend charts.
 - ELPAC results show the four overall performance levels. Level 4 (Well developed) is the reclassification criterion.
+
+## Shared web page
+
+The hub is also published as a web page on Claude: https://claude.ai/artifact/A66WLSimqAHJYDqGDvLzPC
+It starts private. Share it from the page's **Share** menu.
+
+After the data or LCAPs are updated, the shared page needs republishing: run
+`python3 tools/make_artifact.py shared.html` and publish `shared.html` to the same address, or ask Claude to republish it.
+That copy leaves out the Print button and the page's own security policy, because the viewer doesn't allow printing
+and applies its own policy.
+
+Page addresses use only letters, digits and hyphens, so they survive being shared:
+`#modoc-joint-unified`, `#modoc-joint-unified--modoc-high`, `#modoc-joint-unified--lcap`.
 
 ## Public data only
 
