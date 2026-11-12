@@ -142,6 +142,23 @@ def fetch_text(url):
         return decode(r.read())
 
 
+_LISTINGS_BLOCKED = False
+
+
+def fetch_listing(url):
+    """Read a CDE page that lists data files. Every file can also be found by name, so a page behind CDE's
+    bot check is tried briefly and, once one is blocked, the rest are skipped for this run."""
+    global _LISTINGS_BLOCKED
+    if _LISTINGS_BLOCKED:
+        raise OffsiteRedirect('CDE listing pages are behind a bot check this run')
+    try:
+        with fetch(url, tries=2) as r:
+            return decode(r.read())
+    except OffsiteRedirect:
+        _LISTINGS_BLOCKED = True
+        raise
+
+
 def exists(url):
     try:
         with _get(url, headers={'Range': 'bytes=0-0'}, timeout=60) as r:
@@ -329,7 +346,7 @@ class Hub:
 def dashboard_years(ind, want):
     page, prefix = DASH[ind]
     try:
-        html = fetch_text(CDE_PAGE.format(page=page))
+        html = fetch_listing(CDE_PAGE.format(page=page))
     except Exception as e:  # noqa: BLE001
         log(f'  could not read the {page} data-files page ({e}); looking the files up by name')
         html = ''
@@ -386,7 +403,7 @@ def load_local(want_years=2):
     import csv
     csv.field_size_limit(10 ** 9)
     try:
-        html = fetch_text(LOCAL_PAGE)
+        html = fetch_listing(LOCAL_PAGE)
     except Exception as e:  # noqa: BLE001
         log(f'  could not read the Local Indicators page ({e}); looking the files up by name')
         html = ''
@@ -517,7 +534,7 @@ def load_sisters(peers=5):
 
     # 3. Census Day enrollment by student group (latest year)
     try:
-        page = fetch_text(ENROLL_PAGE)
+        page = fetch_listing(ENROLL_PAGE)
     except Exception as e:  # noqa: BLE001
         log(f'  could not read the enrollment page ({e}); looking the file up by name')
         page = ''
