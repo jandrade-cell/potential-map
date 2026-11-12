@@ -94,7 +94,27 @@ def log(*a):
     print(*a, file=sys.stderr, flush=True)
 
 
-def fetch(url, tries=5, timeout=180):
+CACHE_DIR = None   # set by --cache: keep downloaded files so a rerun doesn't fetch them again
+
+
+def fetch_bytes(url, timeout=600):
+    """Download a whole file, reusing the --cache copy when there is one."""
+    import hashlib
+    path = None
+    if CACHE_DIR:
+        path = Path(CACHE_DIR) / (hashlib.sha1(url.encode()).hexdigest()[:16] + '-' + re.sub(r'[^A-Za-z0-9._-]', '_', url.rsplit('/', 1)[-1])[:60])
+        if path.exists():
+            return path.read_bytes()
+    time.sleep(3)  # be gentle with the servers between large downloads
+    with fetch(url, timeout=timeout) as r:
+        data = r.read()
+    if path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    return data
+
+
+def fetch(url, tries=6, timeout=180):
     """GET a URL with retries (CDE sometimes refuses or times out briefly)."""
     last = None
     for i in range(tries):
@@ -104,7 +124,7 @@ def fetch(url, tries=5, timeout=180):
             # CDE sends busy or rapid visitors to a check page: wait politely and try again, never follow it.
             last = e
             if i < tries - 1:
-                wait = (15, 30, 60, 90)[min(i, 3)]
+                wait = (30, 60, 120, 240, 300)[min(i, 4)]
                 log(f'  {e}; waiting {wait}s')
                 time.sleep(wait)
         except NotPublicSource:
@@ -186,14 +206,12 @@ def rows_of(lines, delim):
 
 
 def stream_lines(url):
-    """Stream a large text file line by line (Dashboard files are 15-30 MB)."""
-    time.sleep(5)  # be gentle with CDE's servers between large downloads
-    with fetch(url, timeout=600) as r:
-        for raw in r:
-            try:
-                yield raw.decode('utf-8-sig')
-            except UnicodeDecodeError:
-                yield raw.decode('cp1252')
+    """Read a large text file line by line (Dashboard files are 15-30 MB)."""
+    for raw in fetch_bytes(url).splitlines(keepends=True):
+        try:
+            yield raw.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            yield raw.decode('cp1252')
 
 
 class Hub:
@@ -465,7 +483,7 @@ def load_sisters(peers=5):
     log('Sister schools:')
     # 1. CDE school directory: status, kind of school, NCES IDs
     dir_rows = {}
-    for r in _tsv(fetch_text(DIRECTORY_URL)):
+    for r in _tsv(decode(fetch_bytes(DIRECTORY_URL))):
         cds = (r.get('CDSCode') or '').strip()
         if len(cds) == 14:
             dir_rows[cds] = r
@@ -480,8 +498,7 @@ def load_sisters(peers=5):
     for yr in reversed(files):  # NCES sometimes links a year before posting it; use the newest that exists
         edge_url = f'https://nces.ed.gov/programs/edge/data/EDGE_GEOCODE_PUBLICSCH_{yr}.zip'
         try:
-            with fetch(edge_url, timeout=600) as r:
-                z = zipfile.ZipFile(io.BytesIO(r.read()))
+            z = zipfile.ZipFile(io.BytesIO(fetch_bytes(edge_url)))
             files = files[:files.index(yr) + 1]
             break
         except Exception as e:  # noqa: BLE001
@@ -516,7 +533,7 @@ def load_sisters(peers=5):
         raise SystemExit('Could not find the census enrollment file')
     name, yy = max(links, key=lambda x: x[1])
     enr = {}
-    for r in _tsv(fetch_text('https://www3.cde.ca.gov/demo-downloads/census/' + name)):
+    for r in _tsv(decode(fetch_bytes('https://www3.cde.ca.gov/demo-downloads/census/' + name))):
         lvl = r.get('AggregateLevel')
         if lvl not in ('S', 'D'):
             continue
@@ -693,9 +710,12 @@ def main():
     ap.add_argument('--html', default=str(Path(__file__).resolve().parent.parent / 'Modoc County Data Hub.html'))
     ap.add_argument('--dash-years', type=int, default=3, help='how many recent Dashboard years to include')
     ap.add_argument('--test-years', type=int, default=4, help='how many recent CAASPP/ELPAC years to include')
+    ap.add_argument('--cache', help='folder to keep downloaded files in, so a rerun does not download them again')
     ap.add_argument('--only', default=','.join(SECTIONS),
                     help='rebuild only these parts and keep the rest from the page: ' + ', '.join(SECTIONS))
     a = ap.parse_args()
+    global CACHE_DIR
+    CACHE_DIR = a.cache
     only = {x.strip() for x in a.only.split(',') if x.strip()}
     if only - set(SECTIONS):
         sys.exit('Unknown --only part(s): ' + ', '.join(sorted(only - set(SECTIONS))))
