@@ -97,14 +97,19 @@ def log(*a):
 CACHE_DIR = None   # set by --cache: keep downloaded files so a rerun doesn't fetch them again
 
 
+def _cache_path(url):
+    if not CACHE_DIR:
+        return None
+    import hashlib
+    return Path(CACHE_DIR) / (hashlib.sha1(url.encode()).hexdigest()[:16] + '-'
+                              + re.sub(r'[^A-Za-z0-9._-]', '_', url.rsplit('/', 1)[-1])[:60])
+
+
 def fetch_bytes(url, timeout=600):
     """Download a whole file, reusing the --cache copy when there is one."""
-    import hashlib
-    path = None
-    if CACHE_DIR:
-        path = Path(CACHE_DIR) / (hashlib.sha1(url.encode()).hexdigest()[:16] + '-' + re.sub(r'[^A-Za-z0-9._-]', '_', url.rsplit('/', 1)[-1])[:60])
-        if path.exists():
-            return path.read_bytes()
+    path = _cache_path(url)
+    if path and path.exists():
+        return path.read_bytes()
     time.sleep(3)  # be gentle with the servers between large downloads
     with fetch(url, timeout=timeout) as r:
         data = r.read()
@@ -159,14 +164,26 @@ def fetch_listing(url):
         raise
 
 
-def exists(url):
-    try:
-        with _get(url, headers={'Range': 'bytes=0-0'}, timeout=60) as r:
-            return r.status in (200, 206)
-    except NotPublicSource:
-        raise
-    except Exception:  # noqa: BLE001
-        return False
+def exists(url, tries=5):
+    """Whether a file is published (checks the --cache copy first; waits out CDE's busy redirects)."""
+    path = _cache_path(url)
+    if path and path.exists():
+        return True
+    for i in range(tries):
+        try:
+            with _get(url, headers={'Range': 'bytes=0-0'}, timeout=60) as r:
+                return r.status in (200, 206)
+        except OffsiteRedirect as e:
+            if i == tries - 1:
+                raise
+            wait = (30, 60, 120, 240)[min(i, 3)]
+            log(f'  {e}; waiting {wait}s')
+            time.sleep(wait)
+        except NotPublicSource:
+            raise
+        except Exception:  # noqa: BLE001
+            return False
+    return False
 
 
 def decode(b):
