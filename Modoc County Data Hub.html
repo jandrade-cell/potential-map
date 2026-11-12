@@ -105,6 +105,34 @@ a.navcard.current{border-color:var(--accent);background:var(--accent-soft)}
 .navcard .nc-stats div{font-size:11px;color:var(--muted);line-height:1.3}
 .navcard .nc-stats b{display:block;font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
 .btn{display:inline-block;text-decoration:none}
+/* Student group gap chart */
+.gap-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.gap-tabs button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer;color:var(--text2)}
+.gap-tabs button:hover{border-color:var(--muted)}
+.gap-tabs button[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--text);font-weight:600}
+.gap-tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gap-grid{display:grid;grid-template-columns:minmax(120px,210px) minmax(0,1fr) minmax(84px,120px);border:1px solid var(--border);border-radius:8px;padding:4px 12px 8px;background:var(--surface)}
+.gap-h{font-size:11px;color:var(--muted);padding:6px 0 4px;border-bottom:1px solid var(--border)}
+.gap-vh{text-align:right}
+.gap-lbl,.gap-val{font-size:13px;padding:7px 0;border-bottom:1px solid var(--border);line-height:1.25}
+.gap-lbl{padding-right:10px} .gap-lbl small,.gap-val small{display:block;font-size:11px;color:var(--muted)}
+.gap-val{text-align:right;font-variant-numeric:tabular-nums;padding-left:10px}
+.gap-track{position:relative;border-bottom:1px solid var(--border);min-height:40px;margin:0 8px}
+.gap-axis{min-height:24px}
+.gap-tick{position:absolute;bottom:4px;transform:translateX(-50%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.gap-ref{position:absolute;top:0;bottom:-1px;border-left:2px solid var(--text2);transform:translateX(-1px)}
+.gap-ref.zero{border-left:1px dashed var(--muted);transform:none}
+.gap-link{position:absolute;top:50%;height:2px;margin-top:-1px;background:var(--border)}
+.gap-dot,.gap-ring{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%)}
+.gap-dot{background:var(--series-1);box-shadow:0 0 0 2px var(--surface);z-index:2}
+.gap-dot.hollow{background:var(--surface);border:2px solid var(--series-1);box-sizing:border-box}
+.gap-ring{border:2px solid var(--series-2);background:var(--surface);box-sizing:border-box;z-index:1}
+.legend i.lg-dot{width:11px;height:11px;border-radius:50%;background:var(--series-1)}
+.legend i.lg-dot.hollow{background:transparent;border:2px solid var(--series-1);box-sizing:border-box}
+.legend i.lg-ring{width:11px;height:11px;border-radius:50%;border:2px solid var(--series-2);box-sizing:border-box}
+.legend i.lg-line{width:0;height:14px;border-left:2px solid var(--text2);border-radius:0}
+.legend i.lg-line.zero{border-left:1px dashed var(--muted)}
+@media (max-width:640px){ .gap-tick.alt{display:none} .gap-grid{grid-template-columns:96px minmax(0,1fr) 64px;padding:4px 8px 8px} .gap-lbl,.gap-val{font-size:12px} .gap-track{margin:0 6px} }
 .lgrid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
 .lcard.wide{grid-column:1/-1}
 .lcard{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface)}
@@ -823,6 +851,76 @@ function dashGroupTable(cds, y){
     + `<p class="note">Student groups with no reportable status for any indicator (too few students) are not listed.</p>`;
 }
 
+/* County student-group gap chart: the same calculated roll-up as the table, drawn as a dot plot.
+   One indicator at a time. Each row is a student group: filled dot = Modoc (calculated), ring = California's
+   result for the same group, vertical line = Modoc All Students. Hollow dot = fewer than 30 students counted. */
+function niceStep(span){
+  const raw = span / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  return [1, 2, 2.5, 5, 10].map(f => f * mag).find(s => s >= raw) || 10 * mag;
+}
+function gapIndicators(y){
+  return IND_ORDER.filter(i => DASH_GROUP_ORDER.some(g => g !== allGroup(i) && g !== 'ALL' && (dashCounty(i, g, y) || {}).status != null));
+}
+function gapChart(y){
+  const inds = gapIndicators(y);
+  if (!inds.length) return '';
+  const ind = inds.includes(S.gapInd) ? S.gapInd : inds[0];
+  const meta = IND[ind], lowBetter = meta.better === 'low';
+  const all = dashCounty(ind, allGroup(ind), y);
+  const rows = DASH_GROUP_ORDER.filter(g => g !== allGroup(ind) && g !== 'ALL')
+    .map(g => ({g, r:dashCounty(ind, g, y), st:dashRow(STATE_KEY, ind, g, y)}))
+    .filter(x => x.r && x.r.status != null)
+    .sort((a, b) => lowBetter ? a.r.status - b.r.status : b.r.status - a.r.status);
+  const vals = rows.flatMap(x => [x.r.status, x.st && x.st.status]).concat(all ? [all.status] : [], meta.kind === 'dfs' ? [0] : [])
+    .filter(v => v != null && Number.isFinite(v));
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (meta.kind === 'pct'){ lo = Math.max(0, lo); }
+  const step = niceStep(Math.max(hi - lo, 1));
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  if (meta.kind === 'pct'){ lo = Math.max(0, lo); hi = Math.min(100, hi); }
+  if (hi === lo) hi = lo + step;
+  const pos = v => ((v - lo) / (hi - lo) * 100).toFixed(2) + '%';
+  const ticks = []; for (let t = lo; t <= hi + 1e-9; t += step) ticks.push(t);
+  const fmtV = v => statusText(ind, v);
+  const allLbl = all && all.status != null ? fmtV(all.status) : '—';
+  const unit = {dfs:'points from standard', pts:'average science points', pct:'percent'}[meta.kind];
+
+  let h = `<div class="gap" id="gapChart">
+    <div class="gap-tabs" role="tablist" aria-label="Indicator">${inds.map(i => `<button type="button" role="tab" data-gap-ind="${i}" aria-selected="${i === ind}">${esc(IND[i].short)}</button>`).join('')}</div>
+    <div class="legend">
+      <span><i class="lg-dot"></i>Modoc student group (calculated)</span>
+      <span><i class="lg-dot hollow"></i>Fewer than 30 students</span>
+      <span><i class="lg-ring"></i>California, same group</span>
+      <span><i class="lg-line"></i>Modoc All Students${ind === 'elpi' ? ' (English learners)' : ''}: ${esc(allLbl)}</span>
+      ${meta.kind === 'dfs' ? '<span><i class="lg-line zero"></i>At standard (0)</span>' : ''}
+    </div>
+    <div class="gap-grid" role="img" aria-label="${esc(meta.name + ' by student group, Modoc County calculated roll-up, ' + y)}">
+      <div class="gap-h"></div><div class="gap-h gap-track gap-axis">${ticks.map((t, i) => `<span class="gap-tick${i % 2 ? ' alt' : ''}" style="left:${pos(t)}">${esc(meta.kind === 'pct' ? t + '%' : (meta.kind === 'dfs' && t > 0 ? '+' : '') + t)}</span>`).join('')}</div>
+      <div class="gap-h gap-vh">Result · vs All</div>`;
+  for (const {g, r, st} of rows){
+    const name = DASH_GROUPS[g] || g, small = r.denom != null && r.denom < 30;
+    const gap = all && all.status != null ? r.status - all.status : null;
+    const tip = [`${name} · ${meta.name} ${y}`, `Modoc (calculated): ${fmtV(r.status)}${r.denom != null ? ` · ${fmtInt(r.denom)} students` : ''}`,
+      st && st.status != null ? `California, same group: ${fmtV(st.status)}` : 'California, same group: not reported',
+      `Modoc All Students: ${allLbl}${gap != null ? ` (difference ${signed(gap)})` : ''}`,
+      small ? 'Fewer than 30 students: treat with caution' : '', lowBetter ? 'Lower is better' : 'Higher is better'].filter(Boolean).join('\n');
+    const a = [r.status, st && st.status].filter(v => v != null);
+    h += `<div class="gap-lbl" data-tip="${esc(tip)}">${esc(name)}<small>${r.denom != null ? fmtInt(r.denom) + ' students' : ''}</small></div>
+      <div class="gap-track" data-tip="${esc(tip)}">
+        ${meta.kind === 'dfs' ? `<span class="gap-ref zero" style="left:${pos(0)}"></span>` : ''}
+        ${all && all.status != null ? `<span class="gap-ref" style="left:${pos(all.status)}"></span>` : ''}
+        ${a.length === 2 ? `<span class="gap-link" style="left:${pos(Math.min(...a))};width:calc(${pos(Math.max(...a))} - ${pos(Math.min(...a))})"></span>` : ''}
+        ${st && st.status != null ? `<span class="gap-ring" style="left:${pos(st.status)}"></span>` : ''}
+        <span class="gap-dot${small ? ' hollow' : ''}" style="left:${pos(r.status)}"></span>
+      </div>
+      <div class="gap-val" data-tip="${esc(tip)}"><b>${esc(fmtV(r.status))}</b><small>${gap != null ? esc(signed(gap)) : '—'}</small></div>`;
+  }
+  h += `</div>
+    <p class="note">${esc(meta.name)} (${unit}), ${y}. ${lowBetter ? 'Lower is better; ' : 'Higher is better; '}groups are sorted best to worst. The right column shows each group's result and its difference from Modoc's All Students result. These are the same calculated county figures as the table above: weighted averages of the districts' results, not official Dashboard results.</p>
+  </div>`;
+  return h;
+}
+
 function dashSection(cds){
   const years = dashYears();
   if (!years.length) return `<section class="section"><div class="section-head"><h2>CA School Dashboard</h2></div>
@@ -850,6 +948,10 @@ function dashSection(cds){
   }
   const grp = dashGroupTable(cds, y);
   if (grp) h += `<h3>By student group${cds===COUNTY_KEY?' (calculated county roll-up)':''}</h3>` + grp;
+  if (grp && cds === COUNTY_KEY){
+    const chart = gapChart(y);
+    if (chart) h += `<h3>Student group gaps (calculated county roll-up)</h3>` + chart;
+  }
   if (cds !== COUNTY_KEY) h += `<div class="links no-print"><a href="https://www.caschooldashboard.org/reports/${cds}/${y}" target="_blank" rel="noopener">Open the official ${y} Dashboard report ↗</a></div>`;
   return h + '</section>';
 }
@@ -1345,6 +1447,8 @@ try{ const t = localStorage.getItem('mdh-theme'); if (t) document.documentElemen
 
 $('#main').addEventListener('click', e => {
   const open = e.target.closest('[data-open-data]'); if (open){ e.preventDefault(); openDrawer(true); return; }
+  const gapBtn = e.target.closest('[data-gap-ind]');
+  if (gapBtn){ S.gapInd = gapBtn.dataset.gapInd; const el = $('#gapChart'); if (el) el.outerHTML = gapChart(S.dashYear); const nb = document.querySelector(`[data-gap-ind="${S.gapInd}"]`); if (nb) nb.focus(); return; }
   const jump = e.target.closest('a[data-jump]');
   if (jump){ e.preventDefault(); const t = document.querySelector(jump.getAttribute('href')); if (t) t.scrollIntoView({behavior:'smooth'}); return; }
   if (e.target.closest('a[href]')) return;          // real links navigate themselves
