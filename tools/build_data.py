@@ -520,6 +520,8 @@ def load_sisters(peers=5):
         lvl = r.get('AggregateLevel')
         if lvl not in ('S', 'D'):
             continue
+        if lvl == 'D' and (r.get('Charter') or '').strip().upper() != 'ALL':
+            continue  # district rows come as charter (Y), non-charter (N) and ALL; use ALL
         if lvl == 'S' and pad(r['SchoolCode'], 7) in ('0000000', '0000001'):
             continue  # "District Office" and nonpublic-school rows would collide with the district's own total
         cds = pad(r['CountyCode'], 2) + pad(r['DistrictCode'], 5) + (pad(r['SchoolCode'], 7) if lvl == 'S' else '0000000')
