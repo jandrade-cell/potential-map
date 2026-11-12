@@ -672,7 +672,9 @@ def load_sisters(peers=5):
     log(f'  profiles: {len(schools)} schools, {len(districts)} districts')
 
     def match(pool_all, target):
-        pool = [p for p in pool_all.values() if p['kind'] == target['kind'] and not p['cds'].startswith(COUNTY)]
+        pool = [p for p in pool_all.values() if p['kind'] == target['kind'] and not p['cds'].startswith(COUNTY)
+                # rurality matters most, so a school with no NCES locale can't be judged a match for one that has it
+                and (target['rural'] is None or p['rural'] is not None)]
         if len(pool) < 10:
             return None
         feats = {'rural': lambda p: p['rural'], 'size': lambda p: math.log10(p['enr']), 'sed': lambda p: p['sed'],
