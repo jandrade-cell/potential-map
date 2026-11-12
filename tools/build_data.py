@@ -10,7 +10,7 @@ Usage:
     python3 tools/build_data.py                 # latest 3 Dashboard years, latest 4 test years
     python3 tools/build_data.py --dash-years 3 --test-years 4 --html "Modoc County Data Hub.html"
 
-Public data only: the script will only contact the three public sites in
+Public data only: the script will only contact the public CDE, ETS and NCES sites in
 ALLOWED_HOSTS, over HTTPS, without credentials or cookies. Any other address,
 including a redirect to one, stops the build. Standard library only.
 """
@@ -27,7 +27,7 @@ import zipfile
 from pathlib import Path
 
 # The only sites this script may contact: CDE's public pages and data files, and ETS's public research files.
-ALLOWED_HOSTS = frozenset({'www.cde.ca.gov', 'www3.cde.ca.gov', 'caaspp-elpac.ets.org'})
+ALLOWED_HOSTS = frozenset({'www.cde.ca.gov', 'www3.cde.ca.gov', 'sd.cde.ca.gov', 'caaspp-elpac.ets.org', 'nces.ed.gov'})
 
 
 class NotPublicSource(Exception):
@@ -101,7 +101,12 @@ def fetch(url, tries=5, timeout=180):
         try:
             return _get(url, timeout=timeout)
         except OffsiteRedirect as e:
-            last = e   # e.g. CDE's bot check: wait and try again, never follow it
+            # CDE sends busy or rapid visitors to a check page: wait politely and try again, never follow it.
+            last = e
+            if i < tries - 1:
+                wait = (15, 30, 60, 90)[min(i, 3)]
+                log(f'  {e}; waiting {wait}s')
+                time.sleep(wait)
         except NotPublicSource:
             raise
         except Exception as e:  # noqa: BLE001
@@ -182,6 +187,7 @@ def rows_of(lines, delim):
 
 def stream_lines(url):
     """Stream a large text file line by line (Dashboard files are 15-30 MB)."""
+    time.sleep(5)  # be gentle with CDE's servers between large downloads
     with fetch(url, timeout=600) as r:
         for raw in r:
             try:
@@ -304,8 +310,15 @@ class Hub:
 
 def dashboard_years(ind, want):
     page, prefix = DASH[ind]
-    html = fetch_text(CDE_PAGE.format(page=page))
+    try:
+        html = fetch_text(CDE_PAGE.format(page=page))
+    except Exception as e:  # noqa: BLE001
+        log(f'  could not read the {page} data-files page ({e}); looking the files up by name')
+        html = ''
     years = sorted({int(y) for y in re.findall(prefix + r'(20\d\d)\.txt', html)}, reverse=True)
+    if not years:  # the files themselves sit on CDE's file server under predictable names
+        this = dt.date.today().year
+        years = [y for y in range(this + 1, this - 6, -1) if exists(CDE_FILE.format(name=f'{prefix}{y}.txt'))]
     return [(y, CDE_FILE.format(name=f'{prefix}{y}.txt')) for y in years[:want]]
 
 
@@ -418,7 +431,259 @@ def load_lcap():
     return out
 
 
-SECTIONS = ('dash', 'tests', 'local', 'lcap')
+# ---- Sister schools and districts: like populations statewide, from public CDE and NCES files ----
+DIRECTORY_URL = 'https://sd.cde.ca.gov/schooldirectory/report?rid=dl1&tp=txt'   # CDE public school directory
+ENROLL_PAGE = 'https://www.cde.ca.gov/ds/ad/filesenrcensus.asp'
+EDGE_PAGE = 'https://nces.ed.gov/programs/edge/Geographic/SchoolLocations'
+# NCES locale codes -> rurality score (0 = large city ... 6 = rural remote)
+RURALITY = {11: 0, 12: 0.5, 13: 1, 21: 1, 22: 1.5, 23: 2, 31: 3, 32: 3.5, 33: 4, 41: 4, 42: 5, 43: 6}
+LOCALE_NAME = {11: 'City, large', 12: 'City, midsize', 13: 'City, small', 21: 'Suburb, large', 22: 'Suburb, midsize',
+               23: 'Suburb, small', 31: 'Town, fringe', 32: 'Town, distant', 33: 'Town, remote', 41: 'Rural, fringe',
+               42: 'Rural, distant', 43: 'Rural, remote'}
+# Feature weights for "like population" (standardized within each kind of school)
+WEIGHTS = {'rural': 1.5, 'size': 1.0, 'sed': 1.0, 'el': 1.0, 'swd': 0.7, 'fh': 0.5}
+# Performance measures per kind of school; sign +1 = higher is better
+PERF = {'elementary': {'ela': 1, 'math': 1, 'chronic': -1}, 'middle': {'ela': 1, 'math': 1, 'chronic': -1, 'susp': -1},
+        'high': {'ela': 1, 'math': 1, 'grad': 1, 'cci': 1}, 'span': {'ela': 1, 'math': 1, 'chronic': -1, 'grad': 1},
+        'alternative': {'grad': 1, 'susp': -1, 'cci': 1},
+        'unified': {'ela': 1, 'math': 1, 'chronic': -1, 'grad': 1, 'cci': 1}, 'elemdist': {'ela': 1, 'math': 1, 'chronic': -1},
+        'highdist': {'ela': 1, 'math': 1, 'grad': 1, 'cci': 1}}
+GRADES = ['TK', 'KN', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+
+
+def _tsv(text):
+    import csv
+    csv.field_size_limit(10 ** 9)
+    head = text.split('\n', 1)[0]
+    delim = '\t' if head.count('\t') >= head.count('|') else '|'
+    return csv.DictReader(io.StringIO(text), delimiter=delim)
+
+
+def load_sisters(peers=5):
+    import math
+    import statistics
+    log('Sister schools:')
+    # 1. CDE school directory: status, kind of school, NCES IDs
+    dir_rows = {}
+    for r in _tsv(fetch_text(DIRECTORY_URL)):
+        cds = (r.get('CDSCode') or '').strip()
+        if len(cds) == 14:
+            dir_rows[cds] = r
+    log(f'  school directory: {len(dir_rows)} entries')
+
+    # 2. NCES locale for every California school
+    html = fetch_text(EDGE_PAGE)
+    files = sorted(set(re.findall(r'EDGE_GEOCODE_PUBLICSCH_(\d{4})\.zip', html)))
+    if not files:
+        raise SystemExit('Could not find the NCES school locale file')
+    z = None
+    for yr in reversed(files):  # NCES sometimes links a year before posting it; use the newest that exists
+        edge_url = f'https://nces.ed.gov/programs/edge/data/EDGE_GEOCODE_PUBLICSCH_{yr}.zip'
+        try:
+            with fetch(edge_url, timeout=600) as r:
+                z = zipfile.ZipFile(io.BytesIO(r.read()))
+            files = files[:files.index(yr) + 1]
+            break
+        except Exception as e:  # noqa: BLE001
+            if isinstance(e, NotPublicSource) and not isinstance(e, OffsiteRedirect):
+                raise
+            log(f'  NCES locale file for {yr} not available ({e}); trying the year before')
+    if z is None:
+        raise SystemExit('Could not download an NCES school locale file')
+    member = next(m for m in z.namelist() if m.upper().endswith('.TXT'))
+    locale = {}
+    for line in decode(z.read(member)).splitlines():
+        f = line.split('|')
+        if len(f) > 11 and f[6] == 'CA' and f[11].strip().isdigit():
+            locale[f[0].strip()] = int(f[11])
+    log(f'  NCES locale ({files[-1]}): {len(locale)} California schools')
+
+    # 3. Census Day enrollment by student group (latest year)
+    try:
+        page = fetch_text(ENROLL_PAGE)
+    except Exception as e:  # noqa: BLE001
+        log(f'  could not read the enrollment page ({e}); looking the file up by name')
+        page = ''
+    links = re.findall(r'https://www3\.cde\.ca\.gov/demo-downloads/census/(cdenroll(\d{4})[^"]*?\.txt)', page)
+    if not links:  # CDE names these cdenroll2526.txt (school year 2025-26)
+        y = dt.date.today().year
+        for start in range(y, y - 4, -1):
+            yy = f'{start % 100:02d}{(start + 1) % 100:02d}'
+            if exists(f'https://www3.cde.ca.gov/demo-downloads/census/cdenroll{yy}.txt'):
+                links = [(f'cdenroll{yy}.txt', yy)]
+                break
+    if not links:
+        raise SystemExit('Could not find the census enrollment file')
+    name, yy = max(links, key=lambda x: x[1])
+    enr = {}
+    for r in _tsv(fetch_text('https://www3.cde.ca.gov/demo-downloads/census/' + name)):
+        lvl = r.get('AggregateLevel')
+        if lvl not in ('S', 'D'):
+            continue
+        if lvl == 'S' and pad(r['SchoolCode'], 7) in ('0000000', '0000001'):
+            continue  # "District Office" and nonpublic-school rows would collide with the district's own total
+        cds = pad(r['CountyCode'], 2) + pad(r['DistrictCode'], 5) + (pad(r['SchoolCode'], 7) if lvl == 'S' else '0000000')
+        e = enr.setdefault(cds, {})
+        v = (r.get('TOTAL_ENR') or '').strip()
+        e[r['ReportingCategory']] = 5.0 if v == '*' else (num(v) or 0)  # '*' = 10 or fewer students
+        if r['ReportingCategory'] == 'TA':
+            e['grades'] = [g for g in GRADES if (num(r.get('GR_' + g)) or 0) > 0 or (r.get('GR_' + g) or '').strip() == '*']
+    log(f'  census enrollment {name}: {len(enr)} schools and districts')
+
+    # 4. Latest Dashboard results (All Students) for every school and district
+    perf, dass, dyear = {}, set(), None
+    for ind in ('ela', 'math', 'chronic', 'susp', 'grad', 'cci'):
+        years = dashboard_years(ind, 1)
+        if not years:
+            continue
+        year, url = years[0]
+        dyear = max(dyear or 0, year)
+        for r in rows_of(stream_lines(url), '\t'):
+            if (r.get('studentgroup') or '').strip().upper() != 'ALL' or (r.get('rtype') or '').upper() not in ('S', 'D'):
+                continue
+            cds = pad(r.get('cds'), 14)
+            st = num(r.get('currstatus'))
+            if st is not None:
+                perf.setdefault(cds, {})[ind] = st
+                perf[cds][ind + '_n'] = num(r.get('currdenom'))
+            if (r.get('dass_flag') or '').strip().upper() == 'Y':
+                dass.add(cds)
+        log(f'  {url.rsplit("/", 1)[-1]}: statewide All Students results read')
+
+    # ---- Build a profile for each school and district ----
+    def kind_of_school(cds, d, e):
+        if cds in dass or (d.get('EdOpsCode') or 'TRAD') not in ('TRAD',):
+            return 'alternative'
+        idx = [GRADES.index(g) for g in e.get('grades', [])]
+        if not idx:
+            return None
+        lo, hi = min(idx), max(idx)          # 0 = TK ... 13 = grade 12
+        if hi >= 12 and lo >= 8:             # grades 7-12 or 9-12
+            return 'high'
+        if hi >= 10 and lo <= 7:
+            return 'span'
+        if lo >= 7 and hi <= 10:             # grades 6-8
+            return 'middle'
+        return 'elementary'
+
+    def profile(cds, kind, e, rural, d):
+        ta = e.get('TA') or 0
+        if ta < 5:
+            return None
+        pct = lambda k: 100 * min(e.get(k, 0), ta) / ta
+        return {'cds': cds, 'kind': kind, 'enr': int(ta), 'sed': pct('SG_SD'), 'el': pct('SG_EL'), 'swd': pct('SG_DS'),
+                'fh': pct('SG_FS') + pct('SG_HM'), 'rural': rural,
+                'name': (d.get('School') if cds[7:] != '0000000' else d.get('District')) or '',
+                'district': d.get('District') or '', 'county': d.get('County') or '',
+                'locale': None, 'perf': perf.get(cds, {})}
+
+    schools, districts = {}, {}
+    dist_rural = {}
+    for cds, d in dir_rows.items():
+        if d.get('StatusType') != 'Active' or cds[7:] == '0000000':
+            continue
+        if (d.get('Virtual') or '').strip().upper() == 'F':
+            continue  # fully virtual schools are not comparable
+        e = enr.get(cds)
+        if not e:
+            continue
+        nces = (d.get('NCESDist') or '').strip() + (d.get('NCESSchool') or '').strip()
+        loc = locale.get(nces)
+        kind = kind_of_school(cds, d, e)
+        if not kind:
+            continue
+        p = profile(cds, kind, e, RURALITY.get(loc), d)
+        if p:
+            p['locale'] = loc
+            schools[cds] = p
+            if loc in RURALITY:
+                dist_rural.setdefault(cds[:7], []).append((p['enr'], RURALITY[loc], loc))
+    for cds, d in dir_rows.items():
+        if d.get('StatusType') != 'Active' or cds[7:] != '0000000':
+            continue
+        kind = {'54': 'unified', '52': 'elemdist', '56': 'highdist'}.get((d.get('DOC') or '').strip())
+        e = enr.get(cds)
+        if not kind or not e:
+            continue
+        rs = dist_rural.get(cds[:7], [])
+        tot = sum(w for w, _, _ in rs)
+        rural = sum(w * r for w, r, _ in rs) / tot if tot else None
+        p = profile(cds, kind, e, rural, d)
+        if p:
+            if rs:  # the locale most of the district's students attend
+                by = {}
+                for w, _, l in rs:
+                    by[l] = by.get(l, 0) + w
+                p['locale'] = max(by, key=by.get)
+            districts[cds] = p
+    log(f'  profiles: {len(schools)} schools, {len(districts)} districts')
+
+    def match(pool_all, target):
+        pool = [p for p in pool_all.values() if p['kind'] == target['kind'] and not p['cds'].startswith(COUNTY)]
+        if len(pool) < 10:
+            return None
+        feats = {'rural': lambda p: p['rural'], 'size': lambda p: math.log10(p['enr']), 'sed': lambda p: p['sed'],
+                 'el': lambda p: p['el'], 'swd': lambda p: p['swd'], 'fh': lambda p: p['fh']}
+        sd = {}
+        for k, f in feats.items():
+            vals = [f(p) for p in pool if f(p) is not None]
+            sd[k] = statistics.pstdev(vals) or 1
+        # performance z-scores within this kind of school
+        measures = PERF[target['kind']]
+        mstats = {}
+        for m in measures:
+            vals = [p['perf'][m] for p in pool if m in p['perf']]
+            if len(vals) > 10:
+                mstats[m] = (statistics.mean(vals), statistics.pstdev(vals) or 1)
+
+        def composite(p):
+            zs = [measures[m] * (p['perf'][m] - mu) / s for m, (mu, s) in mstats.items() if m in p['perf']]
+            return sum(zs) / len(zs) if len(zs) >= 2 else None
+
+        def dist(p):
+            tot = 0
+            for k, f in feats.items():
+                a, b = f(target), f(p)
+                if a is None or b is None:
+                    tot += WEIGHTS[k] * 1.0  # unknown rurality counts as one standard deviation apart
+                else:
+                    tot += WEIGHTS[k] * ((a - b) / sd[k]) ** 2
+            return math.sqrt(tot)
+
+        tcomp = composite(target)
+        ranked = sorted(pool, key=dist)[:60]
+        for p in ranked:
+            p['_d'], p['_c'] = dist(p), composite(p)
+        reliable = lambda p: (p['perf'].get('ela_n') or p['perf'].get('grad_n') or 0) >= 15
+        like, stronger = [], []
+        if tcomp is not None:
+            near = [p for p in ranked[:30] if p['_c'] is not None and reliable(p)]
+            like = sorted(near, key=lambda p: abs(p['_c'] - tcomp) + 0.15 * p['_d'])[:peers]
+            better = [p for p in ranked if p['_c'] is not None and reliable(p) and p['_c'] >= tcomp + 0.5]
+            stronger = sorted(better, key=lambda p: p['_d'])[:peers]
+        else:
+            like = [p for p in ranked if reliable(p)][:peers]  # population match only; performance not comparable
+
+        def out(p):
+            o = {k: p[k] for k in ('cds', 'name', 'district', 'county', 'enr', 'locale')}
+            o.update({k: round(p[k], 1) for k in ('sed', 'el', 'swd')})
+            o['perf'] = {m: p['perf'][m] for m in ('ela', 'math', 'chronic', 'susp', 'grad', 'cci') if m in p['perf']}
+            return o
+        return {'kind': target['kind'], 'pool': len(pool), 'comparable': tcomp is not None,
+                'self': out(target), 'like': [out(p) for p in like], 'stronger': [out(p) for p in stronger]}
+
+    result = {'year': dyear, 'enrollYear': f'20{yy[:2]}–{yy[2:]}', 'localeYear': f'20{files[-1][:2]}–{files[-1][2:]}', 'units': {}}
+    for cds, p in list(schools.items()) + list(districts.items()):
+        if not cds.startswith(COUNTY) or p['kind'] in (None, 'alternative'):
+            continue  # alternative campuses (continuation, community day) are left out
+        m = match(districts if cds[7:] == '0000000' else schools, p)
+        if m:
+            result['units'][cds] = m
+            log(f"  {p['name']}: {m['kind']}, pool {m['pool']}, {len(m['like'])} like / {len(m['stronger'])} stronger")
+    return result
+
+
+SECTIONS = ('dash', 'tests', 'local', 'lcap', 'sisters')
 
 
 def main():
@@ -490,6 +755,11 @@ def main():
         payload['lcap'] = load_lcap()
     else:
         payload['lcap'] = old.get('lcap', {})
+
+    if 'sisters' in only:
+        payload['sisters'] = load_sisters()
+    else:
+        payload['sisters'] = old.get('sisters', {})
 
     if only & {'dash', 'tests'} and not hub.dash and not hub.assess:
         sys.exit('No data downloaded; leaving the page unchanged.')
