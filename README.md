@@ -87,6 +87,28 @@ statewide rows, and writes them into `Modoc County Data Hub.html`:
 The page can't fetch these files live, because CDE and ETS don't allow web pages to download from their servers.
 That's why the data is built in ahead of time.
 
+### Sister schools and districts
+
+Each district and school page lists **sister** districts or schools statewide in two groups: **like population,
+like performance** and **like population, stronger performance**. `tools/build_data.py` (the `sisters` part)
+works them out from public files:
+
+- **CDE school directory:** kind of school; NCES ID.
+- **CDE Census Day enrollment:** enrollment; % socioeconomically disadvantaged, English learners, students with
+  disabilities, and foster or homeless youth.
+- **NCES locale codes:** how rural each school is.
+- **The latest Dashboard:** performance.
+
+Matching works like this:
+- Rurality counts most, and race and ethnicity are not used.
+- Alternative and fully virtual schools are left out.
+- Every match has at least 15 students in its results and a socioeconomically disadvantaged share within 20 points.
+
+This is a statistical match from public data, not an official CDE designation.
+
+CDE's listing pages sometimes sit behind a bot check. The script never follows it; it finds the files by name on
+CDE's file server instead. Use `--cache DIR` so a rerun reuses files it already downloaded.
+
 ### Updating once a year
 
 The results come out once a year: CAASPP and ELPAC in the fall, the Dashboard in December. After both are out,

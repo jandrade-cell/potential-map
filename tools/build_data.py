@@ -709,7 +709,9 @@ def load_sisters(peers=5):
         ranked = sorted(pool, key=dist)[:60]
         for p in ranked:
             p['_d'], p['_c'] = dist(p), composite(p)
-        reliable = lambda p: (p['perf'].get('ela_n') or p['perf'].get('grad_n') or 0) >= 15
+        reliable = lambda p: ((p['perf'].get('ela_n') or p['perf'].get('grad_n') or 0) >= 15
+                              # a like population: socioeconomically disadvantaged share within 20 points
+                              and abs(p['sed'] - target['sed']) <= 20)
         like, stronger = [], []
         if tcomp is not None:
             near = [p for p in ranked[:30] if p['_c'] is not None and reliable(p)]
