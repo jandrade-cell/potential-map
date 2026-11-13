@@ -105,6 +105,11 @@ a.navcard.current{border-color:var(--accent);background:var(--accent-soft)}
 .navcard .nc-stats div{font-size:11px;color:var(--muted);line-height:1.3}
 .navcard .nc-stats b{display:block;font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
 .btn{display:inline-block;text-decoration:none}
+.toolcards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:-4px 0 18px}
+a.toolcard{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:inherit;border:1px solid var(--accent);border-radius:10px;padding:14px 16px;background:var(--accent-soft);transition:box-shadow .15s}
+a.toolcard:hover,a.toolcard:focus-visible{box-shadow:0 0 0 3px var(--accent-soft),0 0 0 4px var(--accent);outline:none}
+.toolcard .tc-title{font-weight:700;font-size:15px;color:var(--text)}
+.toolcard .tc-sub{font-size:12.5px;color:var(--text2)}
 .sis-table tr.sis-self td{background:var(--accent-soft)}
 .sis-table td a{font-weight:600;text-decoration:none} .sis-table td a:hover{text-decoration:underline}
 /* Student group gap chart */
@@ -229,7 +234,7 @@ ol.steps{padding-left:18px;margin:6px 0 10px} ol.steps li{margin:4px 0}
   h1{font-size:24px}
   .stack-row{grid-template-columns:96px 1fr 52px}
   select{max-width:100%}
-  .ctl{width:100%} .ctl select{flex:1}
+  .ctl{width:100%} .ctl select{flex:1;min-width:0;width:100%}
 }
 @media print{
   .topbar,.drawer,.drawer-bg,.no-print{display:none!important}
@@ -1294,12 +1299,13 @@ function sisTable(u, list, dy){
     ${ms.map(m => `<th class="num">${esc(IND[m].short)}</th>`).join('')}</tr></thead>
     <tbody>${row(u.self, true)}${list.map(p => row(p, false)).join('')}</tbody></table></div>`;
 }
-function sistersSection(cds){
-  const S2 = EMBED && EMBED.sisters, u = S2 && S2.units && S2.units[cds];
+const sisUnit = cds => (EMBED && EMBED.sisters && EMBED.sisters.units && EMBED.sisters.units[cds]) || null;
+function sistersSection(cds, opts = {}){
+  const S2 = EMBED && EMBED.sisters, u = sisUnit(cds);
   if (!u) return '';
   const isDist = u.self.cds.slice(7) === '0000000';
   const noun = isDist ? 'districts' : 'schools', dy = S2.year;
-  let h = `<section class="section" id="sisters"><div class="section-head"><h2>Sister ${noun}</h2>
+  let h = `<section class="section" id="sis-${cds}"><div class="section-head"><h2>${esc(opts.title || 'Sister ' + noun)}</h2>
     <span class="meta">${esc(SIS_KIND[u.kind] || noun)} statewide with students like ${esc(entityName(cds))}'s</span></div>`;
   h += `<h3>Like population, like performance</h3><p class="note" style="margin:0 0 8px">${u.comparable
       ? `Peers facing similar conditions with similar ${dy} Dashboard results.`
@@ -1308,12 +1314,47 @@ function sistersSection(cds){
   h += `<h3>Like population, stronger performance</h3><p class="note" style="margin:0 0 8px">Similar ${noun} getting clearly stronger results: places to learn from.</p>`;
   h += !u.comparable ? `<div class="empty">Not available: too few reported results to compare.</div>`
      : u.stronger.length ? sisTable(u, u.stronger, dy) : `<div class="empty">No ${noun} with similar students had clearly stronger results.</div>`;
-  h += `<details class="more"><summary>How these matches were made</summary><div class="lt"><p>Matches come from ${u.pool.toLocaleString()} ${esc(SIS_KIND[u.kind] || noun)} across California (alternative and fully virtual schools left out). Similarity is based on how rural the community is (NCES locale, ${esc(S2.localeYear)}), enrollment, and the share of students who are socioeconomically disadvantaged, English learners, students with disabilities, and foster or homeless youth (CDE Census Day enrollment, ${esc(S2.enrollYear)}). Rurality counts most. Race and ethnicity are not used.
+  if (opts.method !== false) h += `<details class="more"><summary>How these matches were made</summary><div class="lt"><p>Matches come from ${u.pool.toLocaleString()} ${esc(SIS_KIND[u.kind] || noun)} across California (alternative and fully virtual schools left out). Similarity is based on how rural the community is (NCES locale, ${esc(S2.localeYear)}), enrollment, and the share of students who are socioeconomically disadvantaged, English learners, students with disabilities, and foster or homeless youth (CDE Census Day enrollment, ${esc(S2.enrollYear)}). Rurality counts most. Race and ethnicity are not used.
 
 Performance uses each ${isDist ? 'district' : 'school'}'s ${dy} CA School Dashboard results for All Students (${(SIS_MEASURES[u.kind] || []).map(m => IND[m].short).join(', ')}), combined into one score relative to similar ${noun} statewide. “Like performance” are the closest scores among the most similar ${noun}; “stronger performance” score at least half a standard deviation higher. Every match has at least 15 students in its results and a share of socioeconomically disadvantaged students within 20 points of this ${isDist ? 'district' : 'school'}'s, so some lists are shorter than five.
 
 This is a statistical match from public data to start conversations. It is not an official CDE designation. Names link to each ${isDist ? 'district' : 'school'}'s official Dashboard report.</p></div></details>`;
   return h + `</section>`;
+}
+
+/* Sister page: a district's sister districts plus sister schools for each of its schools, or one school's. */
+function sistersPage(cds){
+  const lvl = levelOf(cds), d = lvl === 'district' ? cds : distKey(cds);
+  let h = `<div class="crumbs"><a href="#">Modoc County</a> › <a href="${hrefOf(d)}">${esc(entityName(d))}</a>${
+    lvl === 'school' ? ` › <a href="${hrefOf(cds)}">${esc(entityName(cds))}</a>` : ''} › Sister ${lvl === 'district' ? 'districts &amp; schools' : 'schools'}</div>
+    <h1>${esc(entityName(cds))} · Sister ${lvl === 'district' ? 'districts &amp; schools' : 'schools'}</h1>
+    <p class="sub">${lvl === 'district' ? 'Districts and schools' : 'Schools'} across California with students like ${esc(entityName(cds))}'s, grouped by how their results compare</p>`;
+  if (lvl === 'district'){
+    const ent = entities().find(x => x.cds === cds) || {schools:[]};
+    const schools = ent.schools.filter(sc => sisUnit(sc));
+    const parts = [cds].concat(schools).filter(k => sisUnit(k));
+    if (!parts.length) return h + `<div class="empty">No sister matches are available for ${esc(entityName(cds))}.</div>`;
+    h += `<nav class="sibs no-print" aria-label="Sections">${parts.map(k => `<a href="#sis-${k}" data-jump>${esc(k === cds ? 'Sister districts' : entityName(k))}</a>`).join('')}<a href="${hrefOf(cds)}">Back to the district page</a></nav>`;
+    h += parts.map((k, i) => sistersSection(k, {title: k === cds ? 'Sister districts' : 'Sister schools for ' + entityName(k), method: i === parts.length - 1})).join('');
+  } else {
+    h += `<nav class="sibs no-print" aria-label="Links"><a href="${hrefOf(cds)}">Back to ${esc(entityName(cds))}</a><a href="${hrefOf('sisters:' + d)}">All of ${esc(entityName(d))}'s sister matches</a></nav>`;
+    h += sistersSection(cds) || `<div class="empty">No sister matches are available for ${esc(entityName(cds))}.</div>`;
+  }
+  return h;
+}
+
+/* Cards that open a district's (or school's) separate pages */
+function toolCards(cds){
+  const lvl = levelOf(cds), cards = [];
+  if (lvl === 'district' && EMBED && ((EMBED.lcap || {})[cds] || (EMBED.local || {})[cds]))
+    cards.push([hrefOf('lcap:' + cds), 'LCAP data', 'State and Local Indicators with the most recent LCAP metrics, for planning the next LCAP.']);
+  const ent = lvl === 'district' ? (entities().find(x => x.cds === cds) || {schools:[]}) : null;
+  if (lvl === 'district' && (sisUnit(cds) || ent.schools.some(sc => sisUnit(sc))))
+    cards.push([hrefOf('sisters:' + cds), 'Sister districts & schools', 'Districts and schools across California with students like yours, with like and stronger results.']);
+  if (lvl === 'school' && sisUnit(cds))
+    cards.push([hrefOf('sisters:' + cds), 'Sister schools', 'Schools across California with students like this school’s, with like and stronger results.']);
+  if (!cards.length) return '';
+  return `<div class="toolcards no-print">${cards.map(([href, title, sub]) => `<a class="toolcard" href="${href}"><span class="tc-title">${esc(title)} →</span><span class="tc-sub">${esc(sub)}</span></a>`).join('')}</div>`;
 }
 
 /* ---- Navigation: county -> district -> school, with readable, bookmarkable addresses ---- */
@@ -1328,8 +1369,8 @@ function slugOf(cds){
   const mine = dup ? own + '-' + cds.slice(-7) : own;
   return lvl === 'district' ? mine : slugOf(distKey(cds)) + '--' + mine;
 }
-const parseKey = k => String(k).startsWith('lcap:') ? {cds:k.slice(5), page:'lcap'} : {cds:k, page:''};
-const viewKey = () => (S.page === 'lcap' ? 'lcap:' : '') + S.view;
+const parseKey = k => { const m = String(k).match(/^(lcap|sisters):(.*)$/); return m ? {cds:m[2], page:m[1]} : {cds:String(k), page:''}; };
+const viewKey = () => (S.page ? S.page + ':' : '') + S.view;
 // Addresses use only letters, digits and hyphens ("#district--school", "#district--lcap") so they survive being shared.
 const hrefOf = k => { const {cds, page} = parseKey(k); return '#' + (slugOf(cds) || '') + (page ? '--' + page : ''); };
 function cdsFromHash(hash){
@@ -1338,6 +1379,7 @@ function cdsFromHash(hash){
   if (!h) return COUNTY_KEY;
   if (/^\d{14}$/.test(h)) return h;
   if (h.endsWith('--lcap')){ const d = cdsFromHash('#' + h.slice(0, -6)); return d && levelOf(d) === 'district' ? 'lcap:' + d : null; }
+  if (h.endsWith('--sisters')){ const d = cdsFromHash('#' + h.slice(0, -9)); return d && /^(district|school)$/.test(levelOf(d)) ? 'sisters:' + d : null; }
   for (const d of entities()){
     if (slugOf(d.cds) === h) return d.cds;
     for (const sc of d.schools) if (slugOf(sc) === h) return sc;
@@ -1382,6 +1424,11 @@ function renderPage(){
     document.title = entityName(cds) + ' LCAP data · Modoc County Data Hub';
     return;
   }
+  if (S.page === 'sisters' && /^(district|school)$/.test(levelOf(cds))){
+    $('#main').innerHTML = sistersPage(cds);
+    document.title = entityName(cds) + ' sister ' + (levelOf(cds) === 'district' ? 'districts & schools' : 'schools') + ' · Modoc County Data Hub';
+    return;
+  }
   const lvl = levelOf(cds);
   const hasData = S.dash.length || S.assess.length;
   let crumbs = `<a href="#">Modoc County</a>`;
@@ -1394,12 +1441,9 @@ function renderPage(){
     : lvl === 'district' ? `District · ${(ents.find(d => d.cds === cds) || {schools:[]}).schools.length} schools · CDS ${cds}` : `School in ${esc(entityName(distKey(cds)))} · CDS ${cds}`;
   let h = `${lvl!=='county'?`<div class="crumbs">${crumbs}</div>`:''}<h1>${esc(entityName(cds))}</h1><p class="sub">${sub}</p>`;
   if (!hasData) h += welcome();
-  if (lvl === 'district' && EMBED && ((EMBED.lcap || {})[cds] || (EMBED.local || {})[cds]))
-    h += `<p class="no-print" style="margin:-6px 0 18px"><a class="btn primary" href="${hrefOf('lcap:' + cds)}">LCAP data →</a>
-      <span class="note" style="margin-left:8px">State and Local Indicators with the most recent LCAP metrics</span></p>`;
+  h += toolCards(cds);
   h += navSection(cds);
   h += dashSection(cds) + assessSection(cds, 'caaspp') + assessSection(cds, 'elpac');
-  if (lvl !== 'county') h += sistersSection(cds);
   h += `<p class="note">Sources: California Department of Education, CA School Dashboard downloadable data files; CDE/ETS, CAASPP and ELPAC research files (the data behind DataQuest's test results).${EMBED ? ` Built-in data downloaded ${esc(dataDate())}.` : ''}${S.files.some(f => !f.builtin) ? ` Files added in this browser: ${S.files.filter(f => !f.builtin).length}.` : ''}</p>`;
   $('#main').innerHTML = h;
   document.title = (lvl === 'county' ? '' : entityName(cds) + ' · ') + 'Modoc County Data Hub';
@@ -1411,6 +1455,7 @@ function renderEntitySelect(){
   for (const d of entities()){
     h += `<optgroup label="${esc(entityName(d.cds))}"><option value="${d.cds}">${esc(entityName(d.cds))} — district</option>`;
     if (EMBED && ((EMBED.lcap || {})[d.cds] || (EMBED.local || {})[d.cds])) h += `<option value="lcap:${d.cds}">  ${esc(entityName(d.cds))} — LCAP data</option>`;
+    if (sisUnit(d.cds) || d.schools.some(sc => sisUnit(sc))) h += `<option value="sisters:${d.cds}">  ${esc(entityName(d.cds))} — Sister districts &amp; schools</option>`;
     for (const s of d.schools) h += `<option value="${s}">  ${esc(entityName(s))}</option>`;
     h += `</optgroup>`;
   }
