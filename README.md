@@ -22,6 +22,17 @@ Every page has its own address that can be bookmarked or shared, for example
 `Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified--modoc-high`. The browser's Back button
 works, and the **View** menu jumps to any page.
 
+The county page also has a **Dashboard Performance** button (`…#dashboard-performance`). It opens one page with
+every Modoc district and school, colored by CA School Dashboard performance level:
+
+- **Performance levels at a glance:** how many results are Red, Orange, Yellow, Green and Blue, and the same counts for each year.
+- **Districts and schools by indicator:** a grid with a row for each district and school and a column for each
+  indicator. Each cell is filled with its color and shows the status and the change from last year. A statewide row is at the bottom.
+- **Student groups:** one district's or school's student groups by indicator, in the same grid.
+- **Red and Orange results:** every Red or Orange result, with its student group and indicator.
+
+Filters at the top choose the year, student group, indicator, districts and/or schools, and which colors to highlight.
+
 Each district page also has an **LCAP data** button (for example `…#modoc-joint-unified--lcap`). It opens a page
 with the district's most recent results for LCAP planning:
 
