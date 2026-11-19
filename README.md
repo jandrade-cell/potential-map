@@ -8,9 +8,9 @@ Download the file and double-click it to open it in Chrome, Edge, Firefox, or Sa
 
 ## What it shows
 
-The hub has three levels of pages:
+The hub opens on the **Dashboard Performance** report (below). It also has three levels of pages:
 
-1. **Modoc County (the landing page).** Shows all county results, with a card for each district: Modoc Joint Unified,
+1. **Modoc County** (`…#county`). Shows all county results, with a card for each district: Modoc Joint Unified,
    Surprise Valley Joint Unified and Tulelake Basin Joint Unified. Each card shows its headline numbers and opens
    that district's page.
 2. **District pages.** Each shows the district's own Dashboard, CAASPP and ELPAC results, with a card for each of
@@ -46,11 +46,10 @@ Notes:
   so 2025 and 2026 results line up in the trend charts.
 - ELPAC results show the four overall performance levels. Level 4 (Well developed) is the reclassification criterion.
 
-## Dashboard Performance (separate page, in review)
+## Dashboard Performance (the landing page)
 
-`Modoc Dashboard Performance.html` is a separate single-file page for team review. It doesn't change the hub.
-It opens on a report of Modoc's CA School Dashboard results, laid out like the county office "Dashboard Performance"
-reports. The menu on the left opens each page, and each page has its own address, such as `…#dashboard-performance--ela`.
+The hub opens on **Dashboard Performance**, a report of Modoc's CA School Dashboard results laid out like the county
+office "Dashboard Performance" reports. The menu on the left opens each page, and each page has its own address, such as `…#dashboard-performance--ela`.
 
 - **Dashboard summary:** how many results are Red, Orange, Yellow, Green and Blue, for each year. Then a table with a row
   for each district or school and student group, and a column for each indicator, filled with its color. The last
@@ -68,15 +67,13 @@ reports. The menu on the left opens each page, and each page has its own address
   or click a row or column total. The full list of every Red and Orange result is below it.
 - **Similar schools** (links to the sister pages), **Indicators by year** and **About the data**.
 
-The page also has the hub's county, district and school pages, because the report's links open them.
-The county page is at `…#county`. The page works offline, so it has no map. It has no charter page, because Modoc has
+The county page with all county results is at `…#county` (the **View** menu and every breadcrumb link to it).
+The page works offline, so the report has no map. It has no charter page, because Modoc has
 no charter schools in the Dashboard files.
 
 **Universal Support Priority file.** CDE publishes it each November (for example `uspassistancestatus26.xlsx`). Upload
 it to the `data/support/` folder and run **Refresh built-in data**. The newest file is used. On a computer:
-`python3 tools/build_data.py --only support --html "Modoc Dashboard Performance.html"`.
-
-The **Refresh built-in data** workflow updates both pages.
+`python3 tools/build_data.py --only support`.
 
 ## Shared web page
 
