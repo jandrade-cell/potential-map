@@ -22,16 +22,22 @@ Every page has its own address that can be bookmarked or shared, for example
 `Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified--modoc-high`. The browser's Back button
 works, and the **View** menu jumps to any page.
 
-The county page also has a **Dashboard Performance** button (`…#dashboard-performance`). It opens one page with
-every Modoc district and school, colored by CA School Dashboard performance level:
+The county and district pages also have a **Dashboard Performance** button (`…#dashboard-performance`). It opens a
+report on Modoc's CA School Dashboard results, laid out like the county office "Dashboard Performance" reports.
+The menu on the left opens each page, and each page has its own address, such as `…#dashboard-performance--ela`.
 
-- **Performance levels at a glance:** how many results are Red, Orange, Yellow, Green and Blue, and the same counts for each year.
-- **Districts and schools by indicator:** a grid with a row for each district and school and a column for each
-  indicator. Each cell is filled with its color and shows the status and the change from last year. A statewide row is at the bottom.
-- **Student groups:** one district's or school's student groups by indicator, in the same grid.
-- **Red and Orange results:** every Red or Orange result, with its student group and indicator.
+- **Dashboard summary:** how many results are Red, Orange, Yellow, Green and Blue, for each year. Then a table with a row for each district or school
+  and student group, and a column for each indicator, filled with its color.
+- **One page for each indicator** (ELA, Math, English Learner Progress, Graduation, Chronic Absenteeism, Suspensions,
+  College/Career, Science). It shows **Status** or **Change** as bars colored by performance level, ranked by
+  **district**, by **school**, or by **student group** within a chosen district and school, with the statewide result.
+- **County overview:** for each student group and indicator, the share of Modoc districts or schools in Red or Orange.
+- **Indicator summary** and **Student group summary:** percent of districts or schools at each color.
+- **Red & Orange list:** every Red or Orange result, with its student group and indicator.
+- **Similar schools** (links to the sister pages), **Indicators by year** and **About the data**.
 
-Filters at the top choose the year, student group, indicator, districts and/or schools, and which colors to highlight.
+The hub works offline, so the report has no map. It also has no charter page, because Modoc has no charter schools in the Dashboard files.
+It does not determine Differentiated Assistance eligibility.
 
 Each district page also has an **LCAP data** button (for example `…#modoc-joint-unified--lcap`). It opens a page
 with the district's most recent results for LCAP planning:
