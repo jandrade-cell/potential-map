@@ -296,6 +296,14 @@ table.heat tr.first-of-ent td{border-top:2px solid var(--border)}
 .usp-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--surface)}
 .usp-card.met{border:2px solid var(--text)}
 .usp-card .uc-name{font-weight:700} .usp-card .uc-sub{font-size:12.5px;color:var(--text2);margin-top:4px}
+table.hm-table td{padding:2px;text-align:center} table.hm-table td.ent{text-align:left;padding:6px 10px}
+.hm{display:block;width:100%;min-width:46px;min-height:34px;border:0;border-radius:4px;background:transparent;font:inherit;font-size:14px;font-weight:700;color:inherit;cursor:pointer;font-variant-numeric:tabular-nums}
+.hm:hover{box-shadow:inset 0 0 0 2px var(--text)}
+.hm:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.hm.sel{box-shadow:inset 0 0 0 3px var(--text)}
+.hm.tot{background:var(--surface2)}
+.hm.none{cursor:default}
+tr.hm-total td{border-top:2px solid var(--border)}
 /* Data panel */
 .drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40;display:none}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:41;border-left:1px solid var(--border);overflow-y:auto;padding:calc(18px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) 18px;transform:translateX(100%);transition:transform .2s}
@@ -1451,12 +1459,12 @@ function toolCards(cds){
    county-wide counts of performance colors; the Red and Orange list; which indicators were reported each
    year; and notes on the data. Uses only the Dashboard rows already in the hub. */
 S.perf = {tab:'summary', sumGroup:'*', sumEnt:'', group:'ALL', level:'all', only:'', mode:'status', view:'district',
-          dist:'', school:'', lvl2:'districts', sgInd:'chronic', roInd:''};
+          dist:'', school:'', lvl2:'districts', sgInd:'chronic', hmColors:'r', hmLvl:'districts', hmCell:''};
 const PERF_KEY = 'perf:' + COUNTY_KEY;
 const PERF_IND_TABS = ['ela','math','elpi','grad','chronic','susp','cci','sci'];
 const PERF_TABS = {summary:'Dashboard summary', ela:'English Language Arts', math:'Mathematics', elpi:'English Learner Progress',
   grad:'Graduation Rate', chronic:'Chronic Absenteeism', susp:'Suspensions', cci:'College/Career', sci:'Science',
-  support:'Support status', overview:'County overview', indsum:'Indicator summary', grpsum:'Student group summary', redorange:'Red & Orange list',
+  support:'Support status', overview:'County overview', indsum:'Indicator summary', grpsum:'Student group summary', redorange:'Red & Orange heat map',
   sisters:'Similar schools', years:'Indicators by year', about:'About the data'};
 const PERF_NAV = [['Summary', ['summary']], ['Indicators', PERF_IND_TABS], ['County view', ['support','overview','indsum','grpsum','redorange']], ['More', ['sisters','years','about']]];
 const perfHref = tab => '#dashboard-performance' + (tab && tab !== 'summary' ? '--' + tab : '');
@@ -1686,22 +1694,82 @@ function perfGrpSummary(y){
   return h;
 }
 
-/* -- Every Red and Orange result -- */
+/* -- Red & Orange heat map: student group x indicator counts of districts or schools, with drill-through -- */
+const HM_SKIP = new Set(['ELO','RFP','EO']);   // English-learner subgroups that overlap the EL and EO groups
 function perfRedOrange(y){
-  const P = S.perf, inds = perfIndsIn(y);
-  const rows = perfRows(P.level);
-  let h = `<div class="slicers no-print">${yearSel(y)}<label>Indicator<select data-perf="roInd">${popt('', 'All indicators', P.roInd)}${inds.map(i => popt(i, IND[i].name, P.roInd)).join('')}</select></label>
-    <label>Show<select data-perf="level">${popt('all', 'Districts and schools', P.level)}${popt('districts', 'Districts only', P.level)}${popt('schools', 'Schools only', P.level)}</select></label></div>`;
-  const ro = S.dash.filter(r => r.y === y && (r.color === 1 || r.color === 2) && (!P.roInd || r.ind === P.roInd) && DASH_GROUPS[r.group] && rows.some(it => it.cds === r.cds))
+  const P = S.perf;
+  if (!['r','ro'].includes(P.hmColors)) P.hmColors = 'r';
+  if (!['districts','schools','all'].includes(P.hmLvl)) P.hmLvl = 'districts';
+  const cdsList = P.hmLvl === 'districts' ? perfDistricts() : P.hmLvl === 'schools' ? perfSchools('') : [...perfDistricts(), ...perfSchools('')];
+  const want = c => P.hmColors === 'r' ? c === 1 : c === 1 || c === 2;
+  const hits = S.dash.filter(r => r.y === y && want(r.color) && DASH_GROUPS[r.group] && !HM_SKIP.has(r.group) && cdsList.includes(r.cds));
+  const key = (g, i) => g + '|' + i;
+  const cnt = new Map();
+  hits.forEach(r => cnt.set(key(r.group, r.ind), (cnt.get(key(r.group, r.ind)) || 0) + 1));
+  const gTot = g => hits.filter(r => r.group === g).length, iTot = i => hits.filter(r => r.ind === i).length;
+  const groups = uniq(hits.map(r => r.group)).sort((a, b) => gTot(b) - gTot(a) || DASH_GROUP_ORDER.indexOf(a) - DASH_GROUP_ORDER.indexOf(b));
+  const inds = uniq(hits.map(r => r.ind)).sort((a, b) => iTot(b) - iTot(a) || IND_ORDER.indexOf(a) - IND_ORDER.indexOf(b));
+  const max = Math.max(1, ...cnt.values());
+  const what = P.hmColors === 'r' ? 'Red' : 'Red or Orange';
+  const unit = P.hmLvl === 'districts' ? 'districts' : P.hmLvl === 'schools' ? 'schools' : 'districts and schools';
+  const unit1 = n => n === 1 ? unit.replace(/s( and )/, '$1').replace(/s$/, '') : unit;
+  // A drill selection that no longer matches the data is dropped.
+  let [sg, si] = String(P.hmCell || '').split('|');
+  if ((sg && !groups.includes(sg)) || (si && !inds.includes(si))) { sg = si = ''; P.hmCell = ''; }
+
+  let h = `<div class="slicers no-print">${yearSel(y)}
+    <div class="seg-wrap">Count${pseg('hmColors', P.hmColors, [['r','Red'],['ro','Red or Orange']])}</div>
+    <div class="seg-wrap">Of${pseg('hmLvl', P.hmLvl, [['districts','Districts'],['schools','Schools'],['all','Both']])}</div></div>`;
+  h += `<section class="section"><div class="section-head"><h2>${y} ${what} count</h2><span class="meta">Number of Modoc ${unit} with a ${what} result · student group × indicator</span></div>`;
+  if (!hits.length){
+    h += `<div class="empty">No Modoc ${unit} had a ${what} result in ${y}.</div></section>`;
+    return h;
+  }
+  const shade = n => n ? `background:color-mix(in srgb, var(--c1) ${Math.round(18 + 82 * n / max)}%, var(--surface));${n / max >= 0.5 ? 'color:#fff' : ''}` : '';
+  const btn = (k, n, label, tip, extra = '') => n
+    ? `<button type="button" class="hm${P.hmCell === k ? ' sel' : ''}${extra}" style="${extra ? '' : shade(n)}" data-perf-set="hmCell:${esc(k)}" aria-pressed="${P.hmCell === k}" data-tip="${esc(tip)}" aria-label="${esc(tip)}">${label}</button>`
+    : '<span class="hm none"></span>';
+  let t = `<div class="table-wrap"><table class="heat hm-table"><thead><tr><th class="l">Student group</th>${inds.map(i => `<th>${esc(IND[i].short)}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  for (const g of groups){
+    t += `<tr><td class="ent">${esc(DASH_GROUPS[g])}</td>${inds.map(i => { const n = cnt.get(key(g, i)) || 0;
+      return `<td>${btn(key(g, i), n, n, `${n} ${unit1(n)}: ${DASH_GROUPS[g]} · ${IND[i].name} ${what}. Click to see which.`)}</td>`; }).join('')}
+      <td>${btn(key(g, ''), gTot(g), `<b>${gTot(g)}</b>`, `${gTot(g)} ${what} results for ${DASH_GROUPS[g]}. Click to see them.`, ' tot')}</td></tr>`;
+  }
+  t += `<tr class="hm-total"><td class="ent"><b>Total</b></td>${inds.map(i => `<td>${btn(key('', i), iTot(i), `<b>${iTot(i)}</b>`, `${iTot(i)} ${what} results in ${IND[i].name}. Click to see them.`, ' tot')}</td>`).join('')}
+    <td>${btn('|', hits.length, `<b>${hits.length}</b>`, `All ${hits.length} ${what} results. Click to see them.`, ' tot')}</td></tr></tbody></table></div>`;
+  h += t;
+  const steps = [0, 0.25, 0.5, 0.75, 1].map(f => Math.max(1, Math.round(f * max))).filter((v, i, a) => a.indexOf(v) === i);
+  h += `<div class="legend" style="margin-top:8px"><span>Fewer</span>${steps.map(n => `<span><i style="${shade(n)}"></i>${n}</span>`).join('')}<span>More ${unit}</span><span>Click any number to see the ${unit} behind it.</span></div>`;
+  const topG = groups[0], topI = inds[0];
+  h += `<p class="note">The ${esc(DASH_GROUPS[topG])} group accounts for ${gTot(topG)} of ${hits.length} ${what} results (${Math.round(100 * gTot(topG) / hits.length)}%). ${esc(IND[topI].name)} has the most, with ${iTot(topI)}.${P.hmLvl === 'all' ? ' With “Both”, a district and its school can each count once.' : ''}</p></section>`;
+
+  // Drill-through: the results behind the selected cell, row or column
+  if (P.hmCell){
+    const list = hits.filter(r => (!sg || r.group === sg) && (!si || r.ind === si))
+      .sort((a, b) => (!si ? IND_ORDER.indexOf(a.ind) - IND_ORDER.indexOf(b.ind) : 0) || (IND[a.ind].better === 'low' ? b.status - a.status : a.status - b.status));
+    const title = [sg && DASH_GROUPS[sg], si && IND[si].name].filter(Boolean).join(' × ') || `All ${what} results`;
+    const sup = !!SUP().leas;
+    h += `<section class="section" id="hmDrill"><div class="section-head"><h2>${esc(title)}</h2><span class="meta">${list.length} ${what} result${list.length === 1 ? '' : 's'} · ${y} · worst status first</span>
+      <div class="right no-print"><button type="button" class="btn" data-perf-set="hmCell:">Close</button></div></div>
+      <div class="table-wrap"><table><thead><tr><th>District / school</th>${sg ? '' : '<th>Student group</th>'}${si ? '' : '<th>Indicator</th>'}<th>Color</th><th class="num">Status</th><th class="num">Change</th><th class="num">Students</th>${sup ? `<th>${esc(supName())}</th>` : ''}</tr></thead><tbody>${list.map(r =>
+        `<tr><td><a class="ent-link" href="${hrefOf(r.cds)}">${esc(entityName(r.cds))}</a><span class="cell-sub">${levelOf(r.cds) === 'school' ? esc(entityName(distKey(r.cds))) : 'District'}</span></td>
+        ${sg ? '' : `<td>${esc(DASH_GROUPS[r.group])}</td>`}${si ? '' : `<td>${esc(IND[r.ind].name)}</td>`}<td>${colorChip(r.color)}</td>
+        <td class="num">${statusText(r.ind, r.status)}</td><td class="num">${r.change === null ? '—' : signed(r.change)}</td><td class="num">${fmtInt(r.denom)}</td>
+        ${sup ? `<td>${supMet(r.cds, r.group, r.ind) ? '<span class="usp-tag">Met criteria</span>' : ''}</td>` : ''}</tr>`).join('')}</tbody></table></div>
+      ${si ? `<p class="note">Status: ${esc(IND_STATUS_TITLE[si])}. ${IND[si].better === 'low' ? 'Lower is better' : 'Higher is better'}.</p>` : ''}</section>`;
+  }
+
+  // The full list, folded away
+  const all = S.dash.filter(r => r.y === y && (r.color === 1 || r.color === 2) && DASH_GROUPS[r.group] && cdsList.includes(r.cds))
     .sort((a, b) => entityName(distKey(a.cds)).localeCompare(entityName(distKey(b.cds))) || (levelOf(a.cds) === 'district' ? -1 : 1) - (levelOf(b.cds) === 'district' ? -1 : 1)
       || entityName(a.cds).localeCompare(entityName(b.cds)) || a.color - b.color || IND_ORDER.indexOf(a.ind) - IND_ORDER.indexOf(b.ind));
-  h += `<section class="section"><div class="section-head"><h2>Red and Orange results</h2><span class="meta">${y} · ${ro.length} result${ro.length === 1 ? '' : 's'}: ${ro.filter(r => r.color === 1).length} Red, ${ro.filter(r => r.color === 2).length} Orange</span></div>`;
-  h += ro.length ? `<div class="table-wrap"><table><thead><tr><th>District / school</th><th>Student group</th><th>Indicator</th><th>Color</th><th class="num">Status</th><th class="num">Change</th><th class="num">Students</th>${SUP().leas ? `<th>${esc(supName())}</th>` : ''}</tr></thead><tbody>${ro.map(r =>
+  h += `<section class="section"><details class="more"><summary>Every Red and Orange result for these ${unit} (${all.length})</summary>
+    <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>District / school</th><th>Student group</th><th>Indicator</th><th>Color</th><th class="num">Status</th><th class="num">Change</th><th class="num">Students</th></tr></thead><tbody>${all.map(r =>
       `<tr><td><a class="ent-link" href="${hrefOf(r.cds)}">${esc(entityName(r.cds))}</a><span class="cell-sub">${levelOf(r.cds) === 'school' ? esc(entityName(distKey(r.cds))) : 'District'}</span></td>
        <td>${esc(DASH_GROUPS[r.group])}</td><td>${esc(IND[r.ind].name)}</td><td>${colorChip(r.color)}</td>
-       <td class="num">${statusText(r.ind, r.status)}</td><td class="num">${r.change === null ? '—' : signed(r.change)}</td><td class="num">${fmtInt(r.denom)}</td>${SUP().leas ? `<td>${supMet(r.cds, r.group, r.ind) ? '<span class="usp-tag">Met criteria</span>' : ''}</td>` : ''}</tr>`).join('')}</tbody></table></div>`
-    : `<div class="empty">No Red or Orange results for this selection in ${y}.</div>`;
-  return h + `<p class="note">Every student group with a Red or Orange result. Use it to spot groups that may need support. It is not CDE’s Differentiated Assistance determination, which also uses local indicators and results over more than one year.</p></section>`;
+       <td class="num">${statusText(r.ind, r.status)}</td><td class="num">${r.change === null ? '—' : signed(r.change)}</td><td class="num">${fmtInt(r.denom)}</td></tr>`).join('')}</tbody></table></div></details>
+    <p class="note">The heat map leaves out English Learners Only, RFEP Only and English Only, which overlap the English learner groups. This page is not CDE’s Differentiated Assistance or Universal Support Priority determination; see <a href="${perfHref('support')}">Support status</a>.</p></section>`;
+  return h;
 }
 
 /* -- Support status: CDE's Universal Support Priority file -- */
@@ -2001,7 +2069,10 @@ $('#main').addEventListener('click', e => {
   const gapBtn = e.target.closest('[data-gap-ind]');
   if (gapBtn){ S.gapInd = gapBtn.dataset.gapInd; const el = $('#gapChart'); if (el) el.outerHTML = gapChart(S.dashYear); const nb = document.querySelector(`[data-gap-ind="${S.gapInd}"]`); if (nb) nb.focus(); return; }
   const ps = e.target.closest('[data-perf-set]');
-  if (ps){ const [k, v] = ps.dataset.perfSet.split(':'); S.perf[k] = v; renderPage(); const nb = document.querySelector(`[data-perf-set="${k}:${v}"]`); if (nb) nb.focus(); return; }
+  if (ps){ const i = ps.dataset.perfSet.indexOf(':'), k = ps.dataset.perfSet.slice(0, i), v = ps.dataset.perfSet.slice(i + 1); S.perf[k] = v; renderPage();
+    const nb = document.querySelector(`[data-perf-set="${k}:${v}"]`); if (nb) nb.focus({preventScroll:true});
+    if (k === 'hmCell' && v){ const d = document.getElementById('hmDrill'); if (d) d.scrollIntoView({behavior:'smooth', block:'start'}); }
+    return; }
   const jump = e.target.closest('a[data-jump]');
   if (jump){ e.preventDefault(); const t = document.querySelector(jump.getAttribute('href')); if (t) t.scrollIntoView({behavior:'smooth'}); return; }
   if (e.target.closest('a[href]')) return;          // real links navigate themselves

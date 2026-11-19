@@ -63,7 +63,9 @@ reports. The menu on the left opens each page, and each page has its own address
   their district and LCAP pages.
 - **County overview:** for each student group and indicator, the share of Modoc districts or schools in Red or Orange.
 - **Indicator summary** and **Student group summary:** percent of districts or schools at each color.
-- **Red & Orange list:** every Red or Orange result, with its student group and indicator.
+- **Red & Orange heat map:** for each student group and indicator, how many districts (or schools, or both) had a Red,
+  or a Red or Orange. Darker cells mean more. Click a number to see the districts and schools behind it, worst status first,
+  or click a row or column total. The full list of every Red and Orange result is below it.
 - **Similar schools** (links to the sister pages), **Indicators by year** and **About the data**.
 
 The page also has the hub's county, district and school pages, because the report's links open them.
