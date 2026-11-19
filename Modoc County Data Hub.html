@@ -216,79 +216,6 @@ details.more{margin-top:8px} details.more summary{cursor:pointer;font-size:13px;
 .trend .axis{stroke:var(--border)} .trend text{fill:var(--muted);font-size:12px}
 .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .links a{font-size:12.5px}
-/* Dashboard Performance report: tabbed, county-wide view of the CA School Dashboard */
-.perf-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:18px;align-items:start}
-.perf-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:4px}
-.perf-nav .grp{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin:10px 2px 2px}
-.perf-nav .grp:first-child{margin-top:0}
-.perf-nav a{display:block;padding:8px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);text-decoration:none;color:var(--text);font-weight:600;font-size:13px;line-height:1.25}
-.perf-nav a:hover{border-color:var(--muted)}
-.perf-nav a[aria-current="page"]{background:var(--text);border-color:var(--text);color:var(--bg)}
-.perf-nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (max-width:900px){ .perf-layout{grid-template-columns:minmax(0,1fr)} .perf-nav{position:static;flex-direction:row;flex-wrap:wrap} .perf-nav .grp{display:none} .perf-nav a{padding:5px 10px;font-size:12px} }
-.slicers{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:0 0 18px}
-.slicers label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);min-width:0}
-.slicers select{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text)}
-.slicers .seg-wrap{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
-.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
-.seg button{border:0;border-right:1px solid var(--border);background:transparent;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);text-transform:none;letter-spacing:0}
-.seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
-.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:12px}
-.kpi{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--surface);border-top:4px solid var(--kc,var(--c0))}
-.kpi b{display:block;font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums}
-.kpi span{font-size:12px;color:var(--text2)}
-.distbar{display:flex;height:26px;border-radius:6px;overflow:hidden;gap:2px;margin:4px 0 2px}
-.distbar span{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;min-width:0;overflow:hidden;white-space:nowrap}
-.dist-row{display:grid;grid-template-columns:56px 1fr 74px;gap:10px;align-items:center;margin:4px 0}
-.dist-row .lbl{font-size:13px;font-weight:600} .dist-row .tot{font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
-.pf1{background:var(--c1);color:#fff} .pf2{background:var(--c2);color:#1b1206} .pf3{background:var(--c3);color:#1b1606}
-.pf4{background:var(--c4);color:#fff} .pf5{background:var(--c5);color:#fff} .pf0{background:var(--surface2);color:var(--text2)}
-table.heat{font-size:12.5px}
-table.heat th{text-align:center} table.heat th:first-child,table.heat th.l{text-align:left}
-table.heat td{padding:3px;border-bottom:1px solid var(--border);vertical-align:middle}
-table.heat td.ent{padding:6px 10px;min-width:150px}
-table.heat tr.lvl-district td.ent{font-weight:700}
-table.heat tr.lvl-school td.ent{padding-left:24px}
-table.heat tr.state-row td.ent{font-style:italic;color:var(--muted)}
-table.heat tr.first-of-ent td{border-top:2px solid var(--border)}
-.hc{display:block;min-width:70px;border-radius:5px;padding:5px 6px;text-align:center;line-height:1.2;font-variant-numeric:tabular-nums}
-.hc b{display:block;font-size:12.5px} .hc small{display:block;font-size:10.5px;font-weight:600;opacity:.92}
-.hc.none{background:transparent;color:var(--muted)}
-.hc.dim{opacity:.2}
-.hc.calc{background:transparent;border:1px dashed var(--border);color:var(--text2)}
-.ind-head{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
-.ind-head h2{font-size:20px;margin:0} .ind-head .meta{font-size:12.5px;color:var(--text2)}
-.statcard{border-radius:10px;padding:8px 18px;text-align:center;min-width:150px;border:1px solid rgba(0,0,0,.12)}
-.statcard small{display:block;font-size:12px;font-weight:700} .statcard b{display:block;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
-.statcard .sc-sub{font-size:11px;font-weight:600;opacity:.9}
-.bars{display:grid;grid-template-columns:minmax(110px,250px) minmax(0,1fr);gap:2px 12px;align-items:center}
-.bar-lbl{text-align:right;font-size:13px;line-height:1.2;padding:3px 0} .bar-lbl small{display:block;font-size:11px;color:var(--muted)}
-.bar-lbl a{text-decoration:none} .bar-lbl a:hover{text-decoration:underline}
-.bar-track{position:relative;height:30px}
-.bar{position:absolute;top:5px;bottom:5px;border-radius:3px;min-width:3px}
-.bar.pf0{background:var(--c0)}
-.bar-val{position:absolute;top:50%;transform:translateY(-50%);font-size:12.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
-.bar-zero{position:absolute;top:0;bottom:0;border-left:1px solid var(--muted)}
-.bar-axis{font-size:11px;color:var(--muted)}
-.panel{border:1px solid var(--border);border-radius:10px;padding:14px;margin:0 0 14px}
-.panel-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:10px}
-.panel-head h3{margin:0;font-size:15px}
-.sm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.sm{border:1px solid var(--border);border-radius:8px;padding:10px 12px}
-.sm h4{margin:0;font-size:13px} .sm .sm-n{font-size:11px;color:var(--muted);margin-bottom:6px}
-.sm-bars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;align-items:end;height:112px}
-.sm-col{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:2px}
-.sm-col span{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums} .sm-col i{display:block;width:100%;border-radius:3px 3px 0 0;min-height:2px}
-.sm-x{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-size:10.5px;color:var(--muted);text-align:center;border-top:1px solid var(--border);padding-top:3px}
-.ov{display:block;text-align:center;padding:5px 4px;border-radius:4px;line-height:1.2;font-variant-numeric:tabular-nums}
-.ov b{display:block;font-size:13px} .ov small{display:block;font-size:10.5px;opacity:.85}
-.yr{display:block;text-align:center;padding:5px 6px;border-radius:4px;font-size:12px;font-weight:700}
-.yr.sc{background:var(--c3);color:#1b1606} .yr.so{background:var(--accent-soft);color:var(--accent)} .yr.na{color:var(--muted);font-weight:400}
-.about p,.about li{max-width:820px} .about h3{margin-top:16px}
-@media (max-width:640px){ .hc{min-width:56px;padding:4px} .hc b{font-size:12px} table.heat td.ent{min-width:120px} .bars{grid-template-columns:100px minmax(0,1fr)} .statcard b{font-size:24px} }
-@media print{ .pf1,.pf2,.pf3,.pf4,.pf5,.kpi,.distbar span,.bar,.ov,.yr,.statcard{-webkit-print-color-adjust:exact;print-color-adjust:exact} .perf-layout{grid-template-columns:1fr} .perf-nav{display:none} }
 /* Data panel */
 .drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40;display:none}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:41;border-left:1px solid var(--border);overflow-y:auto;padding:calc(18px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) 18px;transform:translateX(100%);transition:transform .2s}
@@ -1419,8 +1346,6 @@ function sistersPage(cds){
 /* Cards that open a district's (or school's) separate pages */
 function toolCards(cds){
   const lvl = levelOf(cds), cards = [];
-  if (S.dash.length && (lvl === 'county' || lvl === 'district'))
-    cards.push([hrefOf(PERF_KEY), 'Dashboard Performance', 'Every Modoc district and school on one page, by indicator and student group, colored by Dashboard performance level.']);
   if (lvl === 'district' && EMBED && ((EMBED.lcap || {})[cds] || (EMBED.local || {})[cds]))
     cards.push([hrefOf('lcap:' + cds), 'LCAP data', 'State and Local Indicators with the most recent LCAP metrics, for planning the next LCAP.']);
   const ent = lvl === 'district' ? (entities().find(x => x.cds === cds) || {schools:[]}) : null;
@@ -1430,324 +1355,6 @@ function toolCards(cds){
     cards.push([hrefOf('sisters:' + cds), 'Sister schools', 'Schools across California with students like this school’s, with like and stronger results.']);
   if (!cards.length) return '';
   return `<div class="toolcards no-print">${cards.map(([href, title, sub]) => `<a class="toolcard" href="${href}"><span class="tc-title">${esc(title)} →</span><span class="tc-sub">${esc(sub)}</span></a>`).join('')}</div>`;
-}
-
-/* ---- Dashboard Performance report: a tabbed, county-wide view of the CA School Dashboard ----
-   Modeled on county office "Dashboard Performance" reports: a summary of every LEA, school and student
-   group by indicator; one page per indicator (Status or Change, by district, school or student group);
-   county-wide counts of performance colors; the Red and Orange list; which indicators were reported each
-   year; and notes on the data. Uses only the Dashboard rows already in the hub. */
-S.perf = {tab:'summary', sumGroup:'*', sumEnt:'', group:'ALL', level:'all', only:'', mode:'status', view:'district',
-          dist:'', school:'', lvl2:'districts', sgInd:'chronic', roInd:''};
-const PERF_KEY = 'perf:' + COUNTY_KEY;
-const PERF_IND_TABS = ['ela','math','elpi','grad','chronic','susp','cci','sci'];
-const PERF_TABS = {summary:'Dashboard summary', ela:'English Language Arts', math:'Mathematics', elpi:'English Learner Progress',
-  grad:'Graduation Rate', chronic:'Chronic Absenteeism', susp:'Suspensions', cci:'College/Career', sci:'Science',
-  overview:'County overview', indsum:'Indicator summary', grpsum:'Student group summary', redorange:'Red & Orange list',
-  sisters:'Similar schools', years:'Indicators by year', about:'About the data'};
-const PERF_NAV = [['Summary', ['summary']], ['Indicators', PERF_IND_TABS], ['County view', ['overview','indsum','grpsum','redorange']], ['More', ['sisters','years','about']]];
-const perfHref = tab => '#dashboard-performance' + (tab && tab !== 'summary' ? '--' + tab : '');
-const perfG = (ind, g) => g === 'ALL' || g === '*' ? allGroup(ind) : g;
-const perfIndsIn = y => IND_ORDER.filter(ind => S.dash.some(r => r.ind === ind && r.y === y));
-const perfDistricts = () => entities().map(d => d.cds);
-const perfSchools = dist => entities().filter(d => !dist || d.cds === dist).flatMap(d => d.schools);
-const hasRes = r => !!r && (r.status !== null || !!r.color);
-const popt = (v, t, cur) => `<option value="${esc(v)}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(t)}</option>`;
-const pseg = (key, cur, opts) => `<div class="seg" role="group">${opts.map(([v, t]) => `<button type="button" data-perf-set="${key}:${esc(v)}" aria-pressed="${String(v) === String(cur)}">${esc(t)}</button>`).join('')}</div>`;
-function perfRows(level){
-  const out = [];
-  for (const d of entities()){
-    if (level !== 'schools') out.push({cds:d.cds, lvl:'district', label:entityName(d.cds)});
-    if (level !== 'districts') for (const sc of d.schools) out.push({cds:sc, lvl:'school', label:entityName(sc), note: level === 'schools' ? entityName(d.cds) : ''});
-  }
-  return out;
-}
-function perfGroupsIn(y, cdsList){
-  return DASH_GROUP_ORDER.filter(g => S.dash.some(r => r.y === y && r.group === g && r.status !== null && cdsList.includes(r.cds)));
-}
-function perfCell(ind, r, who){
-  if (!hasRes(r)) return `<td><span class="hc none">—</span></td>`;
-  const c = r.color || 0;
-  const dim = S.perf.only === 'ro' && !(c === 1 || c === 2) ? ' dim' : S.perf.only === 'gb' && !(c === 4 || c === 5) ? ' dim' : '';
-  return `<td><span class="hc pf${c}${dim}" data-tip="${esc(tipFor(ind, r, who))}"><b>${c ? COLOR_NAME[c] : 'No color'}</b><small>${statusText(ind, r.status)}${r.change !== null && r.change !== undefined ? ' · ' + signed(r.change) : ''}</small></span></td>`;
-}
-function perfCounts(y, cdsList, inds, group){
-  const n = {0:0,1:0,2:0,3:0,4:0,5:0};
-  for (const cds of cdsList) for (const ind of inds){
-    const gs = group === '*' ? DASH_GROUP_ORDER : [perfG(ind, group)];
-    for (const g of gs){ const r = dashRow(cds, ind, g, y); if (hasRes(r)) n[r.color || 0]++; }
-  }
-  return n;
-}
-function perfDistRow(label, n){
-  const tot = [1,2,3,4,5].reduce((a, c) => a + n[c], 0);
-  const bar = tot ? [1,2,3,4,5].filter(c => n[c]).map(c => {
-    const p = 100 * n[c] / tot;
-    return `<span class="pf${c}" style="width:${p}%" data-tip="${esc(`${label}: ${n[c]} ${COLOR_NAME[c]} of ${tot} colored results (${p.toFixed(0)}%)`)}">${p >= 7 ? n[c] : ''}</span>`;
-  }).join('') : `<span class="pf0" style="width:100%">no colored results</span>`;
-  return `<div class="dist-row"><div class="lbl">${esc(label)}</div><div class="distbar">${bar}</div><div class="tot">${tot} colored</div></div>`;
-}
-const legendColors = extra => `<div class="legend" style="margin-top:8px">${[1,2,3,4,5].map(c => `<span><i class="pf${c}"></i>${COLOR_NAME[c]}</span>`).join('')}<span><i style="background:var(--c0)"></i>No color</span>${extra ? `<span>${extra}</span>` : ''}</div>`;
-const yearSel = y => `<label>Year<select data-year="dash">${dashYears().map(v => popt(v, v, y)).join('')}</select></label>`;
-function groupSel(key, y, cdsList, opts = {}){
-  const gs = perfGroupsIn(y, cdsList);
-  if (S.perf[key] !== '*' && !gs.includes(S.perf[key])) S.perf[key] = opts.all ? '*' : 'ALL';
-  return `<label>Student group<select data-perf="${key}">${opts.all ? popt('*', 'All student groups', S.perf[key]) : ''}${gs.map(g => popt(g, DASH_GROUPS[g] || g, S.perf[key])).join('')}</select></label>`;
-}
-
-/* -- Summary: every district, school and student group by indicator -- */
-function perfSummary(y){
-  const P = S.perf, inds = perfIndsIn(y);
-  const ents = perfRows(P.level);
-  if (P.sumEnt && !ents.some(e => e.cds === P.sumEnt)) P.sumEnt = '';
-  const shown = P.sumEnt ? ents.filter(e => e.cds === P.sumEnt) : ents;
-  let h = `<div class="slicers no-print">${yearSel(y)}${groupSel('sumGroup', y, ents.map(e => e.cds), {all:true})}
-    <label>Show<select data-perf="level">${popt('all', 'Districts and schools', P.level)}${popt('districts', 'Districts only', P.level)}${popt('schools', 'Schools only', P.level)}</select></label>
-    <label>District / school<select data-perf="sumEnt">${popt('', 'All', P.sumEnt)}${ents.map(e => popt(e.cds, (e.lvl === 'school' && P.level === 'all' ? '  ' : '') + e.label, P.sumEnt)).join('')}</select></label>
-    <label>Highlight<select data-perf="only">${popt('', 'All colors', P.only)}${popt('ro', 'Red and Orange', P.only)}${popt('gb', 'Green and Blue', P.only)}</select></label></div>`;
-  const n = perfCounts(y, shown.map(e => e.cds), inds, P.sumGroup);
-  const gLabel = P.sumGroup === '*' ? 'all student groups' : DASH_GROUPS[P.sumGroup];
-  h += `<section class="section"><div class="section-head"><h2>Performance levels at a glance</h2><span class="meta">${y} · ${esc(gLabel)}</span></div>
-    <div class="kpis">${[1,2,3,4,5].map(c => `<div class="kpi" style="--kc:var(--c${c})"><b>${n[c]}</b><span>${COLOR_NAME[c]}</span></div>`).join('')}<div class="kpi"><b>${n[0]}</b><span>No color</span></div></div>
-    <h3>Colored results by year</h3>${dashYears().slice().sort().map(yy => perfDistRow(String(yy), perfCounts(yy, shown.map(e => e.cds), perfIndsIn(yy), P.sumGroup))).join('')}
-    <p class="note">Each count is one indicator result for one district or school${P.sumGroup === '*' ? ' and student group' : ''}. A result gets a color only when it has enough students and a prior year to compare to. Small schools and groups often show a status with “no color”.</p></section>`;
-  // Table: one row per district/school and student group
-  let rows = '', count = 0;
-  for (const e of shown){
-    const gs = P.sumGroup === '*' ? DASH_GROUP_ORDER : [P.sumGroup];
-    let first = true;
-    for (const g of gs){
-      const cells = inds.map(ind => dashRow(e.cds, ind, P.sumGroup === '*' ? g : perfG(ind, g), y));
-      // In the all-groups table, English Learner Progress appears on the English Learner row only.
-      if (!cells.some(hasRes)) continue;
-      count++;
-      rows += `<tr class="lvl-${e.lvl}${first ? ' first-of-ent' : ''}"><td class="ent">${first ? `<a class="ent-link" href="${hrefOf(e.cds)}">${esc(e.label)}</a>${e.lvl === 'school' ? `<span class="cell-sub">${esc(entityName(distKey(e.cds)))}</span>` : ''}` : ''}</td>
-        <td>${esc(DASH_GROUPS[g] || g)}</td>${inds.map((ind, i) => perfCell(ind, cells[i], e.label + ' · ' + (DASH_GROUPS[g] || g))).join('')}</tr>`;
-      first = false;
-    }
-  }
-  const st = P.sumGroup === '*' ? '' : `<tr class="state-row first-of-ent"><td class="ent">California (statewide)</td><td>${esc(DASH_GROUPS[P.sumGroup])}</td>${inds.map(ind => perfCell(ind, dashRow(STATE_KEY, ind, perfG(ind, P.sumGroup), y), 'California')).join('')}</tr>`;
-  h += `<section class="section"><div class="section-head"><h2>District and school performance</h2><span class="meta">${y} · ${count} row${count === 1 ? '' : 's'}</span></div>
-    <div class="table-wrap"><table class="heat"><thead><tr><th class="l">District / school</th><th class="l">Student group</th>${inds.map(i => `<th>${esc(IND[i].short)}</th>`).join('')}</tr></thead><tbody>${rows}${st}</tbody></table></div>
-    ${legendColors('Each cell: color, then status · change. Hover for details.')}
-    <p class="note">Student groups with no result for any indicator are left out. English Learner Progress is reported for English learners only${P.sumGroup === 'ALL' ? ', so the All Students row shows the English learner result' : ''}.</p></section>`;
-  return h;
-}
-
-/* -- One indicator: Status or Change, by district, school or student group -- */
-function perfBars(items, ind, mode){
-  const val = r => r ? (mode === 'change' ? r.change : r.status) : null;
-  const ok = items.filter(it => val(it.r) !== null && val(it.r) !== undefined);
-  const missing = items.filter(it => !ok.includes(it));
-  if (!ok.length) return `<div class="empty">No ${mode === 'change' ? 'change' : 'status'} reported for this selection.</div>` + (missing.length ? `<p class="note">No result: ${missing.map(it => esc(it.label)).join(', ')}.</p>` : '');
-  const low = IND[ind].better === 'low' && mode !== 'change';
-  ok.sort((a, b) => low ? val(a.r) - val(b.r) : val(b.r) - val(a.r));
-  let lo = Math.min(0, ...ok.map(it => val(it.r))), hi = Math.max(0, ...ok.map(it => val(it.r)));
-  if (lo === hi) hi = lo + 1;
-  const span = hi - lo, pad = span * (innerWidth < 640 ? 0.34 : 0.18);
-  if (lo < 0) lo -= pad; if (hi > 0) hi += pad;
-  const pos = v => 100 * (v - lo) / (hi - lo);
-  const z = pos(0);
-  const fmtV = v => mode === 'change' ? signed(v) + (IND[ind].kind === 'pct' ? '' : '') : statusText(ind, v);
-  let h = '<div class="bars">';
-  for (const it of ok){
-    const v = val(it.r), p = pos(v), c = it.r.color || 0;
-    const left = Math.min(p, z), w = Math.abs(p - z);
-    const lab = v >= 0 ? `left:calc(${p}% + 5px)` : `right:calc(${100 - p}% + 5px)`;
-    h += `<div class="bar-lbl">${it.href ? `<a class="ent-link" href="${it.href}">${esc(it.label)}</a>` : esc(it.label)}${it.sub ? `<small>${esc(it.sub)}</small>` : ''}</div>
-      <div class="bar-track" data-tip="${esc(tipFor(ind, it.r, it.label))}"><span class="bar-zero" style="left:${z}%"></span><span class="bar pf${c}" style="left:${left}%;width:${w}%"></span><span class="bar-val" style="${lab}">${fmtV(v)}</span></div>`;
-  }
-  h += '</div>';
-  if (missing.length) h += `<p class="note">No ${mode === 'change' ? 'change' : 'status'} reported (too few students, or not measured here): ${missing.map(it => esc(it.label)).join(', ')}.</p>`;
-  return h;
-}
-function statCard(label, ind, r, mode){
-  if (!r) return `<div class="statcard pf0"><small>${esc(label)}</small><b>—</b></div>`;
-  const v = mode === 'change' ? r.change : r.status;
-  return `<div class="statcard pf${r.color || 0}"><small>${esc(label)}</small><b>${v === null || v === undefined ? '—' : mode === 'change' ? signed(v) : statusText(ind, v)}</b><span class="sc-sub">${r.color ? COLOR_NAME[r.color] : 'No color'}${r.denom ? ' · ' + fmtInt(r.denom) + ' students' : ''}</span></div>`;
-}
-const IND_STATUS_TITLE = {
-  ela:'Distance from Standard (points)', math:'Distance from Standard (points)', sci:'Average scale score above the CAST low threshold (points)',
-  chronic:'Percent of students chronically absent', susp:'Percent of students suspended at least once', grad:'Four- and five-year graduation rate',
-  elpi:'Percent of English learners making progress toward English proficiency', cci:'Percent of graduates prepared for college or career'};
-function perfIndicator(ind, y){
-  const P = S.perf, m = IND[ind];
-  const dists = perfDistricts();
-  if (!dists.includes(P.dist)) P.dist = '';
-  const allSchools = perfSchools('');
-  const groupList = ind === 'elpi' ? ['EL','LTEL','ELO'] : null;
-  let h = `<div class="slicers no-print">${yearSel(y)}${P.view !== 'group' ? (ind === 'elpi' ? '' : groupSel('group', y, [...dists, ...allSchools])) : ''}
-    <div class="seg-wrap">Show${pseg('mode', P.mode, [['status','Status'],['change','Change']])}</div>
-    <div class="seg-wrap">View${pseg('view', P.view, [['district','Districts'],['school','Schools'],['group','Student groups']])}</div>
-    ${P.view === 'school' ? `<label>District<select data-perf="dist">${popt('', 'All districts', P.dist)}${dists.map(d => popt(d, entityName(d), P.dist)).join('')}</select></label>` : ''}</div>`;
-  const g = perfG(ind, P.group);
-  const state = dashRow(STATE_KEY, ind, P.view === 'group' ? allGroup(ind) : g, y);
-  const title = P.mode === 'change' ? `Change from ${y - 1}` : IND_STATUS_TITLE[ind];
-  h += `<section class="section"><div class="ind-head"><div><h2>${esc(m.name)}</h2><div class="meta">Dashboard ${P.mode === 'change' ? 'CHANGE' : 'STATUS'}: ${esc(title)} · ${y} Dashboard${P.view !== 'group' ? ' · ' + esc(DASH_GROUPS[g]) : ''}</div>
-    <div class="meta">${m.better === 'low' ? 'Lower is better.' : 'Higher is better.'} Bar colors are each result’s Dashboard performance color.</div></div>
-    ${statCard('Statewide ' + (P.mode === 'change' ? 'change' : 'status'), ind, state, P.mode)}</div>`;
-  if (P.view === 'district'){
-    h += perfBars(dists.map(d => ({label:entityName(d), href:hrefOf(d), r:dashRow(d, ind, g, y)})), ind, P.mode);
-  } else if (P.view === 'school'){
-    h += perfBars(perfSchools(P.dist).map(sc => ({label:entityName(sc), sub:P.dist ? '' : entityName(distKey(sc)), href:hrefOf(sc), r:dashRow(sc, ind, g, y)})), ind, P.mode);
-  } else {
-    if (!P.dist) P.dist = dists[0] || '';
-    const scs = perfSchools(P.dist);
-    if (!scs.includes(P.school)) P.school = scs[0] || '';
-    const panel = (cds, label, sel) => {
-      const gs = (groupList || DASH_GROUP_ORDER.filter(x => x !== 'ALL')).filter(x => DASH_GROUPS[x] && S.dash.some(r => r.y === y && r.cds === cds && r.ind === ind && r.group === x));
-      return `<div class="panel"><div class="panel-head"><div><h3>${esc(label)} performance · ${esc(entityName(cds))}</h3>${sel}</div>${statCard(label + ' ' + (P.mode === 'change' ? 'change' : 'status'), ind, dashRow(cds, ind, allGroup(ind), y), P.mode)}</div>
-        ${gs.length ? perfBars(gs.map(x => ({label:DASH_GROUPS[x], r:dashRow(cds, ind, x, y)})), ind, P.mode) : `<div class="empty">No student group results.</div>`}</div>`;
-    };
-    if (P.dist) h += panel(P.dist, 'Districtwide', `<label class="ctl no-print" style="margin-top:6px">District <select data-perf="dist">${dists.map(d => popt(d, entityName(d), P.dist)).join('')}</select></label>`);
-    if (P.school) h += panel(P.school, 'Schoolwide', `<label class="ctl no-print" style="margin-top:6px">School <select data-perf="school">${scs.map(sc => popt(sc, entityName(sc), P.school)).join('')}</select></label>`);
-    if (ind === 'elpi') h += `<p class="note">English Learner Progress is reported only for English learners, so the cards show the English learner result.</p>`;
-  }
-  h += legendColors('Hover a bar for details. Click a name to open its page.');
-  return h + `</section>`;
-}
-
-/* -- County overview: share of districts or schools in Red or Orange, by student group and indicator -- */
-function perfOverview(y){
-  const P = S.perf, inds = perfIndsIn(y);
-  const cdsList = P.lvl2 === 'schools' ? perfSchools('') : perfDistricts();
-  let h = `<div class="slicers no-print">${yearSel(y)}<div class="seg-wrap">Count${pseg('lvl2', P.lvl2, [['districts','Districts'],['schools','Schools']])}</div></div>`;
-  h += `<section class="section"><div class="section-head"><h2>Red and Orange by student group</h2><span class="meta">${y} · ${cdsList.length} ${P.lvl2}</span></div>
-    <p class="sub" style="margin-bottom:12px">Each cell is the share of Modoc ${P.lvl2} with a Red or Orange color for that student group, out of those that received a color. Darker cells mean a larger share.</p>`;
-  const groups = perfGroupsIn(y, cdsList).filter(g => DASH_GROUPS[g]);
-  let body = '';
-  for (const g of groups){
-    let any = false;
-    const cells = inds.map(ind => {
-      const rs = cdsList.map(c => dashRow(c, ind, g, y)).filter(r => r && r.color);
-      if (!rs.length) return '<td><span class="ov" style="color:var(--muted)">—</span></td>';
-      any = true;
-      const ro = rs.filter(r => r.color <= 2).length, p = Math.round(100 * ro / rs.length);
-      const bg = p ? `background:color-mix(in srgb, var(--c1) ${Math.max(12, p)}%, var(--surface));${p >= 67 ? 'color:#fff' : ''}` : '';
-      return `<td><span class="ov" style="${bg}" data-tip="${esc(`${DASH_GROUPS[g]} · ${IND[ind].name}\n${ro} of ${rs.length} ${P.lvl2} with a color are Red or Orange`)}"><b>${p}%</b><small>${ro} of ${rs.length}</small></span></td>`;
-    }).join('');
-    if (any) body += `<tr><td class="ent">${esc(DASH_GROUPS[g])}</td>${cells}</tr>`;
-  }
-  h += body ? `<div class="table-wrap"><table class="heat"><thead><tr><th class="l">Student group</th>${inds.map(i => `<th>${esc(IND[i].short)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>` : `<div class="empty">No colored results for ${y}.</div>`;
-  return h + `<p class="note">Modoc has ${perfDistricts().length} districts and ${perfSchools('').length} schools, so a single district or school can move these shares a lot.</p></section>`;
-}
-/* Small multiples: percent of colored results in each color */
-function smChart(title, rs){
-  const colored = rs.filter(r => r && r.color);
-  const n = c => colored.filter(r => r.color === c).length;
-  const tot = colored.length;
-  return `<div class="sm"><h4>${esc(title)}</h4><div class="sm-n">${tot ? `${tot} with a color` : 'No colored results'}</div>
-    <div class="sm-bars">${[1,2,3,4,5].map(c => { const p = tot ? Math.round(100 * n(c) / tot) : 0;
-      return `<div class="sm-col" data-tip="${esc(`${title}: ${n(c)} of ${tot} ${COLOR_NAME[c]} (${p}%)`)}"><span>${tot ? p + '%' : ''}</span><i class="pf${c}" style="height:${tot ? Math.max(2, 0.8 * p) : 0}%"></i></div>`; }).join('')}</div>
-    <div class="sm-x">${[1,2,3,4,5].map(c => `<span>${COLOR_NAME[c]}</span>`).join('')}</div></div>`;
-}
-function perfIndSummary(y){
-  const P = S.perf, cdsList = P.lvl2 === 'schools' ? perfSchools('') : perfDistricts();
-  const g = P.group;
-  let h = `<div class="slicers no-print">${yearSel(y)}${groupSel('group', y, cdsList)}<div class="seg-wrap">Count${pseg('lvl2', P.lvl2, [['districts','Districts'],['schools','Schools']])}</div></div>`;
-  h += `<section class="section"><div class="section-head"><h2>Percent of ${P.lvl2} by performance color</h2><span class="meta">${y} · ${esc(DASH_GROUPS[g])}</span></div>
-    <div class="sm-grid">${PERF_IND_TABS.filter(ind => perfIndsIn(y).includes(ind)).map(ind => smChart(IND[ind].name, cdsList.map(c => dashRow(c, ind, perfG(ind, g), y)))).join('')}</div>
-    <p class="note">Percentages are out of the Modoc ${P.lvl2} that received a color for that indicator.</p></section>`;
-  return h;
-}
-function perfGrpSummary(y){
-  const P = S.perf, cdsList = P.lvl2 === 'schools' ? perfSchools('') : perfDistricts();
-  const inds = perfIndsIn(y);
-  if (!inds.includes(P.sgInd)) P.sgInd = inds[0];
-  const ind = P.sgInd;
-  let h = `<div class="slicers no-print">${yearSel(y)}<label>Indicator<select data-perf="sgInd">${inds.map(i => popt(i, IND[i].name, ind)).join('')}</select></label>
-    <div class="seg-wrap">Count${pseg('lvl2', P.lvl2, [['districts','Districts'],['schools','Schools']])}</div></div>`;
-  const groups = DASH_GROUP_ORDER.filter(g => DASH_GROUPS[g] && cdsList.some(c => { const r = dashRow(c, ind, g, y); return r && r.color; }));
-  h += `<section class="section"><div class="section-head"><h2>Percent of ${P.lvl2} by performance color, by student group</h2><span class="meta">${y} · ${esc(IND[ind].name)}</span></div>
-    ${groups.length ? `<div class="sm-grid">${groups.map(g => smChart(DASH_GROUPS[g], cdsList.map(c => dashRow(c, ind, g, y)))).join('')}</div>` : `<div class="empty">No colored results for ${esc(IND[ind].name)} in ${y}.</div>`}
-    <p class="note">Only student groups that received a color in at least one Modoc ${P.lvl2.slice(0, -1)} are shown.</p></section>`;
-  return h;
-}
-
-/* -- Every Red and Orange result -- */
-function perfRedOrange(y){
-  const P = S.perf, inds = perfIndsIn(y);
-  const rows = perfRows(P.level);
-  let h = `<div class="slicers no-print">${yearSel(y)}<label>Indicator<select data-perf="roInd">${popt('', 'All indicators', P.roInd)}${inds.map(i => popt(i, IND[i].name, P.roInd)).join('')}</select></label>
-    <label>Show<select data-perf="level">${popt('all', 'Districts and schools', P.level)}${popt('districts', 'Districts only', P.level)}${popt('schools', 'Schools only', P.level)}</select></label></div>`;
-  const ro = S.dash.filter(r => r.y === y && (r.color === 1 || r.color === 2) && (!P.roInd || r.ind === P.roInd) && DASH_GROUPS[r.group] && rows.some(it => it.cds === r.cds))
-    .sort((a, b) => entityName(distKey(a.cds)).localeCompare(entityName(distKey(b.cds))) || (levelOf(a.cds) === 'district' ? -1 : 1) - (levelOf(b.cds) === 'district' ? -1 : 1)
-      || entityName(a.cds).localeCompare(entityName(b.cds)) || a.color - b.color || IND_ORDER.indexOf(a.ind) - IND_ORDER.indexOf(b.ind));
-  h += `<section class="section"><div class="section-head"><h2>Red and Orange results</h2><span class="meta">${y} · ${ro.length} result${ro.length === 1 ? '' : 's'}: ${ro.filter(r => r.color === 1).length} Red, ${ro.filter(r => r.color === 2).length} Orange</span></div>`;
-  h += ro.length ? `<div class="table-wrap"><table><thead><tr><th>District / school</th><th>Student group</th><th>Indicator</th><th>Color</th><th class="num">Status</th><th class="num">Change</th><th class="num">Students</th></tr></thead><tbody>${ro.map(r =>
-      `<tr><td><a class="ent-link" href="${hrefOf(r.cds)}">${esc(entityName(r.cds))}</a><span class="cell-sub">${levelOf(r.cds) === 'school' ? esc(entityName(distKey(r.cds))) : 'District'}</span></td>
-       <td>${esc(DASH_GROUPS[r.group])}</td><td>${esc(IND[r.ind].name)}</td><td>${colorChip(r.color)}</td>
-       <td class="num">${statusText(r.ind, r.status)}</td><td class="num">${r.change === null ? '—' : signed(r.change)}</td><td class="num">${fmtInt(r.denom)}</td></tr>`).join('')}</tbody></table></div>`
-    : `<div class="empty">No Red or Orange results for this selection in ${y}.</div>`;
-  return h + `<p class="note">Every student group with a Red or Orange result. Use it to spot groups that may need support. It is not CDE’s Differentiated Assistance determination, which also uses local indicators and results over more than one year.</p></section>`;
-}
-
-/* -- Similar schools: links to the hub's sister pages -- */
-function perfSisters(){
-  const links = [];
-  for (const d of entities()){
-    if (sisUnit(d.cds) || d.schools.some(sc => sisUnit(sc))) links.push([d.cds, entityName(d.cds), d.schools.filter(sc => sisUnit(sc)).length]);
-  }
-  return `<section class="section"><div class="section-head"><h2>Similar schools</h2></div>
-    <p class="sub">Each Modoc district and school has a page of sister districts and schools across California: ones with students like yours, with like and with stronger Dashboard results.</p>
-    ${links.length ? `<div class="toolcards">${links.map(([cds, name, ns]) => `<a class="toolcard" href="${hrefOf('sisters:' + cds)}"><span class="tc-title">${esc(name)} →</span><span class="tc-sub">Sister districts${ns ? ` and sister schools for ${ns} school${ns === 1 ? '' : 's'}` : ''}</span></a>`).join('')}</div>` : '<div class="empty">No sister matches are built into this copy.</div>'}
-    <p class="note">Matches use enrollment, how rural the school is, and the shares of socioeconomically disadvantaged students, English learners, students with disabilities, and foster and homeless youth. They are a statistical match, not an official CDE designation.</p></section>`;
-}
-
-/* -- Which indicators had a status and a change each year -- */
-function perfYears(){
-  const years = dashYears().slice().sort();
-  const cell = (ind, y) => {
-    const rs = S.dash.filter(r => r.ind === ind && r.y === y);
-    if (!rs.length) return '<td><span class="yr na">Not in this copy</span></td>';
-    if (rs.some(r => r.color)) return '<td><span class="yr sc">Status and change</span></td>';
-    return '<td><span class="yr so">Status only</span></td>';
-  };
-  return `<section class="section"><div class="section-head"><h2>California School Dashboard state indicators by year</h2></div>
-    <div class="table-wrap"><table class="heat"><thead><tr><th class="l">Indicator</th>${years.map(y => `<th>${y}</th>`).join('')}</tr></thead>
-    <tbody>${IND_ORDER.map(ind => `<tr><td class="ent">${esc(IND[ind].name)}</td>${years.map(y => cell(ind, y)).join('')}</tr>`).join('')}</tbody></table></div>
-    <ul class="note">
-      <li>“Status and change” means the Dashboard compared the year with the one before and gave performance colors. “Status only” means it reported a status but no colors.</li>
-      <li>Calculation methods and data sources can change from year to year. For example, English Learner Progress was first based on the CELDT and is now based on the ELPAC.</li>
-      <li>The Dashboard reports LEA, school and student group results. It does not report county-wide results. Statewide results are shown for context.</li>
-      <li>This copy holds the latest ${years.length} Dashboard years. Earlier years are on the <a href="https://www.cde.ca.gov/ds/ad/accdf.asp" target="_blank" rel="noopener">CDE downloadable files</a> page.</li></ul></section>`;
-}
-function perfAbout(){
-  return `<section class="section about"><div class="section-head"><h2>About the data</h2></div>
-    <ul>
-      <li>The <a href="https://www.caschooldashboard.org/" target="_blank" rel="noopener">California School Dashboard</a> indicators measure how local educational agencies (LEAs) and schools are doing. Every number on these pages comes from CDE’s <a href="https://www.cde.ca.gov/ds/ad/accdf.asp" target="_blank" rel="noopener">Accountability Downloadable Data Files</a>, the files behind the Dashboard.</li>
-      <li>Dashboard measures differ from the student outcomes reported elsewhere, such as on <a href="https://dq.cde.ca.gov/dataquest/" target="_blank" rel="noopener">DataQuest</a>, because they count different sets of students.</li>
-      <li>How each indicator is calculated, including which students count, is explained in CDE’s Dashboard resources at <a href="https://www.cde.ca.gov/ta/ac/cm/" target="_blank" rel="noopener">cde.ca.gov/ta/ac/cm</a>.</li></ul>
-    <h3>Performance colors</h3>
-    <p>Each result’s color comes from its <b>status</b> (this year’s result) and its <b>change</b> (the difference from last year): Red, Orange, Yellow, Green and Blue, from lowest to highest. A result with too few students, or without a prior year, has a status but no color.</p>
-    <h3>Small numbers</h3>
-    <p>Modoc’s districts and schools are small. One or two students can move a result, and many student groups are too small to get a color. The number of students counted is in each result’s details.</p>
-    <h3>County results</h3>
-    <p>The Dashboard does not publish county-wide results, so this report shows each district and school, and the statewide result for comparison.</p>
-    <h3>Differentiated Assistance</h3>
-    <p>Districts and charter schools are found eligible for Differentiated Assistance by CDE using student group results over one or more years, local indicators and other rules. This report doesn’t make that determination. CDE publishes the official list each year.</p>
-    <h3>Not included</h3>
-    <p>This copy has no map, because the page works offline and can’t load map tiles. It has no charter school summary, because Modoc has no charter schools in the Dashboard files.</p></section>`;
-}
-
-function perfPage(){
-  const P = S.perf;
-  if (!PERF_TABS[P.tab]) P.tab = 'summary';
-  const nav = `<nav class="perf-nav no-print" aria-label="Dashboard Performance pages">${PERF_NAV.map(([g, tabs]) => `<div class="grp">${esc(g)}</div>` +
-    tabs.map(t => `<a href="${perfHref(t)}" ${t === P.tab ? 'aria-current="page"' : ''}>${esc(PERF_TABS[t])}</a>`).join('')).join('')}</nav>`;
-  const years = dashYears();
-  let body = `<div class="crumbs"><a href="#">Modoc County</a> › <a href="${perfHref('summary')}">Dashboard Performance</a>${P.tab !== 'summary' ? ' › ' + esc(PERF_TABS[P.tab]) : ''}</div>
-    <h1>${P.tab === 'summary' ? 'Dashboard Performance' : esc(PERF_TABS[P.tab])}</h1>
-    <p class="sub">${P.tab === 'summary' ? 'Every Modoc district, school and student group, colored by CA School Dashboard performance level.' : 'Modoc County · CA School Dashboard'}</p>`;
-  if (!years.length && !['about','sisters'].includes(P.tab)) body += `<div class="empty">No Dashboard data loaded yet. <a href="#" data-open-data>Load Dashboard data</a>.</div>`;
-  else {
-    const y = S.dashYear;
-    body += P.tab === 'summary' ? perfSummary(y) : PERF_IND_TABS.includes(P.tab) ? perfIndicator(P.tab, y)
-      : P.tab === 'overview' ? perfOverview(y) : P.tab === 'indsum' ? perfIndSummary(y) : P.tab === 'grpsum' ? perfGrpSummary(y)
-      : P.tab === 'redorange' ? perfRedOrange(y) : P.tab === 'sisters' ? perfSisters() : P.tab === 'years' ? perfYears() : perfAbout();
-  }
-  body += `<p class="note">Source: California Department of Education, CA School Dashboard downloadable data files.${EMBED ? ` Built-in data downloaded ${esc(dataDate())}.` : ''}</p>`;
-  return `<div class="perf-layout">${nav}<div>${body}</div></div>`;
 }
 
 /* ---- Navigation: county -> district -> school, with readable, bookmarkable addresses ---- */
@@ -1762,16 +1369,15 @@ function slugOf(cds){
   const mine = dup ? own + '-' + cds.slice(-7) : own;
   return lvl === 'district' ? mine : slugOf(distKey(cds)) + '--' + mine;
 }
-const parseKey = k => { const m = String(k).match(/^(lcap|sisters|perf):(.*)$/); return m ? {cds:m[2], page:m[1]} : {cds:String(k), page:''}; };
+const parseKey = k => { const m = String(k).match(/^(lcap|sisters):(.*)$/); return m ? {cds:m[2], page:m[1]} : {cds:String(k), page:''}; };
 const viewKey = () => (S.page ? S.page + ':' : '') + S.view;
 // Addresses use only letters, digits and hyphens ("#district--school", "#district--lcap") so they survive being shared.
-const hrefOf = k => { const {cds, page} = parseKey(k); if (page === 'perf') return perfHref('summary'); return '#' + (slugOf(cds) || '') + (page ? '--' + page : ''); };
+const hrefOf = k => { const {cds, page} = parseKey(k); return '#' + (slugOf(cds) || '') + (page ? '--' + page : ''); };
 function cdsFromHash(hash){
   // Older links used "/" between levels; read them the same way.
   const h = decodeURIComponent((hash || '').replace(/^#\/?/, '')).trim().toLowerCase().replace(/\/+/g, '--');
   if (!h) return COUNTY_KEY;
   if (/^\d{14}$/.test(h)) return h;
-  { const m = h.match(/^dashboard-performance(?:--([a-z]+))?$/); if (m){ S.perf.tab = PERF_TABS[m[1]] ? m[1] : 'summary'; return PERF_KEY; } }
   if (h.endsWith('--lcap')){ const d = cdsFromHash('#' + h.slice(0, -6)); return d && levelOf(d) === 'district' ? 'lcap:' + d : null; }
   if (h.endsWith('--sisters')){ const d = cdsFromHash('#' + h.slice(0, -9)); return d && /^(district|school)$/.test(levelOf(d)) ? 'sisters:' + d : null; }
   for (const d of entities()){
@@ -1813,11 +1419,6 @@ function navSection(cds){
 
 function renderPage(){
   const cds = S.view;
-  if (S.page === 'perf'){
-    $('#main').innerHTML = perfPage();
-    document.title = (S.perf.tab !== 'summary' ? PERF_TABS[S.perf.tab] + ' · ' : '') + 'Dashboard Performance · Modoc County Data Hub';
-    return;
-  }
   if (S.page === 'lcap' && levelOf(cds) === 'district'){
     $('#main').innerHTML = lcapPage(cds);
     document.title = entityName(cds) + ' LCAP data · Modoc County Data Hub';
@@ -1850,7 +1451,7 @@ function renderPage(){
 
 function renderEntitySelect(){
   const sel = $('#entitySel');
-  let h = `<option value="${COUNTY_KEY}">Modoc County (all LEAs)</option><option value="${PERF_KEY}">Modoc County — Dashboard Performance</option>`;
+  let h = `<option value="${COUNTY_KEY}">Modoc County (all LEAs)</option>`;
   for (const d of entities()){
     h += `<optgroup label="${esc(entityName(d.cds))}"><option value="${d.cds}">${esc(entityName(d.cds))} — district</option>`;
     if (EMBED && ((EMBED.lcap || {})[d.cds] || (EMBED.local || {})[d.cds])) h += `<option value="lcap:${d.cds}">  ${esc(entityName(d.cds))} — LCAP data</option>`;
@@ -1946,8 +1547,6 @@ $('#main').addEventListener('click', e => {
   const open = e.target.closest('[data-open-data]'); if (open){ e.preventDefault(); openDrawer(true); return; }
   const gapBtn = e.target.closest('[data-gap-ind]');
   if (gapBtn){ S.gapInd = gapBtn.dataset.gapInd; const el = $('#gapChart'); if (el) el.outerHTML = gapChart(S.dashYear); const nb = document.querySelector(`[data-gap-ind="${S.gapInd}"]`); if (nb) nb.focus(); return; }
-  const ps = e.target.closest('[data-perf-set]');
-  if (ps){ const [k, v] = ps.dataset.perfSet.split(':'); S.perf[k] = v; renderPage(); const nb = document.querySelector(`[data-perf-set="${k}:${v}"]`); if (nb) nb.focus(); return; }
   const jump = e.target.closest('a[data-jump]');
   if (jump){ e.preventDefault(); const t = document.querySelector(jump.getAttribute('href')); if (t) t.scrollIntoView({behavior:'smooth'}); return; }
   if (e.target.closest('a[href]')) return;          // real links navigate themselves
@@ -1958,7 +1557,6 @@ $('#main').addEventListener('change', e => {
   if (e.target.matches('[data-year="dash"]')){ S.dashYear = Number(e.target.value); renderPage(); }
   if (e.target.matches('[data-year="ca"]')){ S.caYear = Number(e.target.value); renderPage(); }
   if (e.target.matches('[data-year="el"]')){ S.elYear = Number(e.target.value); renderPage(); }
-  if (e.target.matches('[data-perf]')){ S.perf[e.target.dataset.perf] = e.target.value; renderPage(); const el = document.querySelector(`[data-perf="${e.target.dataset.perf}"]`); if (el) el.focus(); }
   if (e.target.id === 'showSchools'){ S.showSchools = e.target.checked; renderPage(); }
 });
 // Tooltip

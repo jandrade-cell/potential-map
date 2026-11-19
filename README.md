@@ -22,23 +22,6 @@ Every page has its own address that can be bookmarked or shared, for example
 `Modoc County Data Hub.html#modoc-joint-unified` or `…#modoc-joint-unified--modoc-high`. The browser's Back button
 works, and the **View** menu jumps to any page.
 
-The county and district pages also have a **Dashboard Performance** button (`…#dashboard-performance`). It opens a
-report on Modoc's CA School Dashboard results, laid out like the county office "Dashboard Performance" reports.
-The menu on the left opens each page, and each page has its own address, such as `…#dashboard-performance--ela`.
-
-- **Dashboard summary:** how many results are Red, Orange, Yellow, Green and Blue, for each year. Then a table with a row for each district or school
-  and student group, and a column for each indicator, filled with its color.
-- **One page for each indicator** (ELA, Math, English Learner Progress, Graduation, Chronic Absenteeism, Suspensions,
-  College/Career, Science). It shows **Status** or **Change** as bars colored by performance level, ranked by
-  **district**, by **school**, or by **student group** within a chosen district and school, with the statewide result.
-- **County overview:** for each student group and indicator, the share of Modoc districts or schools in Red or Orange.
-- **Indicator summary** and **Student group summary:** percent of districts or schools at each color.
-- **Red & Orange list:** every Red or Orange result, with its student group and indicator.
-- **Similar schools** (links to the sister pages), **Indicators by year** and **About the data**.
-
-The hub works offline, so the report has no map. It also has no charter page, because Modoc has no charter schools in the Dashboard files.
-It does not determine Differentiated Assistance eligibility.
-
 Each district page also has an **LCAP data** button (for example `…#modoc-joint-unified--lcap`). It opens a page
 with the district's most recent results for LCAP planning:
 
@@ -62,6 +45,36 @@ Notes:
   Developing (Nearly Met), Minimal (Not Met). The meanings did not change. The hub reads both file layouts,
   so 2025 and 2026 results line up in the trend charts.
 - ELPAC results show the four overall performance levels. Level 4 (Well developed) is the reclassification criterion.
+
+## Dashboard Performance (separate page, in review)
+
+`Modoc Dashboard Performance.html` is a separate single-file page for team review. It doesn't change the hub.
+It opens on a report of Modoc's CA School Dashboard results, laid out like the county office "Dashboard Performance"
+reports. The menu on the left opens each page, and each page has its own address, such as `…#dashboard-performance--ela`.
+
+- **Dashboard summary:** how many results are Red, Orange, Yellow, Green and Blue, for each year. Then a table with a row
+  for each district or school and student group, and a column for each indicator, filled with its color. The last
+  column is the **Universal Support Priority** status.
+- **One page for each indicator** (ELA, Math, English Learner Progress, Graduation, Chronic Absenteeism, Suspensions,
+  College/Career, Science). It shows **Status** or **Change** as bars colored by performance level, ranked by
+  **district**, by **school**, or by **student group** within a chosen district and school, with the statewide result.
+- **Support status:** CDE's LCFF Universal Support Priority file: which LEAs and student groups met the criteria, and on
+  which indicators. Those indicators are outlined in the summary table, and districts that met the criteria show it on
+  their district and LCAP pages.
+- **County overview:** for each student group and indicator, the share of Modoc districts or schools in Red or Orange.
+- **Indicator summary** and **Student group summary:** percent of districts or schools at each color.
+- **Red & Orange list:** every Red or Orange result, with its student group and indicator.
+- **Similar schools** (links to the sister pages), **Indicators by year** and **About the data**.
+
+The page also has the hub's county, district and school pages, because the report's links open them.
+The county page is at `…#county`. The page works offline, so it has no map. It has no charter page, because Modoc has
+no charter schools in the Dashboard files.
+
+**Universal Support Priority file.** CDE publishes it each November (for example `uspassistancestatus26.xlsx`). Upload
+it to the `data/support/` folder and run **Refresh built-in data**. The newest file is used. On a computer:
+`python3 tools/build_data.py --only support --html "Modoc Dashboard Performance.html"`.
+
+The **Refresh built-in data** workflow updates both pages.
 
 ## Shared web page
 
