@@ -1863,6 +1863,8 @@ function perfPage(){
   if (!years.length && !['about','sisters','support'].includes(P.tab)) body += `<div class="empty">No Dashboard data loaded yet. <a href="#" data-open-data>Load Dashboard data</a>.</div>`;
   else {
     const y = S.dashYear;
+    // The landing page leads with a card for each district, as the county page does.
+    if (P.tab === 'summary') body += navSection(COUNTY_KEY).replace('Choose a district to see its results and its schools', 'Open a district to see its results, its schools and its LCAP data');
     body += P.tab === 'summary' ? perfSummary(y) : PERF_IND_TABS.includes(P.tab) ? perfIndicator(P.tab, y)
       : P.tab === 'support' ? perfSupport() : P.tab === 'overview' ? perfOverview(y) : P.tab === 'indsum' ? perfIndSummary(y) : P.tab === 'grpsum' ? perfGrpSummary(y)
       : P.tab === 'redorange' ? perfRedOrange(y) : P.tab === 'sisters' ? perfSisters() : P.tab === 'years' ? perfYears() : perfAbout();

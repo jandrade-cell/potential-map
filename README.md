@@ -51,7 +51,7 @@ Notes:
 The hub opens on **Dashboard Performance**, a report of Modoc's CA School Dashboard results laid out like the county
 office "Dashboard Performance" reports. The menu on the left opens each page, and each page has its own address, such as `…#dashboard-performance--ela`.
 
-- **Dashboard summary:** how many results are Red, Orange, Yellow, Green and Blue, for each year. Then a table with a row
+- **Dashboard summary** (the landing page): a card for each district at the top, which opens that district's page. Then how many results are Red, Orange, Yellow, Green and Blue, for each year. Then a table with a row
   for each district or school and student group, and a column for each indicator, filled with its color. The last
   column is the **Universal Support Priority** status.
 - **One page for each indicator** (ELA, Math, English Learner Progress, Graduation, Chronic Absenteeism, Suspensions,
