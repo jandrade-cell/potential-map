@@ -39,12 +39,12 @@ jobs:
 
       - name: Commit if the data changed
         run: |
-          if git diff --quiet -- "Modoc County Data Hub.html" && [ -z "$(git status --porcelain data/lcap)" ]; then
+          if git diff --quiet -- "Modoc County Data Hub.html" && [ -z "$(git status --porcelain data/lcap data/support)" ]; then
             echo "No new data published."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "Modoc County Data Hub.html" data/lcap
+          git add "Modoc County Data Hub.html" data/lcap data/support
           git commit -m "Refresh built-in data from CDE and ETS"
           git push

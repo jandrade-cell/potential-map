@@ -740,7 +740,86 @@ def load_sisters(peers=5):
     return result
 
 
-SECTIONS = ('dash', 'tests', 'local', 'lcap', 'sisters')
+
+# ---- Support status: CDE's LCFF Universal Support Priority file, saved in data/support ----
+SUPPORT_DIR = Path(__file__).resolve().parent.parent / 'data' / 'support'
+SUPPORT_INDS = {'elamet': 'ela', 'mathmet': 'math', 'elpimet': 'elpi', 'gradmet': 'grad',
+                'suspensionmet': 'susp', 'chronicmet': 'chronic', 'ccimet': 'cci', 'sciencemet': 'sci'}
+SUPPORT_GROUPS = {'TOM': 'MR'}   # the file's code for Two or More Races; the hub uses the Dashboard's MR
+
+
+def xlsx_sheets(path):
+    """Read every sheet of an .xlsx file as lists of cell values (text), using only the standard library."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+    ns = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
+          'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
+    with zipfile.ZipFile(path) as z:
+        shared = []
+        if 'xl/sharedStrings.xml' in z.namelist():
+            for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall('m:si', ns):
+                shared.append(''.join(t.text or '' for t in si.iter('{%s}t' % ns['m'])))
+        rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
+        out = {}
+        for sh in ET.fromstring(z.read('xl/workbook.xml')).find('m:sheets', ns):
+            target = rels[sh.get('{%s}id' % ns['r'])].lstrip('/')
+            target = target if target.startswith('xl/') else 'xl/' + target
+            rows = []
+            for row in ET.fromstring(z.read(target)).iter('{%s}row' % ns['m']):
+                vals = {}
+                for c in row.findall('m:c', ns):
+                    ref = re.match(r'([A-Z]+)', c.get('r')).group(1)
+                    col = 0
+                    for ch in ref:
+                        col = col * 26 + ord(ch) - 64
+                    v = c.find('m:v', ns)
+                    if c.get('t') == 's' and v is not None:
+                        val = shared[int(v.text)]
+                    elif c.get('t') == 'inlineStr':
+                        val = ''.join(t.text or '' for t in c.iter('{%s}t' % ns['m']))
+                    else:
+                        val = v.text if v is not None else None
+                    vals[col - 1] = val
+                rows.append([vals.get(i) for i in range(max(vals) + 1)] if vals else [])
+            out[sh.get('name')] = rows
+    return out
+
+
+def load_support():
+    """Modoc rows of the newest Universal Support Priority file in data/support (uspassistancestatusYY*.xlsx)."""
+    files = sorted(SUPPORT_DIR.glob('*.xlsx'))
+    if not files:
+        log('  no files in data/support')
+        return {}
+    def year_of(p):
+        m = re.search(r'(\d{2})(?:\D|$)', p.stem.replace('uspassistancestatus', ''))
+        return 2000 + int(m.group(1)) if m else 0
+    path = max(files, key=lambda p: (year_of(p), p.name))
+    result = {'source': path.name, 'year': year_of(path) or None, 'leas': {}, 'groups': {}}
+    for name, rows in xlsx_sheets(path).items():
+        hdr_i = next((i for i, r in enumerate(rows[:15]) if r and 'cds' in [str(x).strip().lower() for x in r if x]), None)
+        if hdr_i is None:
+            continue
+        hdr = [str(x or '').strip().lower() for x in rows[hdr_i]]
+        for r in rows[hdr_i + 1:]:
+            rec = {h: (r[i] if i < len(r) else None) for i, h in enumerate(hdr) if h}
+            cds = str(rec.get('cds') or '').strip()
+            if not cds.startswith(COUNTY):
+                continue
+            if 'metpriorityuniversalsupport' in rec:
+                result['leas'][cds] = {'name': rec.get('leaname'), 'groups': int(float(rec.get('totalstudentgroups') or 0)),
+                                       'met': str(rec.get('metpriorityuniversalsupport')).strip().upper() == 'Y'}
+                if rec.get('reportingyear'):
+                    result['year'] = int(float(rec['reportingyear']))
+            elif 'studentgroup' in rec:
+                g = str(rec['studentgroup']).strip().upper()
+                met = [ind for k, ind in SUPPORT_INDS.items() if str(rec.get(k) or '0').strip() in ('1', '1.0')]
+                result['groups'].setdefault(cds, []).append({'g': SUPPORT_GROUPS.get(g, g), 'met': met})
+    log(f'  {path.name}: {len(result["leas"])} Modoc LEAs, {sum(1 for v in result["leas"].values() if v["met"])} met the criteria')
+    return result
+
+
+SECTIONS = ('dash', 'tests', 'local', 'lcap', 'sisters', 'support')
 
 
 def main():
@@ -815,6 +894,12 @@ def main():
         payload['lcap'] = load_lcap()
     else:
         payload['lcap'] = old.get('lcap', {})
+
+    if 'support' in only:
+        log('Support status (data/support):')
+        payload['support'] = load_support()
+    else:
+        payload['support'] = old.get('support', {})
 
     if 'sisters' in only:
         payload['sisters'] = load_sisters()
